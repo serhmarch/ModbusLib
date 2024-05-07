@@ -20,27 +20,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#ifndef MODBUSPORTASC_H
-#define MODBUSPORTASC_H
+#ifndef MODBUSRTUPORT_H
+#define MODBUSRTUPORT_H
 
-#include "ModbusPortSerial.h"
+#include "ModbusSerialPort.h"
 
-namespace Modbus {
-
-class MODBUS_EXPORT PortASC : public PortSerial
+class MODBUS_EXPORT ModbusRtuPort : public ModbusSerialPort
 {
 public:
-    PortASC(bool blocking = false);
-    ~PortASC();
+    ModbusRtuPort(bool blocking = false);
+    ~ModbusRtuPort();
 
 public:
-    Type type() const override { return ASC; }
+    Modbus::Type type() const override { return Modbus::RTU; }
 
 protected:
-    StatusCode writeBuffer(uint8_t slave, uint8_t func, uint8_t *buff, uint16_t szInBuff) override;
-    StatusCode readBuffer(uint8_t &slave, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff) override;
+    Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff) override;
+    Modbus::StatusCode readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff) override;
+
+protected:
+    using ModbusSerialPort::ModbusSerialPort;
 };
 
-} // namespace Modbus
-
-#endif // MODBUSPORTASC_H
+#endif // MODBUSRTUPORT_H

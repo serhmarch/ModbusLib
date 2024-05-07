@@ -1,152 +1,182 @@
 #include "ModbusClientPort.h"
+#include "ModbusClientPort_p.h"
 
 #include "ModbusPort.h"
 
-namespace Modbus {
-
-struct ClientPort::RequestParams
+struct ModbusClientPort::RequestParams
 {
     void *object;
 };
 
-ClientPort::ClientPort(Port *port)
+ModbusClientPort::ModbusClientPort(ModbusPort *port) :
+    ModbusObject(new ModbusClientPortPrivate)
 {
-    m_state = STATE_UNKNOWN;
-    m_currentClient = nullptr;
     port->setServerMode(false);
-    m_port = port;
-    m_repeats = 0;
-    m_settings.repeatCount = 1;
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    d->state = STATE_UNKNOWN;
+    d->currentClient = nullptr;
+    d->port = port;
+    d->repeats = 0;
+    d->settings.repeatCount = 1;
 }
 
-ClientPort::~ClientPort()
+ModbusClientPort::~ModbusClientPort()
 {
-    delete m_port;
+    delete d_ModbusClientPort(d_ptr)->port;
 }
 
-Type ClientPort::type() const
+Modbus::Type ModbusClientPort::type() const
 {
-    return m_port->type();
+    return d_ModbusClientPort(d_ptr)->port->type();
 }
 
-StatusCode ClientPort::close()
+Modbus::StatusCode ModbusClientPort::close()
 {
-    StatusCode s = Status_Good;
-    if (m_port->isOpen())
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    Modbus::StatusCode s = Status_Good;
+    if (d->port->isOpen())
     {
-        s = m_port->close();
-        m_currentClient = nullptr;
+        s = d->port->close();
+        d->currentClient = nullptr;
     }
     return s;
 }
 
-bool ClientPort::isOpen() const
+bool ModbusClientPort::isOpen() const
 {
-    return m_port->isOpen();
+    return d_ModbusClientPort(d_ptr)->port->isOpen();
 }
 
-StatusCode ClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
+uint32_t ModbusClientPort::repeatCount() const
 {
-    m_port->writeBuffer(unit, func, buff, szInBuff);
-    StatusCode r = process();
+    return d_ModbusClientPort(d_ptr)->settings.repeatCount;
+}
+
+void ModbusClientPort::setRepeatCount(uint32_t v)
+{
+    if (v > 0)
+        d_ModbusClientPort(d_ptr)->settings.repeatCount = v;
+}
+
+ModbusPort *ModbusClientPort::port() const
+{
+    return d_ModbusClientPort(d_ptr)->port;
+}
+
+Modbus::StatusCode ModbusClientPort::lastStatus() const
+{
+    return d_ModbusClientPort(d_ptr)->lastStatus;
+}
+
+const Char *ModbusClientPort::lastErrorText() const
+{
+    return d_ModbusClientPort(d_ptr)->port->lastErrorText();
+}
+
+Modbus::StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    d->port->writeBuffer(unit, func, buff, szInBuff);
+    Modbus::StatusCode r = process();
     if (r == Status_Processing)
         return r;
     if (StatusIsBad(r))
     {
-        setStatus(r);
-        m_repeats++;
-        if (m_repeats < m_settings.repeatCount)
+        d->setStatus(r);
+        d->repeats++;
+        if (d->repeats < d->settings.repeatCount)
         {
-            m_port->setNextRequestRepeated(true);
+            d->port->setNextRequestRepeated(true);
             return Status_Processing;
         }
     }
-    m_repeats = 0;
-    m_currentClient = nullptr;
+    d->repeats = 0;
+    d->currentClient = nullptr;
     if (StatusIsBad(r))
     {
-        setStatus(r);
+        d->setStatus(r);
         return r;
     }
-    r = m_port->readBuffer(unit, func, buff, maxSzBuff, szOutBuff);
-    setStatus(r);
+    r = d->port->readBuffer(unit, func, buff, maxSzBuff, szOutBuff);
+    d->setStatus(r);
     return r;
 }
 
-StatusCode ClientPort::process()
+Modbus::StatusCode ModbusClientPort::process()
 {
-    StatusCode r;
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    Modbus::StatusCode r;
     bool fRepeatAgain;
     do
     {
         fRepeatAgain = false;
-        switch (m_state)
+        switch (d->state)
         {
         case STATE_BEGIN:
         case STATE_CLOSED:
         case STATE_WAIT_FOR_OPEN:
-            r = m_port->open();
+            r = d->port->open();
             if (r != Status_Good) // if not OK it's mean that an error occured or in process
             {
                 if (r != Status_Processing) // an error occured
-                    m_port->freeWriteBuffer(); // mark the buffer is free to store new data
+                    d->port->freeWriteBuffer(); // mark the buffer is free to store new data
                 return r;
             }
-            m_state = STATE_OPENED;
+            d->state = STATE_OPENED;
             fRepeatAgain = true;
             break;
         case STATE_WAIT_FOR_CLOSE:
-            r = m_port->close();
+            r = d->port->close();
             if (r != Status_Good) // if not OK it's mean that an error occured or in process
                 return r;
-            m_state = STATE_CLOSED;
+            d->state = STATE_CLOSED;
             //fRepeatAgain = true;
             break;
         case STATE_OPENED:
         case STATE_BEGIN_WRITE:
             // send data to server
-            if (m_port->isChanged())
+            if (d->port->isChanged())
             {
-                m_state = STATE_WAIT_FOR_CLOSE;
+                d->state = STATE_WAIT_FOR_CLOSE;
                 fRepeatAgain = true;
                 break;
             }
-            if (!m_port->isOpen())
+            if (!d->port->isOpen())
             {
-                m_state = STATE_CLOSED;
+                d->state = STATE_CLOSED;
                 fRepeatAgain = true;
                 break;
             }
-            m_state = STATE_WRITE;
+            d->state = STATE_WRITE;
             // no need break
         case STATE_WRITE:
-            r = m_port->write();
+            r = d->port->write();
             if (r != Status_Good) // if not OK it's mean that an error occured or in process
             {
                 if (r != Status_Processing) // an error occured
                 {
-                    m_state = STATE_BEGIN_WRITE;
-                    m_port->freeWriteBuffer(); // mark the buffer is free to store new data
+                    d->state = STATE_BEGIN_WRITE;
+                    d->port->freeWriteBuffer(); // mark the buffer is free to store new data
                 }
                 return r;
             }
-            m_state = STATE_BEGIN_READ;
+            d->state = STATE_BEGIN_READ;
             // no need break
         case STATE_BEGIN_READ:
         case STATE_READ:
-            r = m_port->read();
+            r = d->port->read();
             if (r != Status_Processing) // if process finished (Good or Bad)
             {
-                m_port->freeWriteBuffer(); // mark the buffer is free to store new data
-                m_state = STATE_BEGIN_WRITE;
+                d->port->freeWriteBuffer(); // mark the buffer is free to store new data
+                d->state = STATE_BEGIN_WRITE;
                 return r;
             }
             break;
         default:
-            if (m_port->isOpen())
-                m_state = STATE_OPENED;
+            if (d->port->isOpen())
+                d->state = STATE_OPENED;
             else
-                m_state = STATE_CLOSED;
+                d->state = STATE_CLOSED;
             fRepeatAgain = true;
             break;
         }
@@ -155,37 +185,42 @@ StatusCode ClientPort::process()
     return Status_Processing;
 }
 
-ClientPort::RequestParams *ClientPort::createRequestParams(void *obj)
+const void *ModbusClientPort::currentClient() const
+{
+    return d_ModbusClientPort(d_ptr)->currentClient;
+}
+
+ModbusClientPort::RequestParams *ModbusClientPort::createRequestParams(void *obj)
 {
     RequestParams *rp = new RequestParams;
     rp->object = obj;
     return rp;
 }
 
-void ClientPort::deleteRequestParams(RequestParams *rp)
+void ModbusClientPort::deleteRequestParams(RequestParams *rp)
 {
     delete rp;
 }
 
-ClientPort::RequestStatus ClientPort::getRequestStatus(RequestParams *rp)
+ModbusClientPort::RequestStatus ModbusClientPort::getRequestStatus(RequestParams *rp)
 {
-    if (m_currentClient)
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    if (d->currentClient)
     {
-        if (m_currentClient == rp->object)
+        if (d->currentClient == rp->object)
             return Process;
         return Disable;
     }
     else
     {
-        m_currentClient = rp->object;
+        d->currentClient = rp->object;
         return Enable;
     }
 }
 
-void ClientPort::cancelRequest(RequestParams* rp)
+void ModbusClientPort::cancelRequest(RequestParams* rp)
 {
-    if (m_currentClient == rp->object)
-        m_currentClient = nullptr;
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    if (d->currentClient == rp->object)
+        d->currentClient = nullptr;
 }
-
-} // namespace Chain 

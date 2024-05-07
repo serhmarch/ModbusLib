@@ -1,14 +1,15 @@
 /*!
  * \file   Modbus.h
  * \brief  Contains general definitions of the Modbus protocol.
- * 
- * \author march
- * \date   April 2024
+ *
+ * \author serhmarch
+ * \date   May 2024
  */
 #ifndef MODBUS_H
 #define MODBUS_H
 
 #include <stdint.h>
+#include <string.h>
 #include <string>
 
 #include "Modbus_platform.h"
@@ -104,10 +105,10 @@
 // 1 byte(unit)+1 byte(function)+256 bytes(maximum data length e.g. readCoils etc)+2 bytes(CRC)
 #define MB_RTU_IO_BUFF_SZ 260
 
-// 1 byte(start symbol ':')+(1 byte(slave)+1 byte(function)+256 bytes(maximum data length e.g. readCoils etc)+1 byte(LRC) )*2+2 bytes(CR+LF)
+// 1 byte(start symbol ':')+(1 byte(unit)+1 byte(function)+256 bytes(maximum data length e.g. readCoils etc)+1 byte(LRC) )*2+2 bytes(CR+LF)
 #define MB_ASC_IO_BUFF_SZ 521
 
-// 6 bytes(tcp-prefix)+1 byte(slave)+1 byte(function)+256 bytes(maximum data length e.g. readCoils etc)
+// 6 bytes(tcp-prefix)+1 byte(unit)+1 byte(function)+256 bytes(maximum data length e.g. readCoils etc)
 #define MB_TCP_IO_BUFF_SZ 264
 
 // --------------------------------------------------------------------------------------------------------
@@ -120,6 +121,7 @@ namespace Modbus {
 typedef void* Handle;
 typedef char Char;
 typedef std::string String;
+typedef uint32_t Timer;
 
 /// \details Convert interger value to Modbus::String
 /// \returns Returns new Modbus::String value
@@ -170,9 +172,9 @@ enum StatusCode
     Status_BadIllegalFunction                    = Status_Bad | 0x01, ///< Standard error. The feature is not supported
     Status_BadIllegalDataAddress                 = Status_Bad | 0x02, ///< Standard error. Invalid data address
     Status_BadIllegalDataValue                   = Status_Bad | 0x03, ///< Standard error. Invalid data value
-    Status_BadSlaveDeviceFailure                 = Status_Bad | 0x04, ///< Standard error. Failure during a specified operation
+    Status_BadServerDeviceFailure                = Status_Bad | 0x04, ///< Standard error. Failure during a specified operation
     Status_BadAcknowledge                        = Status_Bad | 0x05, ///< Standard error. The server has accepted the request and is processing it, but it will take a long time
-    Status_BadSlaveDeviceBusy                    = Status_Bad | 0x06, ///< Standard error. The server is busy processing a long command. The request must be repeated later
+    Status_BadServerDeviceBusy                   = Status_Bad | 0x06, ///< Standard error. The server is busy processing a long command. The request must be repeated later
     Status_BadNegativeAcknowledge                = Status_Bad | 0x07, ///< Standard error. The programming function cannot be performed
     Status_BadMemoryParityError                  = Status_Bad | 0x08, ///< Standard error. The server attempted to read a record file but detected a parity error in memory
     Status_BadGatewayPathUnavailable             = Status_Bad | 0x0A, ///< Standard error. Indicates that the gateway was unable to allocate an internal communication path from the input port o the output port for processing the request. Usually means that the gateway is misconfigured or overloaded
@@ -314,24 +316,24 @@ MODBUS_EXPORT String asciiToString(const uint8_t* buff, uint32_t count);
 /// \details Make current  thread sleep with 'msec' milliseconds.
 MODBUS_EXPORT void msleep(uint32_t msec);
 
+} //namespace Modbus
+
 // --------------------------------------------------------------------------------------------------------
 // ------------------------------------------- Modbus interface -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-class Interface
+class ModbusInterface
 {
 public:
-    virtual StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values) = 0;
-    virtual StatusCode readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values) = 0;
-    virtual StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) = 0;
-    virtual StatusCode readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) = 0;
-    virtual StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value) = 0;
-    virtual StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value) = 0;
-    virtual StatusCode readExceptionStatus(uint8_t unit, uint8_t *status) = 0;
-    virtual StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values) = 0;
-    virtual StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) = 0;
+    virtual Modbus::StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values) = 0;
+    virtual Modbus::StatusCode readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values) = 0;
+    virtual Modbus::StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) = 0;
+    virtual Modbus::StatusCode readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) = 0;
+    virtual Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value) = 0;
+    virtual Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value) = 0;
+    virtual Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *status) = 0;
+    virtual Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values) = 0;
+    virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) = 0;
 };
-
-} //namespace Modbus
 
 #endif // MODBUS_H

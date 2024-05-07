@@ -21,19 +21,14 @@
 
 */
 #include "ModbusServerPort.h"
+#include "ModbusServerPort_p.h"
 
-namespace Modbus {
-
-ServerPort::ServerPort(Interface *device)
+ModbusInterface *ModbusServerPort::device() const
 {
-    m_state = STATE_UNKNOWN;
-    m_cmdClose = false;
-    m_device = device;
+    return d_ModbusServerPort(d_ptr)->device;
 }
 
-ServerPort::~ServerPort()
+bool ModbusServerPort::isStateClosed() const
 {
+    return d_ModbusServerPort(d_ptr)->isStateClosed();
 }
-
-} // namespace Modbus
-

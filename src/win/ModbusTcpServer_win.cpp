@@ -20,57 +20,37 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "../ModbusServerTCP.h"
+#include "../ModbusTcpServer.h"
 
-#include "../ModbusServerResource.h"
-#include "../ModbusPortTCP.h"
-#include "ModbusTCP_win.h"
+#include "ModbusTcpServer_p_win.h"
 
-namespace Modbus {
-
-struct ServerTCP::PlatformData
+ModbusTcpServer::ModbusTcpServer(ModbusInterface *device) :
+    ModbusServerPort(new ModbusTcpServerPrivateWin(device))
 {
-    TCPSocket *socket;
-};
-
-
-void ServerTCP::constructorPrivate()
-{
-    WSADATA data;
-    WSAStartup(0x202, &data);
-
-    m_platformData = new PlatformData;
-    m_platformData->socket = new TCPSocket;
 }
 
-void ServerTCP::destructorPrivate()
+StatusCode ModbusTcpServer::open()
 {
-    delete m_platformData->socket;
-    delete m_platformData;
-    WSACleanup();
-}
-
-StatusCode ServerTCP::open()
-{
+    ModbusTcpServerPrivateWin *d = d_win(d_ptr);
     bool fRepeatAgain;
     do
     {
         fRepeatAgain = false;
-        switch (m_state)
+        switch (d->state)
         {
         case STATE_CLOSED:
         case STATE_WAIT_FOR_OPEN:
         {
             if (isOpen())
             {
-                m_state = STATE_OPENED;
+                d->state = STATE_OPENED;
                 return Status_Good;
             }
 
-            m_platformData->socket->create(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-            if (m_platformData->socket->isInvalid())
+            d->socket->create(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            if (d->socket->isInvalid())
             {
-                m_state = STATE_CLOSED;
+                d->state = STATE_CLOSED;
                 return Status_BadTcpCreate;
             }
 
@@ -78,29 +58,29 @@ StatusCode ServerTCP::open()
             sockaddr_in serverAddr;
             serverAddr.sin_family = AF_INET;
             serverAddr.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any available interface
-            serverAddr.sin_port = htons(m_tcpPort); // Port number
+            serverAddr.sin_port = htons(d->tcpPort); // Port number
 
-            if (m_platformData->socket->bind((sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
+            if (d->socket->bind((sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
             {
-                m_platformData->socket->close();
-                m_state = STATE_CLOSED;
+                d->socket->close();
+                d->state = STATE_CLOSED;
                 return Status_BadTcpBind;
             }
 
             // Listen on the socket
-            if (m_platformData->socket->listen(SOMAXCONN) == SOCKET_ERROR)
+            if (d->socket->listen(SOMAXCONN) == SOCKET_ERROR)
             {
-                m_platformData->socket->close();
-                m_state = STATE_CLOSED;
+                d->socket->close();
+                d->state = STATE_CLOSED;
                 return Status_BadTcpListen;
             }
-            m_platformData->socket->setBlocking(false);
+            d->socket->setBlocking(false);
         }
             return Status_Good;
         default:
             if (!isOpen())
             {
-                m_state = STATE_CLOSED;
+                d->state = STATE_CLOSED;
                 fRepeatAgain = true;
                 break;
             }
@@ -111,17 +91,18 @@ StatusCode ServerTCP::open()
     return Status_Processing;
 }
 
-StatusCode ServerTCP::close()
+StatusCode ModbusTcpServer::close()
 {
+    ModbusTcpServerPrivateWin *d = d_win(d_ptr);
     if (isOpen())
-        m_platformData->socket->close();
-    m_cmdClose = true;
-    for (ServerPort *c : m_connections)
+        d->socket->close();
+    d->cmdClose = true;
+    for (ModbusServerPort *c : d->connections)
         c->close();
-    switch (m_state)
+    switch (d->state)
     {
     case STATE_WAIT_FOR_CLOSE:
-        for (ServerPort *c : m_connections)
+        for (ModbusServerPort *c : d->connections)
         {
             c->process();
             if (!c->isStateClosed())
@@ -134,37 +115,29 @@ StatusCode ServerTCP::close()
     return Status_Good;
 }
 
-bool ServerTCP::isOpen() const
+bool ModbusTcpServer::isOpen() const
 {
-    return m_platformData->socket->isValid();
+    return d_win(d_ptr)->socket->isValid();
 }
 
-TCPSocket *ServerTCP::nextPendingConnection()
+ModbusTcpSocket *ModbusTcpServer::nextPendingConnection()
 {
+    ModbusTcpServerPrivateWin *d = d_win(d_ptr);
     // Accept the incoming connection
     sockaddr_in clientAddr;
     int clientAddrSize = sizeof(clientAddr);
-    SOCKET clientSocket = m_platformData->socket->accept((sockaddr*)&clientAddr, &clientAddrSize);
+    SOCKET clientSocket = d->socket->accept((sockaddr*)&clientAddr, &clientAddrSize);
     if (clientSocket == INVALID_SOCKET)
     {
         if (WSAGetLastError() != WSAEWOULDBLOCK)
         {
-            m_platformData->socket->close();
-            m_state = STATE_CLOSED;
+            d->socket->close();
+            d->state = STATE_CLOSED;
         }
         return nullptr;
     }
 
-    TCPSocket *tcp = new TCPSocket(clientSocket);
+    ModbusTcpSocket *tcp = new ModbusTcpSocket(clientSocket);
     return tcp;
 }
 
-ServerPort *ServerTCP::createPortTCP(TCPSocket *socket)
-{
-    PortTCP *tcp = new PortTCP(socket);
-    ServerResource *port = new ServerResource(tcp, device());
-    //port->setName(socket->localAddress().toString());
-    return port;
-}
-
-} // namespace Modbus

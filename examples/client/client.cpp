@@ -5,9 +5,9 @@
 
 #include <ModbusClient.h>
 #include <ModbusClientPort.h>
-#include <ModbusPortTCP.h>
-#include <ModbusPortRTU.h>
-#include <ModbusPortASC.h>
+#include <ModbusTcpPort.h>
+#include <ModbusRtuPort.h>
+#include <ModbusAscPort.h>
 
 void printRegs(int count, const void *buff)
 {
@@ -63,8 +63,8 @@ struct Options
 
     Options()
     {
-        const Modbus::PortTCP   ::Defaults &dTCP = Modbus::PortTCP   ::Defaults::instance();
-        const Modbus::PortSerial::Defaults &dSer = Modbus::PortSerial::Defaults::instance();
+        const ModbusTcpPort   ::Defaults &dTCP = ModbusTcpPort   ::Defaults::instance();
+        const ModbusSerialPort::Defaults &dSer = ModbusSerialPort::Defaults::instance();
 
         type            = Modbus::TCP;
         host            = dTCP.host             ;
@@ -232,13 +232,13 @@ int main(int argc, char **argv)
     parseOptions(argc, argv);
 
     bool synch = false;
-    Modbus::Port *port;
+    ModbusPort *port;
     switch (options.type)
     {
     case Modbus::RTU:
     {
-        Modbus::PortRTU *rtu = new Modbus::PortRTU(synch);
-        rtu->setPortName        (options.portName        );
+        ModbusRtuPort *rtu = new ModbusRtuPort(synch);
+        rtu->setPortName        (options.portName        .data());
         rtu->setBaudRate        (options.baudRate        );
         rtu->setDataBits        (options.dataBits        );
         rtu->setParity          (options.parity          );
@@ -251,8 +251,8 @@ int main(int argc, char **argv)
         break;
     case Modbus::ASC:
     {
-        Modbus::PortASC *asc = new Modbus::PortASC(synch);
-        asc->setPortName        (options.portName        );
+        ModbusAscPort *asc = new ModbusAscPort(synch);
+        asc->setPortName        (options.portName        .data());
         asc->setBaudRate        (options.baudRate        );
         asc->setDataBits        (options.dataBits        );
         asc->setParity          (options.parity          );
@@ -265,26 +265,26 @@ int main(int argc, char **argv)
         break;
     case Modbus::TCP:
     {
-        Modbus::PortTCP *tcp = new Modbus::PortTCP(synch);
-        tcp->setHost   (options.host   );
-        tcp->setPort   (options.port   );
-        tcp->setTimeout(options.timeout);
+        ModbusTcpPort *tcp = new ModbusTcpPort(synch);
+        tcp->setHost   (options.host       .data());
+        tcp->setPort   (options.port       );
+        tcp->setTimeout(options.timeout    );
         port = tcp;
     }
         break;
     }
-    Modbus::ClientPort clientPort(port);
-    Modbus::Client client(options.unit, &clientPort);
+    ModbusClientPort clientPort(port);
+    ModbusClient client(options.unit, &clientPort);
 
     if (port->type() == Modbus::ASC)
     {
-        port->connect(&Modbus::Port::emitTx, printTxAsc);
-        port->connect(&Modbus::Port::emitRx, printRxAsc);
+        port->connect(&ModbusPort::emitTx, printTxAsc);
+        port->connect(&ModbusPort::emitRx, printRxAsc);
     }
     else
     {
-        port->connect(&Modbus::Port::emitTx, printTx);
-        port->connect(&Modbus::Port::emitRx, printRx);
+        port->connect(&ModbusPort::emitTx, printTx);
+        port->connect(&ModbusPort::emitRx, printRx);
     }
 
     struct RequestParams { uint8_t func; uint16_t offset; uint16_t count; };
@@ -317,7 +317,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 printBools(req.count, buff.data());
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         case MBF_READ_DISCRETE_INPUTS:
             printf("READ_DISCRETE_INPUTS(offset=%hu,count=%hu)\n", req.offset, req.count);
@@ -326,7 +326,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 printBools(req.count, buff.data());
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         case MBF_READ_HOLDING_REGISTERS:
             printf("READ_HOLDING_REGISTERS(offset=%hu,count=%hu)\n", req.offset, req.count);
@@ -335,7 +335,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 printRegs(req.count, buff.data());
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         case MBF_READ_INPUT_REGISTERS:
             printf("READ_INPUT_REGISTERS(offset=%hu,count=%hu)\n", req.offset, req.count);
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 printRegs(req.count, buff.data());
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         case MBF_WRITE_SINGLE_COIL:
             printf("WRITE_SINGLE_COILS(offset=%hu)\n", req.offset);
@@ -354,7 +354,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 std::cout << "Good\n";
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         case MBF_WRITE_SINGLE_REGISTER:
             printf("WRITE_SINGLE_REGISTE(offset=%hu)\n", req.offset);
@@ -364,7 +364,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 std::cout << "Good\n";
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         case MBF_READ_EXCEPTION_STATUS:
             printf("READ_EXCEPTION_STATUS\n");
@@ -374,7 +374,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 printRegs(1, buff.data());
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         case MBF_WRITE_MULTIPLE_COILS:
             printf("WRITE_MULTIPLE_COILS(offset=%hu,count=%hu)\n", req.offset, req.count);
@@ -384,7 +384,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 std::cout << "Good\n";
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         case MBF_WRITE_MULTIPLE_REGISTERS:
             printf("WRITE_MULTIPLE_REGISTERS(offset=%hu,count=%hu)\n", req.offset, req.count);
@@ -394,7 +394,7 @@ int main(int argc, char **argv)
             if (Modbus::StatusIsGood(status))
                 std::cout << "Good\n";
             else
-                std::cout << clientPort.lastErrorText() << L"\n";
+                std::cout << clientPort.lastErrorText() << "\n";
             break;
         }
         using namespace std::chrono_literals;

@@ -23,54 +23,34 @@
 #ifndef MODBUSSERVERPORT_H
 #define MODBUSSERVERPORT_H
 
-#include "Modbus.h"
+#include "ModbusObject.h"
 
-namespace Modbus {
+class ModbusServerPortPrivate;
 
-class MODBUS_EXPORT ServerPort
+class MODBUS_EXPORT ModbusServerPort : public ModbusObject
 {
 public:
-    enum State
-    {
-        STATE_BEGIN                 = 0,
-        STATE_UNKNOWN               = STATE_BEGIN,
-        STATE_WAIT_FOR_OPEN         ,
-        STATE_OPENED                ,
-        STATE_BEGIN_READ            ,
-        STATE_READ                  ,
-        STATE_PROCESS_DEVICE        ,
-        STATE_WRITE                 ,
-        STATE_BEGIN_WRITE           ,
-        STATE_WAIT_FOR_CLOSE        ,
-        STATE_CLOSED                ,
-        STATE_END                   = STATE_CLOSED
-    };
-    
-public:
-    explicit ServerPort(Interface *device);
-    virtual ~ServerPort();
-
-public:
-    inline Interface *device() const { return m_device; }
+    ModbusInterface *device() const;
 
 public: // server port interface
-    virtual Type type() const = 0;
-    virtual StatusCode open() = 0;
-    virtual StatusCode close() = 0;
-    virtual bool isOpen() const = 0;
-    virtual StatusCode process() = 0;
+    /// \details Returns type of Modbus protocol.
+    virtual Modbus::Type type() const = 0;
 
-    // state
-    inline State state() const { return m_state; }
-    inline bool isStateClosed() const { return m_state == STATE_CLOSED; }
+    virtual Modbus::StatusCode open() = 0;
+
+    /// \details Closes port/connection and returns status of the operation.
+    virtual Modbus::StatusCode close() = 0;
+
+    virtual bool isOpen() const = 0;
+
+    virtual Modbus::StatusCode process() = 0;
+
+public:
+    bool isStateClosed() const;
 
 protected:
-    State m_state;
-    bool m_cmdClose;
-    Interface *m_device;
+    using ModbusObject::ModbusObject;
 };
-
-} // namespace Modbus
 
 #endif // MODBUSSERVERPORT_H
 

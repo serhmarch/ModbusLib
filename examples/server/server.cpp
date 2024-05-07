@@ -3,12 +3,32 @@
 #include <vector>
 #include <thread>
 
-#include <ModbusServerTCP.h>
+#include <ModbusTcpServer.h>
 #include <ModbusServerResource.h>
-#include <ModbusPortRTU.h>
-#include <ModbusPortASC.h>
+#include <ModbusRtuPort.h>
+#include <ModbusAscPort.h>
 
-class Device : public Modbus::Interface
+void printTx(const uint8_t* buff, uint16_t size)
+{
+    std::cout << "Tx: " << Modbus::bytesToString(buff, size) << '\n';
+}
+
+void printRx(const uint8_t* buff, uint16_t size)
+{
+    std::cout << "Rx: " << Modbus::bytesToString(buff, size) << '\n';
+}
+
+void printTxAsc(const uint8_t* buff, uint16_t size)
+{
+    std::cout << "Tx: " << Modbus::asciiToString(buff, size) << '\n';
+}
+
+void printRxAsc(const uint8_t* buff, uint16_t size)
+{
+    std::cout << "Rx: " << Modbus::asciiToString(buff, size) << '\n';
+}
+
+class Device : public ModbusInterface
 {
 public:
     Device(uint16_t regs) { m_buff.resize(regs); }
@@ -19,7 +39,7 @@ public:
 
     Modbus::StatusCode readRegs(uint16_t offset, uint16_t count, void *values)
     {
-        if ((offset + count) > regCount())
+        if (static_cast<uint32_t>(offset + count) > regCount())
             return Modbus::Status_BadIllegalDataAddress;
         const uint16_t *mem = reinterpret_cast<const uint16_t*>(m_buff.data());
         memcpy(values, &mem[offset], count * MB_REGE_SZ_BYTES);
@@ -28,7 +48,7 @@ public:
 
     Modbus::StatusCode writeRegs(uint16_t offset, uint16_t count, const void *values)
     {
-        if ((offset + count) > regCount())
+        if (static_cast<uint32_t>(offset + count) > regCount())
             return Modbus::Status_BadIllegalDataAddress;
         uint16_t *mem = reinterpret_cast<uint16_t*>(m_buff.data());
         memcpy(&mem[offset], values, count * MB_REGE_SZ_BYTES);
@@ -37,7 +57,7 @@ public:
 
     Modbus::StatusCode readBits(uint16_t offset, uint16_t count, void *values)
     {
-        if ((offset + count) > bitCount())
+        if (static_cast<uint32_t>(offset + count) > bitCount())
             return Modbus::Status_BadIllegalDataAddress;
         uint16_t byteOffset = offset/MB_BYTE_SZ_BITES;
         uint16_t bytes = count/MB_BYTE_SZ_BITES;
@@ -78,7 +98,7 @@ public:
 
     Modbus::StatusCode writeBits(uint16_t offset, uint16_t count, const void *values)
     {
-        if ((offset + count) > bitCount())
+        if (static_cast<uint32_t>(offset + count) > bitCount())
             return Modbus::Status_BadIllegalDataAddress;
         uint16_t byteOffset = offset/MB_BYTE_SZ_BITES;
         uint16_t bytes = count/MB_BYTE_SZ_BITES;
@@ -132,37 +152,37 @@ public:
         return Modbus::Status_Good;
     }
 
-    Modbus::StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+    Modbus::StatusCode readCoils(uint8_t /*unit*/, uint16_t offset, uint16_t count, void *values)
     {
         return readBits(offset, count, values);
     }
 
-    Modbus::StatusCode readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+    Modbus::StatusCode readDiscreteInputs(uint8_t /*unit*/, uint16_t offset, uint16_t count, void *values)
     {
         return readBits(offset, count, values);
     }
 
-    Modbus::StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+    Modbus::StatusCode readHoldingRegisters(uint8_t /*unit*/, uint16_t offset, uint16_t count, uint16_t *values)
     {
         return readRegs(offset, count, values);
     }
 
-    Modbus::StatusCode readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+    Modbus::StatusCode readInputRegisters(uint8_t /*unit*/, uint16_t offset, uint16_t count, uint16_t *values)
     {
         return readRegs(offset, count, values);
     }
 
-    Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value)
+    Modbus::StatusCode writeSingleCoil(uint8_t /*unit*/, uint16_t offset, bool value)
     {
         return writeBits(offset, 1, &value);
     }
 
-    Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)
+    Modbus::StatusCode writeSingleRegister(uint8_t /*unit*/, uint16_t offset, uint16_t value)
     {
         return writeRegs(offset, 1, &value);
     }
 
-    Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *status)
+    Modbus::StatusCode readExceptionStatus(uint8_t /*unit*/, uint8_t *status)
     {
         uint16_t v = 0;
         Modbus::StatusCode s = readRegs(0, 1, &v);
@@ -171,12 +191,12 @@ public:
         return s;
     }
 
-    Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)
+    Modbus::StatusCode writeMultipleCoils(uint8_t /*unit*/, uint16_t offset, uint16_t count, const void *values)
     {
         return writeBits(offset, count, values);
     }
 
-    Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
+    Modbus::StatusCode writeMultipleRegisters(uint8_t /*unit*/, uint16_t offset, uint16_t count, const uint16_t *values)
     {
         return writeRegs(offset, count, values);
     }
@@ -202,8 +222,8 @@ struct Options
 
     Options()
     {
-        const Modbus::ServerTCP ::Defaults &dTcp = Modbus::ServerTCP ::Defaults::instance();
-        const Modbus::PortSerial::Defaults &dSer = Modbus::PortSerial::Defaults::instance();
+        const ModbusTcpServer ::Defaults &dTcp = ModbusTcpServer ::Defaults::instance();
+        const ModbusSerialPort::Defaults &dSer = ModbusSerialPort::Defaults::instance();
 
         type            = Modbus::TCP               ;
         port            = dTcp.port                 ;
@@ -350,13 +370,13 @@ int main(int argc, char **argv)
     parseOptions(argc, argv);
     bool synch = false;
     Device dev(options.count);
-    Modbus::ServerPort *serv;
+    ModbusServerPort *serv;
     switch (options.type)
     {
     case Modbus::RTU:
     {
-        Modbus::PortRTU *rtu = new Modbus::PortRTU(synch);
-        rtu->setPortName        (options.portName        );
+        ModbusRtuPort *rtu = new ModbusRtuPort(synch);
+        rtu->setPortName        (options.portName        .data());
         rtu->setBaudRate        (options.baudRate        );
         rtu->setDataBits        (options.dataBits        );
         rtu->setParity          (options.parity          );
@@ -364,13 +384,17 @@ int main(int argc, char **argv)
         rtu->setFlowControl     (options.flowControl     );
         rtu->setTimeoutFirstByte(options.timeoutFirstByte);
         rtu->setTimeoutInterByte(options.timeoutInterByte);
-        serv = new Modbus::ServerResource(rtu, &dev);
+
+        rtu->connect(&ModbusRtuPort::emitTx, printTx);
+        rtu->connect(&ModbusRtuPort::emitRx, printRx);
+
+        serv = new ModbusServerResource(rtu, &dev);
     }
         break;
     case Modbus::ASC:
     {
-        Modbus::PortASC *asc = new Modbus::PortASC(synch);
-        asc->setPortName        (options.portName        );
+        ModbusAscPort *asc = new ModbusAscPort(synch);
+        asc->setPortName        (options.portName        .data());
         asc->setBaudRate        (options.baudRate        );
         asc->setDataBits        (options.dataBits        );
         asc->setParity          (options.parity          );
@@ -378,14 +402,22 @@ int main(int argc, char **argv)
         asc->setFlowControl     (options.flowControl     );
         asc->setTimeoutFirstByte(options.timeoutFirstByte);
         asc->setTimeoutInterByte(options.timeoutInterByte);
-        serv = new Modbus::ServerResource(asc, &dev);
+
+        asc->connect(&ModbusAscPort::emitTx, printTxAsc);
+        asc->connect(&ModbusAscPort::emitRx, printRxAsc);
+
+        serv = new ModbusServerResource(asc, &dev);
     }
         break;
     case Modbus::TCP:
     {
-        Modbus::ServerTCP *tcp = new Modbus::ServerTCP(&dev);
+        ModbusTcpServer *tcp = new ModbusTcpServer(&dev);
         tcp->setPort   (options.port   );
         tcp->setTimeout(options.timeout);
+
+        tcp->connect(&ModbusTcpServer::emitTx, printTx);
+        tcp->connect(&ModbusTcpServer::emitRx, printRx);
+
         serv = tcp;
     }
         break;

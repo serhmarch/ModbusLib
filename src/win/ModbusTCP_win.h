@@ -4,19 +4,17 @@
 #include <WS2tcpip.h>
 #include <Modbus.h>
 
-namespace Modbus {
-
-class TCPSocket
+class ModbusTcpSocket
 {
 public:
-    TCPSocket(SOCKET socket = INVALID_SOCKET) : m_socket(socket) {}
+    ModbusTcpSocket(SOCKET socket = INVALID_SOCKET) : m_socket(socket) {}
 
 public:
     inline bool isValid() const { return m_socket != INVALID_SOCKET; }
     inline bool isInvalid() const { return m_socket == INVALID_SOCKET; }
     inline SOCKET socket() const { return m_socket; }
     inline void setSocket(SOCKET socket) { m_socket = socket; }
-    inline TCPSocket &operator=(SOCKET socket) { setSocket(socket); return *this; }
+    inline ModbusTcpSocket &operator=(SOCKET socket) { setSocket(socket); return *this; }
     inline void setTimeout(uint32_t timeout) { setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)); }
     inline void setBlocking(bool block) { unsigned long ul = !block; ioctlsocket(m_socket, FIONBIO, (unsigned long *)&ul); }
 
@@ -35,7 +33,5 @@ public: // socket interface
 private:
     SOCKET m_socket;
 };
-
-} // namespace Modbus
 
 #endif // MODBUSTCP_WIN_H
