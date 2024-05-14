@@ -80,7 +80,7 @@ StatusCode ModbusTcpServer::process()
         case STATE_CLOSED:
             //if (d->cmdClose)
             //    break;
-            //d->state = STATE_WAIT_FOR_OPEN;
+            d->state = STATE_WAIT_FOR_OPEN;
             // no need break
         case STATE_WAIT_FOR_OPEN:
             if (d->cmdClose)
@@ -90,16 +90,28 @@ StatusCode ModbusTcpServer::process()
                 break;
             }
             r = open();
-            if (r) // if not OK it's mean that an error occured or in process
+            if (StatusIsProcessing(r))
                 return r;
+            if (StatusIsBad(r))  // an error occured
+            {
+                signalError(d->getName(), r, d->lastErrorText());
+                d->state = STATE_CLOSED;
+                return r;
+            }
             d->state = STATE_OPENED;
+            signalOpened(d->getName());
             fRepeatAgain = true;
             break;
         case STATE_WAIT_FOR_CLOSE:
             r = close();
-            if (r) // if not OK it's mean that an error occured or in process
+            if (StatusIsProcessing(r))
                 return r;
+            if (StatusIsBad(r))  // an error occured
+            {
+                signalError(d->getName(), r, d->lastErrorText());
+            }
             d->state = STATE_CLOSED;
+            signalClosed(d->getName());
             clearConnections();
             //setMessage("Finalized");
             break;
@@ -119,12 +131,11 @@ StatusCode ModbusTcpServer::process()
             if (ModbusTcpSocket *s = this->nextPendingConnection())
             {
                 ModbusServerPort *c = createTcpPort(s);
+                c->connect(&ModbusServerPort::signalTx   , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalTx   );
+                c->connect(&ModbusServerPort::signalRx   , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalRx   );
+                c->connect(&ModbusServerPort::signalError, static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalError);
                 d->connections.push_back(c);
-                //connect(c, &ModbusServerPort::signalTx     , this, &ModbusServerPort::signalTx     );
-                //connect(c, &ModbusServerPort::signalRx     , this, &ModbusServerPort::signalRx     );
-                //connect(c, &ModbusServerPort::signalError  , this, &ModbusServerPort::signalError  );
-                //connect(c, &ModbusServerPort::signalMessage, this, &ModbusServerPort::signalMessage);
-                //setMessage(QString("New connection from '%1'").arg(c->name()));
+                signalNewConnection(c->objectName());
             }
             // process current connections
             for (Connections_t::iterator it = d->connections.begin(); it != d->connections.end(); )
@@ -133,7 +144,7 @@ StatusCode ModbusTcpServer::process()
                 c->process();
                 if (!c->isOpen())
                 {
-                    //setMessage(QString("Close connection from '%1'").arg(c->name()));
+                    signalCloseConnection(c->objectName());
                     it = d->connections.erase(it);
                     delete c;
                     continue;
@@ -165,21 +176,22 @@ StatusCode ModbusTcpServer::process()
 ModbusServerPort *ModbusTcpServer::createTcpPort(ModbusTcpSocket *socket)
 {
     ModbusTcpPort *tcp = new ModbusTcpPort(socket);
-    tcp->connect(&ModbusTcpPort::emitTx, this, &ModbusTcpServer::emitTx);
-    tcp->connect(&ModbusTcpPort::emitRx, this, &ModbusTcpServer::emitRx);
-    //connect(c, &ModbusServerPort::signalError  , this, &ModbusServerPort::signalError  );
-    //connect(c, &ModbusServerPort::signalMessage, this, &ModbusServerPort::signalMessage);
-    ModbusServerResource *port = new ModbusServerResource(tcp, device());
-    //port->setName(socket->localAddress().toString());
-    return port;
+    ModbusServerResource *c = new ModbusServerResource(tcp, device());
+    String host, service;
+    if (ModbusTcpServerPrivate::getHostService(socket, host, service))
+    {
+        String name = host + StringLiteral(":") + service;
+        c->setObjectName(name.data());
+    }
+    return c;
 }
 
-void ModbusTcpServer::emitTx(const uint8_t *buff, uint16_t size)
+void ModbusTcpServer::signalNewConnection(const Modbus::Char *source)
 {
-    this->emitSignal(&ModbusTcpServer::emitTx, buff, size);
+    this->emitSignal(&ModbusTcpServer::signalNewConnection, source);
 }
 
-void ModbusTcpServer::emitRx(const uint8_t *buff, uint16_t size)
+void ModbusTcpServer::signalCloseConnection(const Modbus::Char *source)
 {
-    this->emitSignal(&ModbusTcpServer::emitRx, buff, size);
+    this->emitSignal(&ModbusTcpServer::signalCloseConnection, source);
 }

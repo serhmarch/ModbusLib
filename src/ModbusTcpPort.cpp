@@ -66,6 +66,26 @@ bool ModbusTcpPort::autoIncrement() const
     return d_ModbusTcpPort(d_ptr)->autoIncrement;
 }
 
+const uint8_t *ModbusTcpPort::readBufferData()
+{
+    return d_ModbusTcpPort(d_ptr)->buff;
+}
+
+uint16_t ModbusTcpPort::readBufferSize()
+{
+    return d_ModbusTcpPort(d_ptr)->sz;
+}
+
+const uint8_t *ModbusTcpPort::writeBufferData()
+{
+    return d_ModbusTcpPort(d_ptr)->buff;
+}
+
+uint16_t ModbusTcpPort::writeBufferSize()
+{
+    return d_ModbusTcpPort(d_ptr)->sz;
+}
+
 StatusCode ModbusTcpPort::writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff)
 {
     ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);

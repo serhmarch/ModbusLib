@@ -2,7 +2,8 @@
 #define MODBUSTCP_WIN_H
 
 #include <WS2tcpip.h>
-#include <Modbus.h>
+
+#include "Modbus_win.h"
 
 class ModbusTcpSocket
 {

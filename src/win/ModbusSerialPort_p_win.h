@@ -28,6 +28,6 @@ public:
 
 };
 
-inline ModbusSerialPortPrivateWin *d_win(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivateWin*>(d_ptr); }
+inline ModbusSerialPortPrivateWin *d_win(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivateWin*>(d_ptr); }
 
 #endif // MODBUSSERIALPORT_P_WIN_H

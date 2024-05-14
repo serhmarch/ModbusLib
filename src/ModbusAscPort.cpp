@@ -57,7 +57,7 @@ StatusCode ModbusAscPort::writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff,
     memcpy(&ibuff[2], buff, szInBuff);
     ibuff[szInBuff + 2] = Modbus::lrc(ibuff, szInBuff+2);
     d->sz = Modbus::bytesToAscii(ibuff, &d->buff[1], szInBuff + 3);
-    d->buff[0]      = ':' ;  // start ASCII-message character
+    d->buff[0]       = ':' ;  // start ASCII-message character
     d->buff[d->sz+1] = '\r';  // CR
     d->buff[d->sz+2] = '\n';  // LF
     d->sz += 3;

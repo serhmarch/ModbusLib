@@ -80,8 +80,15 @@ class ModbusObjectPrivate;
 class MODBUS_EXPORT ModbusObject
 {
 public:
+    static ModbusObject *sender();
+
+public:
     ModbusObject();
     virtual ~ModbusObject();
+
+public:
+    const Modbus::Char *objectName() const;
+    void setObjectName(const Modbus::Char *name);
 
 public:
     template <class SignalClass, class T, class ReturnType, class ... Args>
@@ -140,12 +147,14 @@ public:
         } converter;
         converter.thisMethod = thisMethod;
 
+        pushSender(this);
         int i = 0;
         while (void* itemSlot = slot(converter.voidPtr, i++))
         {
             ModbusSlotBase<void, Args...> *slotBase = reinterpret_cast<ModbusSlotBase<void, Args...> *>(itemSlot);
             slotBase->exec(args...);
         }
+        popSender();
     }
 
 private:
@@ -153,9 +162,13 @@ private:
     void setSlot(void *signalMethodPtr, void *slotPtr);
     void disconnect(void *object, void *methodOrFunc);
 
+private:
+    static void pushSender(ModbusObject *sender);
+    static void popSender();
+
 protected:
     ModbusObjectPrivate *d_ptr;
-    ModbusObject(ModbusObjectPrivate *o);
+    ModbusObject(ModbusObjectPrivate *d);
 };
 
 

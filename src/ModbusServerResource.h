@@ -1,7 +1,7 @@
 #ifndef MODBUSSERVERRESOURCE_H
 #define MODBUSSERVERRESOURCE_H
 
-#include <ModbusServerPort.h>
+#include "ModbusServerPort.h"
 
 class ModbusPort;
 

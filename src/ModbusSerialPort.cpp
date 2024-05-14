@@ -140,3 +140,23 @@ void ModbusSerialPort::setTimeoutInterByte(uint32_t timeout)
         setChanged(true);
     }
 }
+
+const uint8_t *ModbusSerialPort::readBufferData()
+{
+    return d_ModbusSerialPort(d_ptr)->buff;
+}
+
+uint16_t ModbusSerialPort::readBufferSize()
+{
+    return d_ModbusSerialPort(d_ptr)->sz;
+}
+
+const uint8_t *ModbusSerialPort::writeBufferData()
+{
+    return d_ModbusSerialPort(d_ptr)->buff;
+}
+
+uint16_t ModbusSerialPort::writeBufferSize()
+{
+    return d_ModbusSerialPort(d_ptr)->sz;
+}

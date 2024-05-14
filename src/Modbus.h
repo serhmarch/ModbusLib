@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <string>
+#include <list>
 
 #include "Modbus_platform.h"
 
@@ -122,6 +123,9 @@ typedef void* Handle;
 typedef char Char;
 typedef std::string String;
 typedef uint32_t Timer;
+
+template <class T>
+using List = std::list<T>;
 
 /// \details Convert interger value to Modbus::String
 /// \returns Returns new Modbus::String value
@@ -315,6 +319,9 @@ MODBUS_EXPORT String asciiToString(const uint8_t* buff, uint32_t count);
 
 /// \details Make current  thread sleep with 'msec' milliseconds.
 MODBUS_EXPORT void msleep(uint32_t msec);
+
+/// \details Return list of names of available serial ports
+MODBUS_EXPORT List<String> availableSerialPorts();
 
 } //namespace Modbus
 

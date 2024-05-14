@@ -44,6 +44,6 @@ public:
 
 };
 
-inline ModbusSerialPortPrivate *d_ModbusSerialPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivate*>(d_ptr); }
+inline ModbusSerialPortPrivate *d_ModbusSerialPort(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivate*>(d_ptr); }
 
 #endif // MODBUSSERIALPORT_P_H

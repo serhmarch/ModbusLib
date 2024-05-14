@@ -3,7 +3,8 @@
 
 #include "ModbusObject_p.h"
 
-class ModbusPort;
+#include "ModbusObject.h"
+#include "ModbusPort.h"
 
 namespace ModbusClientPortPrivateNS {
 
@@ -29,9 +30,25 @@ using namespace ModbusClientPortPrivateNS;
 class ModbusClientPortPrivate : public ModbusObjectPrivate
 {
 public:
+    ModbusClientPortPrivate(ModbusPort *port)
+    {
+        this->state = STATE_UNKNOWN;
+        this->currentClient = nullptr;
+        this->port = port;
+        this->repeats = 0;
+        this->settings.repeatCount = 1;
+
+        port->setServerMode(false);
+    }
+
+public:
+    const Char *getName() const { return currentClient->objectName(); }
+    inline void setStatus(StatusCode s) { this->lastStatus = s; }
+
+public:
     ModbusPort *port;
     State state;
-    void *currentClient;
+    ModbusObject *currentClient;
     uint32_t repeats;
     StatusCode lastStatus;
 
@@ -40,8 +57,6 @@ public:
         uint32_t repeatCount;
     } settings;
 
-public:
-    inline void setStatus(StatusCode s) { this->lastStatus = s; }
 };
 
 inline ModbusClientPortPrivate *d_ModbusClientPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusClientPortPrivate*>(d_ptr); }

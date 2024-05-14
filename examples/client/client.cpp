@@ -23,24 +23,24 @@ void printBools(int count, const void *buff)
     std::cout << '\n';
 }
 
-void printTx(const uint8_t* buff, uint16_t size)
+void printTx(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 {
-    std::cout << "Tx: " << Modbus::bytesToString(buff, size) << '\n';
+    std::cout << source << " Tx: " << Modbus::bytesToString(buff, size) << '\n';
 }
 
-void printRx(const uint8_t* buff, uint16_t size)
+void printRx(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 {
-    std::cout << "Rx: " << Modbus::bytesToString(buff, size) << '\n';
+    std::cout << source << " Rx: " << Modbus::bytesToString(buff, size) << '\n';
 }
 
-void printTxAsc(const uint8_t* buff, uint16_t size)
+void printTxAsc(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 {
-    std::cout << "Tx: " << Modbus::asciiToString(buff, size) << '\n';
+    std::cout << source << " Tx: " << Modbus::asciiToString(buff, size) << '\n';
 }
 
-void printRxAsc(const uint8_t* buff, uint16_t size)
+void printRxAsc(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 {
-    std::cout << "Rx: " << Modbus::asciiToString(buff, size) << '\n';
+    std::cout << source << " Rx: " << Modbus::asciiToString(buff, size) << '\n';
 }
 
 struct Options
@@ -229,6 +229,11 @@ void parseOptions(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+    Modbus::List<Modbus::String> ports = Modbus::availableSerialPorts();
+    std::cout << "Available serial ports:\n";
+    for (const Modbus::String &portName : ports)
+        std::cout << portName << '\n';
+
     parseOptions(argc, argv);
 
     bool synch = false;
@@ -266,25 +271,26 @@ int main(int argc, char **argv)
     case Modbus::TCP:
     {
         ModbusTcpPort *tcp = new ModbusTcpPort(synch);
-        tcp->setHost   (options.host       .data());
-        tcp->setPort   (options.port       );
-        tcp->setTimeout(options.timeout    );
+        tcp->setHost   (options.host   .data());
+        tcp->setPort   (options.port   );
+        tcp->setTimeout(options.timeout);
         port = tcp;
     }
         break;
     }
     ModbusClientPort clientPort(port);
     ModbusClient client(options.unit, &clientPort);
+    client.setObjectName(StringLiteral("Client"));
 
     if (port->type() == Modbus::ASC)
     {
-        port->connect(&ModbusPort::emitTx, printTxAsc);
-        port->connect(&ModbusPort::emitRx, printRxAsc);
+        clientPort.connect(&ModbusClientPort::signalTx, printTxAsc);
+        clientPort.connect(&ModbusClientPort::signalRx, printRxAsc);
     }
     else
     {
-        port->connect(&ModbusPort::emitTx, printTx);
-        port->connect(&ModbusPort::emitRx, printRx);
+        clientPort.connect(&ModbusClientPort::signalTx, printTx);
+        clientPort.connect(&ModbusClientPort::signalRx, printRx);
     }
 
     struct RequestParams { uint8_t func; uint16_t offset; uint16_t count; };

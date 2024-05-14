@@ -29,7 +29,7 @@ enum State
 using namespace Modbus;
 using namespace ModbusPortPrivateNS;
 
-class ModbusPortPrivate : public ModbusObjectPrivate
+class ModbusPortPrivate
 {
 public:
     ModbusPortPrivate(bool blocking)
@@ -43,13 +43,19 @@ public:
         this->clearChanged();
     }
 
+    virtual ~ModbusPortPrivate()
+    {
+    }
+
 public:
     inline bool isBlocking() const { return block; }
     inline bool isStateClosed() const { return state == STATE_CLOSED; }
     inline void setChanged(bool changed) { this->changed = changed; }
     inline void clearChanged() { setChanged(false); }
-    inline StatusCode setError(StatusCode status, const String &text) { lastErrorText = text; return status; }
-    inline StatusCode setError(StatusCode status, String &&text) { lastErrorText = text; return status; }
+    inline StatusCode lastErrorStatus() { return errorStatus; }
+    inline const Char *lastErrorText() { return errorText.data(); }
+    inline StatusCode setError(StatusCode status, const String &text) { errorStatus = status; errorText = text; return status; }
+    inline StatusCode setError(StatusCode status, String &&text) { errorStatus = status; errorText = text; return status; }
 
 public:
     State state;
@@ -59,9 +65,8 @@ public:
     bool changed;
     bool modeServer;
     bool modeSynch;
-    String lastErrorText;
+    StatusCode errorStatus;
+    String errorText;
 };
-
-inline ModbusPortPrivate *d_ModbusPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusPortPrivate*>(d_ptr); }
 
 #endif // MODBUSPORT_P_H

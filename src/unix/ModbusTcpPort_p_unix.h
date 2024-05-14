@@ -48,6 +48,6 @@ public:
     struct addrinfo *addr;
 };
 
-inline ModbusTcpPortPrivateWin *d_unix(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivateWin*>(d_ptr); }
+inline ModbusTcpPortPrivateWin *d_unix(ModbusPortPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivateWin*>(d_ptr); }
 
 #endif // MODBUSTCPPORT_P_UNIX_H

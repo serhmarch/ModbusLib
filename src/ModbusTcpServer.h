@@ -103,11 +103,11 @@ public:
     virtual ModbusServerPort *createTcpPort(ModbusTcpSocket *socket);
     
 public: // SIGNALS
-    /// \details Calls each callback of the original packet 'Tx' from the internal list of callbacks, passing them the original array 'buff' and its size 'size'.
-    void emitTx(const uint8_t* buff, uint16_t size);
+    /// \details
+    void signalNewConnection(const Modbus::Char *source);
 
-    /// \details Calls each callback of the incoming packet 'Rx' from the internal list of callbacks, passing them the input array 'buff' and its size 'size'.
-    void emitRx(const uint8_t* buff, uint16_t size);
+    /// \details
+    void signalCloseConnection(const Modbus::Char *source);
 
 protected:
     /// \details Checks for incoming connections and returns pointer `ModbusTcpSocket` if new connection established, `nullptr` otherwise.

@@ -174,7 +174,6 @@ StatusCode ModbusSerialPort::write()
             PurgeComm(d->serialPort, PURGE_RXCLEAR);
             if (WriteFile(d->serialPort, d->buff, d->sz, &c, NULL))
             {
-                emitTx(d->buff, d->sz);
                 d->state = STATE_BEGIN;
                 return Status_Good;
             }
@@ -238,7 +237,6 @@ StatusCode ModbusSerialPort::read()
                 }
                 if (isBlocking())
                 {
-                    emitRx(d->buff, d->sz);
                     d->state = STATE_BEGIN;
                     return Status_Good;
                 }
@@ -276,7 +274,6 @@ StatusCode ModbusSerialPort::read()
             }
             else if (GetTickCount() - d->timestamp >= timeoutInterByte()) // waiting timeout read next byte elapsed
             {
-                emitRx(d->buff, d->sz);
                 d->state = STATE_BEGIN;
                 return Status_Good;
             }

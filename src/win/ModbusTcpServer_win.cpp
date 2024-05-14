@@ -51,7 +51,7 @@ StatusCode ModbusTcpServer::open()
             if (d->socket->isInvalid())
             {
                 d->state = STATE_CLOSED;
-                return Status_BadTcpCreate;
+                return d->setErrorBase(Status_BadTcpCreate, StringLiteral("TCP socket creation error"));
             }
 
             // Bind the socket
@@ -64,7 +64,7 @@ StatusCode ModbusTcpServer::open()
             {
                 d->socket->close();
                 d->state = STATE_CLOSED;
-                return Status_BadTcpBind;
+                return d->setErrorBase(Status_BadTcpBind, StringLiteral("Bind error"));
             }
 
             // Listen on the socket
@@ -72,7 +72,8 @@ StatusCode ModbusTcpServer::open()
             {
                 d->socket->close();
                 d->state = STATE_CLOSED;
-                return Status_BadTcpListen;
+                return d->setErrorBase(Status_BadTcpListen, StringLiteral("Listen error"));
+
             }
             d->socket->setBlocking(false);
         }
@@ -137,7 +138,28 @@ ModbusTcpSocket *ModbusTcpServer::nextPendingConnection()
         return nullptr;
     }
 
+
     ModbusTcpSocket *tcp = new ModbusTcpSocket(clientSocket);
     return tcp;
+}
+
+bool ModbusTcpServerPrivate::getHostService(ModbusTcpSocket *socket, String &host, String &service)
+{
+    sockaddr_in clientAddr;
+    int clientAddrSize = sizeof(clientAddr);
+    SOCKET clientSocket = socket->socket();
+    // Get the remote host name and port number
+    char remoteHost[NI_MAXHOST];
+    char remoteService[NI_MAXSERV];
+    if (getpeername(clientSocket, (sockaddr*)&clientAddr, &clientAddrSize) == 0)
+    {
+        if (getnameinfo((sockaddr*)&clientAddr, clientAddrSize, remoteHost, NI_MAXHOST, remoteService, NI_MAXSERV, 0) == 0)
+        {
+            host = remoteHost;
+            service = remoteService;
+            return true;
+        }
+    }
+    return false;
 }
 

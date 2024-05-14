@@ -1,0 +1,91 @@
+set(MB_LIBRARY_NAME modbus)
+
+set(HEADERS 
+    Modbus_platform.h       
+    Modbus.h                
+    ModbusObject.h          
+    ModbusPort.h            
+    ModbusPort_p.h          
+    ModbusSerialPort.h      
+    ModbusRtuPort.h         
+    ModbusAscPort.h         
+    ModbusTcpPort.h         
+    ModbusClientPort.h      
+    ModbusClient_p.h        
+    ModbusClient.h          
+    ModbusServerPort.h      
+    ModbusServerResource.h  
+    ModbusTcpServer.h       
+    ModbusClientPort_p.h    
+    ModbusObject_p.h        
+    ModbusSerialPort_p.h    
+    ModbusServerPort_p.h    
+    ModbusServerResource_p.h
+    ModbusTcpPort_p.h       
+    ModbusTcpServer_p.h     
+    )
+
+set(SOURCES 
+    Modbus.cpp              
+    ModbusObject.cpp        
+    ModbusPort.cpp          
+    ModbusSerialPort.cpp    
+    ModbusRtuPort.cpp       
+    ModbusAscPort.cpp       
+    ModbusTcpPort.cpp       
+    ModbusClientPort.cpp    
+    ModbusClient.cpp        
+    ModbusServerPort.cpp    
+    ModbusServerResource.cpp
+    ModbusTcpServer.cpp
+    )     
+
+if (WIN32)
+
+set(HEADERS ${HEADERS}
+    win/Modbus_win.h         
+    win/ModbusTCP_win.h         
+    win/ModbusSerialPort_p_win.h
+    win/ModbusTcpPort_p_win.h   
+    win/ModbusTcpServer_p_win.h
+    ) 
+
+set(SOURCES ${SOURCES}
+    win/Modbus_win.cpp           
+    win/ModbusTcpPort_win.cpp    
+    win/ModbusTcpServer_win.cpp  
+    win/ModbusSerialPort_win.cpp
+    )
+ 
+else()
+
+set(HEADERS ${HEADERS}
+    unix/ModbusTCP_unix.h         
+    unix/ModbusSerialPort_p_unix.h
+    unix/ModbusTcpPort_p_unix.h   
+    unix/ModbusTcpServer_p_unix.h
+    ) 
+
+set(SOURCES ${SOURCES}
+    unix/Modbus_unix.cpp           
+    unix/ModbusTcpPort_unix.cpp    
+    unix/ModbusTcpServer_unix.cpp  
+    unix/ModbusSerialPort_unix.cpp
+    )
+
+endif()
+
+add_library(${MB_LIBRARY_NAME} SHARED ${HEADERS} ${SOURCES})
+
+target_compile_definitions(${MB_LIBRARY_NAME} PRIVATE MODBUS_EXPORTS)
+
+set_target_properties(
+    ${MB_LIBRARY_NAME}
+    PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+    )
+        
+if (WIN32)
+target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm SetupAPI)
+endif()

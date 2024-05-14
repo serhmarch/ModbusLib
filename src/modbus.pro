@@ -50,6 +50,7 @@ SOURCES +=                          \
 win32 {
 
 HEADERS +=                              \
+    $$PWD/win/Modbus_win.h              \
     $$PWD/win/ModbusTCP_win.h           \
     $$PWD/win/ModbusSerialPort_p_win.h  \
     $$PWD/win/ModbusTcpPort_p_win.h     \

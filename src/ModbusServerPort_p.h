@@ -39,11 +39,23 @@ public:
 
 public: // state
     inline bool isStateClosed() const { return state == STATE_CLOSED; }
+    const Char *getName() const { return objectName.data(); }
+    inline StatusCode lastErrorStatus() const { return errorStatus; }
+    inline const Char *lastErrorText() const { return errorText.data(); }
+    inline StatusCode setErrorBase(StatusCode status, const Char *text)
+    {
+        errorStatus = status;
+        errorText = text;
+        return status;
+    }
+
 
 public:
     ModbusInterface *device;
     State state;
     bool cmdClose;
+    StatusCode errorStatus;
+    String errorText;
 };
 
 inline ModbusServerPortPrivate *d_ModbusServerPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerPortPrivate*>(d_ptr); }

@@ -32,6 +32,6 @@ public:
 
 };
 
-inline ModbusSerialPortPrivateUnix *d_unix(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivateUnix*>(d_ptr); }
+inline ModbusSerialPortPrivateUnix *d_unix(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivateUnix*>(d_ptr); }
 
 #endif // MODBUSSERIALPORT_P_UNIX_H

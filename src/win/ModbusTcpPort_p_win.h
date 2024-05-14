@@ -50,6 +50,6 @@ public:
     void *addr;
 };
 
-inline ModbusTcpPortPrivateWin *d_win(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivateWin*>(d_ptr); }
+inline ModbusTcpPortPrivateWin *d_win(ModbusPortPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivateWin*>(d_ptr); }
 
 #endif // MODBUSTCPPORT_P_WIN_H

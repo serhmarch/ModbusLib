@@ -1,13 +1,34 @@
 #include "ModbusObject.h"
 #include "ModbusObject_p.h"
 
+#include <list>
+
+thread_local std::list<ModbusObject*> thl_senders;
+
+ModbusObject *ModbusObject::sender()
+{
+    if (thl_senders.size())
+        return thl_senders.front();
+    return nullptr;
+}
+
+void ModbusObject::pushSender(ModbusObject *sender)
+{
+    thl_senders.push_front(sender);
+}
+
+void ModbusObject::popSender()
+{
+    thl_senders.pop_front();
+}
+
 ModbusObject::ModbusObject() :
     ModbusObject(new ModbusObjectPrivate)
 {
 }
 
-ModbusObject::ModbusObject(ModbusObjectPrivate *o) :
-    d_ptr(o)
+ModbusObject::ModbusObject(ModbusObjectPrivate *d) :
+    d_ptr(d)
 {
 }
 
@@ -21,6 +42,16 @@ ModbusObject::~ModbusObject()
         }
     }
     delete d_ptr;
+}
+
+const Char *ModbusObject::objectName() const
+{
+    return d_ptr->objectName.data();
+}
+
+void ModbusObject::setObjectName(const Modbus::Char *name)
+{
+    d_ptr->objectName = name;
 }
 
 void *ModbusObject::slot(void *signalMethodPtr, int i) const

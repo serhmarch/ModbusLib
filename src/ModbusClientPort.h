@@ -81,11 +81,11 @@ public:
     /// \endcond
     
     /// \details Returns a pointer to the client object whose request is currently being processed by the algorithm.
-    const void *currentClient() const;
+    const ModbusObject *currentClient() const;
 
     /// \details Returns a pointer to the request structure for the client. `obj` - a pointer to the client, also known as a unique client identifier.\n
     /// The client usually calls this function in its own counterpart.
-    RequestParams *createRequestParams(void *obj);
+    RequestParams *createRequestParams(ModbusObject *object);
 
     /// \details Deletes the `*rp` request structure for the client.
     /// The client usually calls this function in its destructor.
@@ -97,6 +97,23 @@ public:
 
     /// \details Cancels the previous request specified by the `*rp` pointer for the client.
     void cancelRequest(RequestParams* rp);
+
+public: // SIGNALS
+    /// \details
+    void signalOpened(const Modbus::Char *source);
+
+    /// \details
+    void signalClosed(const Modbus::Char *source);
+
+    /// \details Calls each callback of the original packet 'Tx' from the internal list of callbacks, passing them the original array 'buff' and its size 'size'.
+    void signalTx(const Modbus::Char *source, const uint8_t* buff, uint16_t size);
+
+    /// \details Calls each callback of the incoming packet 'Rx' from the internal list of callbacks, passing them the input array 'buff' and its size 'size'.
+    void signalRx(const Modbus::Char *source, const uint8_t* buff, uint16_t size);
+
+    /// \details Calls each callback of the port when error is occured with error's status and text.
+    void signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text);
+
 };
 
 #endif // MODBUSCLIENTPORT_H

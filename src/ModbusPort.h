@@ -20,8 +20,13 @@
 
  */
 
-class MODBUS_EXPORT ModbusPort : public ModbusObject
+class ModbusPortPrivate;
+
+class MODBUS_EXPORT ModbusPort
 {
+public:
+    virtual ~ModbusPort();
+
 public:
     /// \details Returns the Modbus protocol type.
     virtual Modbus::Type type() const = 0;
@@ -59,6 +64,9 @@ public:
     bool isNonBlocking() const;
 
 public: // errors
+    /// \details Returns the status of the last error of the performed operation.
+    Modbus::StatusCode lastErrorStatus() const;
+
     /// \details Returns the pointer to `const Char` text buffer of the last error of the performed operation.
     const Modbus::Char *lastErrorText() const;
 
@@ -81,12 +89,11 @@ public:
     /// \details Implements the algorithm for reading from the port and returns the status of the operation.
     virtual Modbus::StatusCode read() = 0;
 
-public: // SIGNALS
-    /// \details Calls each callback of the original packet 'Tx' from the internal list of callbacks, passing them the original array 'buff' and its size 'size'.
-    void emitTx(const uint8_t* buff, uint16_t size);
-
-    /// \details Calls each callback of the incoming packet 'Rx' from the internal list of callbacks, passing them the input array 'buff' and its size 'size'.
-    void emitRx(const uint8_t* buff, uint16_t size);
+public: // buffer
+    virtual const uint8_t *readBufferData() = 0;
+    virtual uint16_t readBufferSize() = 0;
+    virtual const uint8_t *writeBufferData() = 0;
+    virtual uint16_t writeBufferSize() = 0;
 
 protected:
     /// \details Sets the error parameters of the last operation performed.
@@ -97,7 +104,8 @@ protected:
     void setChanged(bool changed = true);
 
 protected:
-    using ModbusObject::ModbusObject;
+    ModbusPortPrivate *d_ptr;
+    ModbusPort(ModbusPortPrivate *d);
 };
 
 #endif // MODBUSPORT_H

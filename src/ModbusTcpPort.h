@@ -73,6 +73,12 @@ public:
     /// \details Returns `true' if the identifier of each subsequent parcel is automatically incremented by 1, `false' otherwise.
     bool autoIncrement() const;
 
+public:
+    const uint8_t *readBufferData() override;
+    uint16_t readBufferSize() override;
+    const uint8_t *writeBufferData() override;
+    uint16_t writeBufferSize() override;
+
 protected:
     Modbus::StatusCode write() override;
     Modbus::StatusCode read() override;

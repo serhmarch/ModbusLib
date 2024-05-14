@@ -138,7 +138,6 @@ StatusCode ModbusTcpPort::write()
         ssize_t c = d->socket->send(reinterpret_cast<char*>(d->buff), d->sz, 0);
         if (c > 0)
         {
-            emitTx(d->buff, d->sz);
             d->state = STATE_BEGIN;
             return Status_Good;
         }
@@ -173,7 +172,6 @@ StatusCode ModbusTcpPort::read()
         if (c > 0)
         {
             d->sz = static_cast<uint16_t>(c);
-            emitRx(d->buff, d->sz);
             d->state = STATE_BEGIN;
             return Status_Good;
         }

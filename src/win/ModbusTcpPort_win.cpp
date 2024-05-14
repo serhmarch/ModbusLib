@@ -64,7 +64,7 @@ Modbus::StatusCode ModbusTcpPort::open()
         // no need break
         case STATE_WAIT_FOR_OPEN:
         {
-            int r = d->socket->connect(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addr, static_cast<int>(reinterpret_cast<ADDRINFOW*>(d->addr)->ai_addrlen));
+            int r = d->socket->connect(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addr, static_cast<int>(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addrlen));
             if ((r == 0) || (WSAGetLastError() == WSAEISCONN))
             {
                 d->state = STATE_BEGIN;
@@ -136,7 +136,6 @@ StatusCode ModbusTcpPort::write()
         int c = d->socket->send(reinterpret_cast<char*>(d->buff), d->sz, 0);
         if (c > 0)
         {
-            emitTx(d->buff, d->sz);
             d->state = STATE_BEGIN;
             return Status_Good;
         }
@@ -171,7 +170,6 @@ StatusCode ModbusTcpPort::read()
         if (c > 0)
         {
             d->sz = static_cast<uint16_t>(c);
-            emitRx(d->buff, d->sz);
             d->state = STATE_BEGIN;
             return Status_Good;
         }

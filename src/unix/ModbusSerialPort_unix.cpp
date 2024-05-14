@@ -38,13 +38,13 @@ StatusCode ModbusSerialPort::open()
         case STATE_CLOSED:
         case STATE_WAIT_FOR_OPEN:
         {
-            d->clearChanged();
             if (isOpen())
             {
                 d->state = STATE_BEGIN;
                 return Status_Good;
             }
 
+            d->clearChanged();
             struct termios options;
             speed_t sp;
             int flags = O_RDWR | O_NOCTTY;
@@ -194,7 +194,6 @@ StatusCode ModbusSerialPort::write()
             c = ::write(d->serialPort, d->buff, d->sz);
             if (c >= 0)
             {
-                emitTx(d->buff, d->sz);
                 d->state = STATE_BEGIN;
                 return Status_Good;
             }
@@ -257,7 +256,6 @@ StatusCode ModbusSerialPort::read()
                 }
                 if (isBlocking())
                 {
-                    emitRx(d->buff, d->sz);
                     d->state = STATE_BEGIN;
                     return Status_Good;
                 }
@@ -295,7 +293,6 @@ StatusCode ModbusSerialPort::read()
             }
             else if (timer() - d->timestamp >= timeoutInterByte()) // waiting timeout read next byte elapsed
             {
-                emitRx(d->buff, d->sz);
                 d->state = STATE_BEGIN;
                 return Status_Good;
             }

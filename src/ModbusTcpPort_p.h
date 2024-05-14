@@ -38,6 +38,6 @@ public:
 
 };
 
-inline ModbusTcpPortPrivate *d_ModbusTcpPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivate*>(d_ptr); }
+inline ModbusTcpPortPrivate *d_ModbusTcpPort(ModbusPortPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivate*>(d_ptr); }
 
 #endif // MODBUSTCPPORT_P_H

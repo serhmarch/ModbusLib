@@ -8,24 +8,24 @@
 #include <ModbusRtuPort.h>
 #include <ModbusAscPort.h>
 
-void printTx(const uint8_t* buff, uint16_t size)
+void printTx(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 {
-    std::cout << "Tx: " << Modbus::bytesToString(buff, size) << '\n';
+    std::cout << source << " Tx: " << Modbus::bytesToString(buff, size) << '\n';
 }
 
-void printRx(const uint8_t* buff, uint16_t size)
+void printRx(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 {
-    std::cout << "Rx: " << Modbus::bytesToString(buff, size) << '\n';
+    std::cout << source << " Rx: " << Modbus::bytesToString(buff, size) << '\n';
 }
 
-void printTxAsc(const uint8_t* buff, uint16_t size)
+void printTxAsc(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 {
-    std::cout << "Tx: " << Modbus::asciiToString(buff, size) << '\n';
+    std::cout << source << " Tx: " << Modbus::asciiToString(buff, size) << '\n';
 }
 
-void printRxAsc(const uint8_t* buff, uint16_t size)
+void printRxAsc(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 {
-    std::cout << "Rx: " << Modbus::asciiToString(buff, size) << '\n';
+    std::cout << source << " Rx: " << Modbus::asciiToString(buff, size) << '\n';
 }
 
 class Device : public ModbusInterface
@@ -385,9 +385,6 @@ int main(int argc, char **argv)
         rtu->setTimeoutFirstByte(options.timeoutFirstByte);
         rtu->setTimeoutInterByte(options.timeoutInterByte);
 
-        rtu->connect(&ModbusRtuPort::emitTx, printTx);
-        rtu->connect(&ModbusRtuPort::emitRx, printRx);
-
         serv = new ModbusServerResource(rtu, &dev);
     }
         break;
@@ -403,9 +400,6 @@ int main(int argc, char **argv)
         asc->setTimeoutFirstByte(options.timeoutFirstByte);
         asc->setTimeoutInterByte(options.timeoutInterByte);
 
-        asc->connect(&ModbusAscPort::emitTx, printTxAsc);
-        asc->connect(&ModbusAscPort::emitRx, printRxAsc);
-
         serv = new ModbusServerResource(asc, &dev);
     }
         break;
@@ -415,13 +409,13 @@ int main(int argc, char **argv)
         tcp->setPort   (options.port   );
         tcp->setTimeout(options.timeout);
 
-        tcp->connect(&ModbusTcpServer::emitTx, printTx);
-        tcp->connect(&ModbusTcpServer::emitRx, printRx);
-
         serv = tcp;
     }
         break;
     }
+
+    serv->connect(&ModbusServerPort::signalTx, printTx);
+    serv->connect(&ModbusServerPort::signalRx, printRx);
 
     while (1)
     {
