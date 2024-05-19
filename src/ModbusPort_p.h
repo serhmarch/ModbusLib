@@ -35,7 +35,7 @@ public:
     ModbusPortPrivate(bool blocking)
     {
         this->state = STATE_UNKNOWN;
-        this->block = blocking;;
+        this->block = false;;
         this->unit = 0;
         this->func = 0;
         this->modeServer = false;

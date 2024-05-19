@@ -1,8 +1,11 @@
 set(MB_LIBRARY_NAME modbus)
 
 set(HEADERS 
-    Modbus_platform.h       
+    Modbus_config.h       
+    ModbusPlatform.h       
+    ModbusGlobal.h       
     Modbus.h                
+    cModbus.h                
     ModbusObject.h          
     ModbusPort.h            
     ModbusPort_p.h          
@@ -27,6 +30,7 @@ set(HEADERS
 
 set(SOURCES 
     Modbus.cpp              
+    cModbus.cpp              
     ModbusObject.cpp        
     ModbusPort.cpp          
     ModbusSerialPort.cpp    
@@ -87,5 +91,5 @@ set_target_properties(
     )
         
 if (WIN32)
-target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm SetupAPI)
+target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm)
 endif()

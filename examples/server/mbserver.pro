@@ -14,7 +14,7 @@ INCLUDEPATH += . ..   \
     $$PWD/../../src
     
 SOURCES += \
-    $$PWD/server.cpp
+    $$PWD/mbserver.cpp
 
 LIBS += -L../../bin -lmodbus
 

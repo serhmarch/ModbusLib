@@ -14,7 +14,7 @@ public:
     ModbusPort *port() const;
 
 public: // server port interface
-    Modbus::Type type() const override;
+    Modbus::ProtocolType type() const override;
     Modbus::StatusCode open() override;
     Modbus::StatusCode close() override;
     bool isOpen() const override;

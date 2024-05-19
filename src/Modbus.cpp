@@ -1,5 +1,12 @@
 #include "Modbus.h"
 
+#include "ModbusAscPort.h"
+#include "ModbusRtuPort.h"
+#include "ModbusTcpPort.h"
+#include "ModbusClientPort.h"
+#include "ModbusTcpServer.h"
+#include "ModbusServerResource.h"
+
 namespace Modbus {
 
 static inline Char hexDigit(uint8_t value) { return value < 10 ? '0' + value : 'A' + (value - 10); }
@@ -27,6 +34,122 @@ uint8_t lrc(const uint8_t *bytes, uint32_t count)
         lrc += *bytes++;
     return static_cast<uint8_t>(-static_cast<int8_t>(lrc));
 }
+
+StatusCode readMemRegs(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memRegCount)
+{
+    if (static_cast<uint32_t>(offset + count) > memRegCount)
+        return Status_BadIllegalDataAddress;
+    const uint16_t *mem = reinterpret_cast<const uint16_t*>(memBuff);
+    memcpy(values, &mem[offset], count * MB_REGE_SZ_BYTES);
+    return Status_Good;
+}
+
+StatusCode writeMemRegs(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memRegCount)
+{
+    if (static_cast<uint32_t>(offset + count) > memRegCount)
+        return Status_BadIllegalDataAddress;
+    uint16_t *mem = reinterpret_cast<uint16_t*>(memBuff);
+    memcpy(&mem[offset], values, count * MB_REGE_SZ_BYTES);
+    return Status_Good;
+}
+
+StatusCode readMemBits(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memBitCount)
+{
+    if (static_cast<uint32_t>(offset + count) > memBitCount)
+        return Status_BadIllegalDataAddress;
+    uint16_t byteOffset = offset/MB_BYTE_SZ_BITES;
+    uint16_t bytes = count/MB_BYTE_SZ_BITES;
+    uint16_t shift = offset%MB_BYTE_SZ_BITES;
+    const uint8_t *mem = reinterpret_cast<const uint8_t*>(memBuff);
+    if (shift)
+    {
+        for (uint16_t i = 0; i < bytes; i++)
+        {
+            uint16_t v = *(reinterpret_cast<const uint16_t*>(&mem[byteOffset+i])) >> shift;
+            reinterpret_cast<uint8_t*>(values)[i] = static_cast<uint8_t>(v);
+        }
+        if (uint16_t resid = count%MB_BYTE_SZ_BITES)
+        {
+            int8_t mask = static_cast<int8_t>(0x80);
+            mask = ~(mask>>(7-resid));
+            if ((shift+resid) > MB_BYTE_SZ_BITES)
+            {
+                uint16_t v = ((*reinterpret_cast<const uint16_t*>(&mem[byteOffset+bytes])) >> shift) & mask;
+                reinterpret_cast<uint8_t*>(values)[bytes] = static_cast<uint8_t>(v);
+            }
+            else
+                reinterpret_cast<uint8_t*>(values)[bytes] = (mem[byteOffset+bytes]>>shift) & mask;
+        }
+    }
+    else
+    {
+        memcpy(values, &mem[byteOffset], static_cast<size_t>(bytes));
+        if (uint16_t resid = count%MB_BYTE_SZ_BITES)
+        {
+            int8_t mask = static_cast<int8_t>(0x80);
+            mask = ~(mask>>(7-resid));
+            reinterpret_cast<uint8_t*>(values)[bytes] = mem[byteOffset+bytes] & mask;
+        }
+    }
+    return Status_Good;
+}
+
+StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memBitCount)
+{
+    if (static_cast<uint32_t>(offset + count) > memBitCount)
+        return Status_BadIllegalDataAddress;
+    uint16_t byteOffset = offset/MB_BYTE_SZ_BITES;
+    uint16_t bytes = count/MB_BYTE_SZ_BITES;
+    uint16_t shift = offset%MB_BYTE_SZ_BITES;
+    uint8_t *mem = reinterpret_cast<uint8_t*>(memBuff);
+    if (shift)
+    {
+        for (uint16_t i = 0; i < bytes; i++)
+        {
+            uint16_t mask = static_cast<uint16_t>(0x00FF) << shift;
+            uint16_t v = static_cast<uint16_t>(reinterpret_cast<const uint8_t*>(values)[i]) << shift;
+            *reinterpret_cast<uint16_t*>(&mem[byteOffset+i]) &= ~mask; // zero undermask values
+            *reinterpret_cast<uint16_t*>(&mem[byteOffset+i]) |= v; // set bit values
+        }
+        if (uint16_t resid = count%MB_BYTE_SZ_BITES)
+        {
+            if ((shift+resid) > MB_BYTE_SZ_BITES)
+            {
+                int16_t m = static_cast<int16_t>(0x8000); // using signed mask for right shift filled by '1'-bit
+                m = m>>(resid-1);
+                uint16_t mask = *reinterpret_cast<uint16_t*>(&m);
+                mask = mask >> (MB_REGE_SZ_BITES-resid-shift);
+                uint16_t v = (static_cast<uint16_t>(reinterpret_cast<const uint8_t*>(values)[bytes]) << shift) & mask;
+                *reinterpret_cast<uint16_t*>(&mem[byteOffset+bytes]) &= ~mask; // zero undermask values
+                *reinterpret_cast<uint16_t*>(&mem[byteOffset+bytes]) |= v;
+            }
+            else
+            {
+                int8_t m = static_cast<int8_t>(0x80); // using signed mask for right shift filled by '1'-bit
+                m = m>>(resid-1);
+                uint8_t mask = *reinterpret_cast<uint8_t*>(&m);
+                mask = mask >> (MB_BYTE_SZ_BITES-resid-shift);
+                uint8_t v = (reinterpret_cast<const uint8_t*>(values)[bytes] << shift) & mask;
+                mem[byteOffset+bytes] &= ~mask; // zero undermask values
+                mem[byteOffset+bytes] |= v;
+            }
+        }
+    }
+    else
+    {
+        memcpy(&mem[byteOffset], values, static_cast<size_t>(bytes));
+        if (uint16_t resid = count%MB_BYTE_SZ_BITES)
+        {
+            int8_t mask = static_cast<int8_t>(0x80);
+            mask = mask>>(7-resid);
+            mem[byteOffset+bytes] &= mask;
+            mask = ~mask;
+            mem[byteOffset+bytes] |= (reinterpret_cast<const uint8_t*>(values)[bytes] & mask);
+        }
+    }
+    return Status_Good;
+}
+
 
 uint16_t bytesToAscii(const uint8_t *bytesBuff, uint8_t* asciiBuff, uint32_t count)
 {
@@ -67,6 +190,22 @@ uint16_t asciiToBytes(const uint8_t *asciiBuff, uint8_t* bytesBuff, uint32_t cou
         bytesBuff[i / 2] |= tmp << (4 * (1 - j));
     }
     return qBytes;
+}
+
+Char *sbytes(const uint8_t* buff, uint32_t count, Char *str, uint32_t strmaxlen)
+{
+    String s = bytesToString(buff, count);
+    strncpy(str, s.data(), strmaxlen-1);
+    str[strmaxlen-1] = '\0';
+    return str;
+}
+
+Char *sascii(const uint8_t* buff, uint32_t count, Char *str, uint32_t strmaxlen)
+{
+    String s = asciiToString(buff, count);
+    strncpy(str, s.data(), strmaxlen-1);
+    str[strmaxlen-1] = '\0';
+    return str;
 }
 
 String bytesToString(const uint8_t* buff, uint32_t count)
@@ -132,6 +271,87 @@ String asciiToString(const uint8_t* buff, uint32_t count)
         }
     }
     return str;
+}
+
+MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, bool blocking, const void *settings)
+{
+    ModbusPort *port = nullptr;
+    switch (type)
+    {
+    case RTU:
+    {
+        ModbusRtuPort *rtu = new ModbusRtuPort(blocking);
+        const SerialPortSettings *s = reinterpret_cast<const SerialPortSettings*>(settings);
+        rtu->setPortName        (s->portName        );
+        rtu->setBaudRate        (s->baudRate        );
+        rtu->setDataBits        (s->dataBits        );
+        rtu->setParity          (s->parity          );
+        rtu->setStopBits        (s->stopBits        );
+        rtu->setFlowControl     (s->flowControl     );
+        rtu->setTimeoutFirstByte(s->timeoutFirstByte);
+        rtu->setTimeoutInterByte(s->timeoutInterByte);
+        port = rtu;
+    }
+        break;
+    case ASC:
+    {
+        ModbusAscPort *asc = new ModbusAscPort(blocking);
+        const SerialPortSettings *s = reinterpret_cast<const SerialPortSettings*>(settings);
+        asc->setPortName        (s->portName        );
+        asc->setBaudRate        (s->baudRate        );
+        asc->setDataBits        (s->dataBits        );
+        asc->setParity          (s->parity          );
+        asc->setStopBits        (s->stopBits        );
+        asc->setFlowControl     (s->flowControl     );
+        asc->setTimeoutFirstByte(s->timeoutFirstByte);
+        asc->setTimeoutInterByte(s->timeoutInterByte);
+        port = asc;
+    }
+        break;
+    case TCP:
+    {
+        ModbusTcpPort *tcp = new ModbusTcpPort(blocking);
+        const TcpSettings *s = reinterpret_cast<const TcpSettings*>(settings);
+        tcp->setHost   (s->host   );
+        tcp->setPort   (s->port   );
+        tcp->setTimeout(s->timeout);
+        port = tcp;
+    }
+        break;
+    }
+    return port;
+}
+
+MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, bool blocking, const void *settings)
+{
+    ModbusPort *port = createPort(type, blocking, settings);
+    ModbusClientPort *clientPort = new ModbusClientPort(port);
+    return clientPort;
+}
+
+MODBUS_EXPORT ModbusServerPort *createServerPort(ProtocolType type, bool blocking, const void *settings, ModbusInterface *device)
+{
+    ModbusServerPort *serv = nullptr;
+    switch (type)
+    {
+    case RTU:
+    case ASC:
+    {
+        ModbusPort *port = createPort(type, blocking, settings);
+        serv = new ModbusServerResource(port, device);
+    }
+        break;
+    case TCP:
+    {
+        ModbusTcpServer *tcp = new ModbusTcpServer(device);
+        const TcpSettings *s = reinterpret_cast<const TcpSettings*>(settings);
+        tcp->setPort   (s->port   );
+        tcp->setTimeout(s->timeout);
+        serv = tcp;
+    }
+        break;
+    }
+    return serv;
 }
 
 } //namespace Modbus

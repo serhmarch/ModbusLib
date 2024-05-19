@@ -18,7 +18,7 @@ ModbusClient::~ModbusClient()
     d_ModbusClient(d_ptr)->port->deleteRequestParams(d_ModbusClient(d_ptr)->rp);
 }
 
-Modbus::Type ModbusClient::type() const
+Modbus::ProtocolType ModbusClient::type() const
 {
     return d_ModbusClient(d_ptr)->port->type();
 }

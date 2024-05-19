@@ -40,7 +40,7 @@ public:
 
 public:
     /// \details Returns the Modbus protocol type. In this case it is `Modbus::TCP`.
-    Modbus::Type type() const override { return Modbus::RTU; }
+    Modbus::ProtocolType type() const override { return Modbus::RTU; }
 
     /// \details Native OS handle for the socket.
     Modbus::Handle handle() const override;

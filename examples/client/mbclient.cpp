@@ -45,7 +45,7 @@ void printRxAsc(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 
 struct Options
 {
-    Modbus::Type        type            ;
+    Modbus::ProtocolType        type            ;
     Modbus::String      host            ;
     uint16_t            port            ;
     uint16_t            timeout         ;
@@ -105,7 +105,7 @@ void parseOptions(int argc, char **argv)
                 else if (!strcmp(sOptValue, "ASC"))
                     options.type = Modbus::ASC;
                 else
-                    std::cerr << "Unknown Modbus::Type: " << sOptValue << '\n';
+                    std::cerr << "Unknown Modbus::ProtocolType: " << sOptValue << '\n';
             }
             continue;
         }

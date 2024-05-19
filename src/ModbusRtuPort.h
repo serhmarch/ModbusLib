@@ -32,7 +32,7 @@ public:
     ~ModbusRtuPort();
 
 public:
-    Modbus::Type type() const override { return Modbus::RTU; }
+    Modbus::ProtocolType type() const override { return Modbus::RTU; }
 
 protected:
     Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff) override;

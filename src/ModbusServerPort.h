@@ -32,7 +32,10 @@ public:
 
 public: // server port interface
     /// \details Returns type of Modbus protocol.
-    virtual Modbus::Type type() const = 0;
+    virtual Modbus::ProtocolType type() const = 0;
+
+    /// \details
+    virtual bool isTcpServer() const;
 
     /// \details
     virtual Modbus::StatusCode open() = 0;

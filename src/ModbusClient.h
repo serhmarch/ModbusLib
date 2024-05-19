@@ -34,7 +34,7 @@ public:
 
 public:
     /// \details Returns the type of the Modbus protocol.
-    Modbus::Type type() const;
+    Modbus::ProtocolType type() const;
 
     /// \details Returns the address of the remote Modbus device to which this client is bound.
     uint8_t unit() const;

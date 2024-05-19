@@ -121,6 +121,11 @@ public:
         disconnect(nullptr, funcPtr);
     }
 
+    inline void disconnectFunc(void *funcPtr)
+    {
+        disconnect(nullptr, funcPtr);
+    }
+
     template <class T, class ReturnType, class ... Args>
     inline void disconnect(T *object, ModbusMethodPointer<T, ReturnType, Args ...> objectMethodPtr)
     {

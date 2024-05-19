@@ -43,7 +43,10 @@ public:
 
 public:
     /// \details Returns type of Modbus protocol.
-    Modbus::Type type() const;
+    Modbus::ProtocolType type() const;
+
+    /// \details Returns a pointer to the port object that uses this algorithm.
+    ModbusPort *port() const;
 
     /// \details Closes connection and returns status of the operation.
     Modbus::StatusCode close();
@@ -58,14 +61,13 @@ public:
     void setRepeatCount(uint32_t v);
 
 public:
-    /// \details Returns a pointer to the port object that uses this algorithm.
-    ModbusPort *port() const;
-
-public:
     /// \details Returns the status of the last operation performed.
     Modbus::StatusCode lastStatus() const;
 
-    /// \details Returns the text of the last error of the performed operation.
+     /// \details Returns the status of the last error of the performed operation.
+    Modbus::StatusCode lastErrorStatus() const;
+
+   /// \details Returns the text of the last error of the performed operation.
     const Modbus::Char *lastErrorText() const;
 
 public:

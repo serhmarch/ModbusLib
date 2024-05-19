@@ -4,6 +4,11 @@
 
 namespace Modbus {
 
+Timer timer()
+{
+    return GetTickCount();
+}
+
 void msleep(uint32_t msec)
 {
     timeBeginPeriod(1);

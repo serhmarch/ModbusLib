@@ -207,7 +207,7 @@ private:
 
 struct Options
 {
-    Modbus::Type        type            ;
+    Modbus::ProtocolType        type            ;
     uint16_t            port            ;
     uint16_t            timeout         ;
     Modbus::String      portName        ;
@@ -261,7 +261,7 @@ void parseOptions(int argc, char **argv)
                 else if (!strcmp(sOptValue, "ASC"))
                     options.type = Modbus::ASC;
                 else
-                    std::cerr << "Unknown Modbus::Type: " << sOptValue << '\n';
+                    std::cerr << "Unknown Modbus::ProtocolType: " << sOptValue << '\n';
             }
             continue;
         }

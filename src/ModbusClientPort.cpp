@@ -19,7 +19,7 @@ ModbusClientPort::~ModbusClientPort()
     delete d_ModbusClientPort(d_ptr)->port;
 }
 
-Type ModbusClientPort::type() const
+ProtocolType ModbusClientPort::type() const
 {
     return d_ModbusClientPort(d_ptr)->port->type();
 }
@@ -59,6 +59,11 @@ ModbusPort *ModbusClientPort::port() const
 StatusCode ModbusClientPort::lastStatus() const
 {
     return d_ModbusClientPort(d_ptr)->lastStatus;
+}
+
+Modbus::StatusCode ModbusClientPort::lastErrorStatus() const
+{
+    return d_ModbusClientPort(d_ptr)->port->lastErrorStatus();
 }
 
 const Char *ModbusClientPort::lastErrorText() const

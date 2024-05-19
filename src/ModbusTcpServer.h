@@ -77,7 +77,10 @@ public:
 
 public:
     /// \details Returns the Modbus protocol type. In this case it is `Modbus::TCP`.
-    Modbus::Type type() const override { return Modbus::TCP; }
+    Modbus::ProtocolType type() const override { return Modbus::TCP; }
+
+    /// \details Returns `true`.
+    bool isTcpServer() const override { return true; }
 
     /// \details Try to listen for incoming connections on TCP port that was previously set (`port()`).
     /// \returns \li `Modbus::Status_Good` on success

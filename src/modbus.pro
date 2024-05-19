@@ -10,8 +10,11 @@ DESTDIR = ../bin
 unix:QMAKE_RPATHDIR += .
 
 HEADERS +=                          \
-    $$PWD/Modbus_platform.h         \
+    $$PWD/Modbus_config.h           \
+    $$PWD/ModbusPlatform.h          \
+    $$PWD/ModbusGlobal.h            \
     $$PWD/Modbus.h                  \
+    $$PWD/cModbus.h                 \
     $$PWD/ModbusObject.h            \
     $$PWD/ModbusPort.h              \
     $$PWD/ModbusPort_p.h            \
@@ -35,6 +38,7 @@ HEADERS +=                          \
 
 SOURCES +=                          \
     $$PWD/Modbus.cpp                \
+    $$PWD/cModbus.cpp               \
     $$PWD/ModbusObject.cpp          \
     $$PWD/ModbusPort.cpp            \
     $$PWD/ModbusSerialPort.cpp      \

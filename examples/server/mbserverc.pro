@@ -1,11 +1,8 @@
 TEMPLATE = app
 
-#CONFIG += c++17
+CONFIG += console
+CONFIG -= app_bundle
 CONFIG -= qt
-CONFIG += skip_target_version_ext
-CONFIG += cmdline
-#CONFIG += console
-#CONFIG -= app_bundle
 
 unix:QMAKE_RPATHDIR += .
 
@@ -15,7 +12,7 @@ INCLUDEPATH += . ..   \
     $$PWD/../../src
     
 SOURCES += \
-    $$PWD/client.cpp
+    $$PWD/mbserverc.c
 
 LIBS += -L../../bin -lmodbus
 

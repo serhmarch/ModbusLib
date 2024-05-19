@@ -28,6 +28,11 @@ ModbusInterface *ModbusServerPort::device() const
     return d_ModbusServerPort(d_ptr)->device;
 }
 
+bool ModbusServerPort::isTcpServer() const
+{
+    return false;
+}
+
 bool ModbusServerPort::isStateClosed() const
 {
     return d_ModbusServerPort(d_ptr)->isStateClosed();

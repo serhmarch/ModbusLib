@@ -29,7 +29,7 @@ public:
 
 public:
     /// \details Returns the Modbus protocol type.
-    virtual Modbus::Type type() const = 0;
+    virtual Modbus::ProtocolType type() const = 0;
 
     /// \details Returns the native handle value that depenp on OS used. For TCP it socket handle, for serial port - file handle.
     virtual Modbus::Handle handle() const = 0;

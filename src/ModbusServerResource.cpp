@@ -34,7 +34,7 @@ ModbusPort *ModbusServerResource::port() const
     return d_ModbusServerResource(d_ptr)->port;
 }
 
-Type ModbusServerResource::type() const
+ProtocolType ModbusServerResource::type() const
 {
     return d_ModbusServerResource(d_ptr)->port->type();
 }
