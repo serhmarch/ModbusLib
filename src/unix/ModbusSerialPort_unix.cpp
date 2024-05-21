@@ -60,7 +60,7 @@ StatusCode ModbusSerialPort::open()
 
             if (d->serialPortIsInvalid())
             {
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open serial port. Error code: ") + toString(errno));
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open serial port. Error code: ") + toModbusString(errno));
             }
 
             fcntl(d->serialPort, F_SETFL, 0);

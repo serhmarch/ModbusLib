@@ -11,6 +11,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef QT_CORE_LIB
+#include <qobjectdefs.h>
+#endif
+
 #include "ModbusPlatform.h"
 #include "Modbus_config.h"
 
@@ -134,7 +138,9 @@
 
 namespace Modbus {
 
-extern "C" {
+#ifdef QT_CORE_LIB
+Q_NAMESPACE
+#endif
 
 #endif // __cplusplus
 
@@ -152,14 +158,6 @@ enum Constants
 
 //=========== Modbus protocol types ===============
 
-/// \brief Defines type of Modbus protocol.
-typedef enum _ProtocolType
-{
-    ASC,
-    RTU,
-    TCP
-} ProtocolType;
-
 /// \brief Defines type of memory used in Modbus protocol.
 typedef enum _MemoryType
 {
@@ -175,7 +173,11 @@ typedef enum _MemoryType
 } MemoryType;
 
 /// \brief Defines status of executed Modbus functions.
+#ifdef __cplusplus // Note: for Qt/moc support
+enum StatusCode
+#else
 typedef enum _StatusCode
+#endif
 {
     Status_Processing               = 0x80000000, ///< The operation is not complete. Further operation is required
     Status_Good                     = 0x00000000, ///< Successful result
@@ -230,31 +232,93 @@ typedef enum _StatusCode
     Status_BadTcpBind,                                    ///< Error. Unable to bind a TCP socket (server side)
     Status_BadTcpListen,                                  ///< Error. Unable to listen a TCP socket (server side)
     Status_BadTcpAccept,                                  ///< Error. Unable accept bind a TCP socket (server side)
+    Status_BadTcpDisconnect,                              ///< Error. Bad disconnection result
     //---_ Modbus TCP specified errors end ---
-} StatusCode;
+}
+#ifdef __cplusplus
+;
+#else
+StatusCode;
+#endif
 
+/// \brief Defines type of Modbus protocol.
+#ifdef __cplusplus // Note: for Qt/moc support
+enum ProtocolType
+#else
+typedef enum _ProtocolType
+#endif
+{
+    ASC,
+    RTU,
+    TCP
+}
+#ifdef __cplusplus
+;
+#else
+ProtocolType;
+#endif
+
+
+/// \brief Defines Parity for serial port
+#ifdef __cplusplus // Note: for Qt/moc support
+enum Parity
+#else
 typedef enum _Parity
+#endif
 {
     NoParity,
     EvenParity,
     OddParity,
     SpaceParity,
     MarkParity
-} Parity;
+}
+#ifdef __cplusplus
+;
+#else
+Parity;
+#endif
 
+
+/// \brief Defines Stop Bits for serial port
+#ifdef __cplusplus // Note: for Qt/moc support
+enum StopBits
+#else
 typedef enum _StopBits
+#endif
 {
     OneStop,
     OneAndHalfStop,
     TwoStop
-} StopBits;
+}
+#ifdef __cplusplus
+;
+#else
+StopBits;
+#endif
 
+#ifdef __cplusplus // Note: for Qt/moc support
+enum FlowControl
+#else
 typedef enum _FlowControl
+#endif
 {
     NoFlowControl,
     HardwareControl,
     SoftwareControl
-} FlowControl;
+}
+#ifdef __cplusplus
+;
+#else
+FlowControl;
+#endif
+
+#ifdef QT_CORE_LIB
+Q_ENUM_NS(StatusCode)
+Q_ENUM_NS(ProtocolType)
+Q_ENUM_NS(Parity)
+Q_ENUM_NS(StopBits)
+Q_ENUM_NS(FlowControl)
+#endif
 
 typedef struct 
 {
@@ -274,6 +338,10 @@ typedef struct
     uint16_t    port   ;
     uint16_t    timeout;
 } TcpSettings;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /// \details Returns a general indication that the result of the operation is incomplete.
 inline bool StatusIsProcessing(StatusCode status) { return status == Status_Processing; }
@@ -366,11 +434,11 @@ MODBUS_EXPORT Timer timer();
 MODBUS_EXPORT void msleep(uint32_t msec);
 
 #ifdef __cplusplus
-
 } //extern "C"
+#endif
 
+#ifdef __cplusplus
 } //namespace Modbus
-
-#endif // __cplusplus
+#endif
 
 #endif // MODBUSGLOBAL_H

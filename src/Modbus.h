@@ -49,7 +49,7 @@ using List = std::list<T>;
 
 /// \details Convert interger value to Modbus::String
 /// \returns Returns new Modbus::String value
-inline String toString(int val) { return std::to_string(val); }
+inline String toModbusString(int val) { return std::to_string(val); }
 
 /// \details Make string representation of bytes array and separate bytes by space
 MODBUS_EXPORT String bytesToString(const uint8_t* buff, uint32_t count);
@@ -60,14 +60,14 @@ MODBUS_EXPORT String asciiToString(const uint8_t* buff, uint32_t count);
 /// \details Return list of names of available serial ports
 MODBUS_EXPORT List<String> availableSerialPorts();
 
-/// \details 
-MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, bool blocking, const void *settings);
+/// \details
+MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking);
 
 /// \details 
-MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, bool blocking, const void *settings);
+MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking);
 
 /// \details 
-MODBUS_EXPORT ModbusServerPort *createServerPort(ProtocolType type, bool blocking, const void *settings, ModbusInterface *device);
+MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking);
 
 } //namespace Modbus
 

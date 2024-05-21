@@ -77,8 +77,8 @@ MODBUS_EXPORT void cDeleteModbusDevice(cModbusInterface dev);
 // ---------------------------------------------- ModbusPort ----------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-/// \details 
-MODBUS_EXPORT cModbusPort cPortCreate(ProtocolType type, bool blocking, const void *settings);
+/// \details
+MODBUS_EXPORT cModbusPort cPortCreate(ProtocolType type, const void *settings, bool blocking);
 
 /// \details 
 MODBUS_EXPORT void cPortDelete(cModbusPort port);
@@ -89,7 +89,7 @@ MODBUS_EXPORT void cPortDelete(cModbusPort port);
 // --------------------------------------------------------------------------------------------------------
 
 /// \details 
-MODBUS_EXPORT cModbusClientPort cCpoCreate(ProtocolType type, bool blocking, const void *settings);
+MODBUS_EXPORT cModbusClientPort cCpoCreate(ProtocolType type, const void *settings, bool blocking);
 
 /// \details 
 MODBUS_EXPORT cModbusClientPort cCpoCreateForPort(cModbusPort port);
@@ -151,7 +151,7 @@ MODBUS_EXPORT void cCpoDisconnectFunc(cModbusClientPort clientPort, void *funcPt
 // --------------------------------------------------------------------------------------------------------
 
 /// \details 
-MODBUS_EXPORT cModbusClient cCliCreate(uint8_t unit, ProtocolType type, bool blocking, const void *settings);
+MODBUS_EXPORT cModbusClient cCliCreate(uint8_t unit, ProtocolType type, const void *settings, bool blocking);
 
 /// \details 
 MODBUS_EXPORT cModbusClient cCliCreateForClientPort(uint8_t unit, cModbusClientPort clientPort);
@@ -231,7 +231,7 @@ MODBUS_EXPORT const Char *cCliGetLastErrorText(cModbusClient client);
 // --------------------------------------------------------------------------------------------------------
 
 /// \details 
-MODBUS_EXPORT cModbusServerPort cSpoCreate(ProtocolType type, bool blocking, const void *settings, cModbusInterface device);
+MODBUS_EXPORT cModbusServerPort cSpoCreate(cModbusInterface device, ProtocolType type, const void *settings, bool blocking);
 
 /// \details 
 MODBUS_EXPORT void cSpoDelete(cModbusServerPort serverPort);

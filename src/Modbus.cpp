@@ -273,7 +273,7 @@ String asciiToString(const uint8_t* buff, uint32_t count)
     return str;
 }
 
-MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, bool blocking, const void *settings)
+MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
 {
     ModbusPort *port = nullptr;
     switch (type)
@@ -322,14 +322,14 @@ MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, bool blocking, const voi
     return port;
 }
 
-MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, bool blocking, const void *settings)
+MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking)
 {
-    ModbusPort *port = createPort(type, blocking, settings);
+    ModbusPort *port = createPort(type, settings, blocking);
     ModbusClientPort *clientPort = new ModbusClientPort(port);
     return clientPort;
 }
 
-MODBUS_EXPORT ModbusServerPort *createServerPort(ProtocolType type, bool blocking, const void *settings, ModbusInterface *device)
+MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking)
 {
     ModbusServerPort *serv = nullptr;
     switch (type)
@@ -337,7 +337,7 @@ MODBUS_EXPORT ModbusServerPort *createServerPort(ProtocolType type, bool blockin
     case RTU:
     case ASC:
     {
-        ModbusPort *port = createPort(type, blocking, settings);
+        ModbusPort *port = createPort(type, settings, blocking);
         serv = new ModbusServerResource(port, device);
     }
         break;

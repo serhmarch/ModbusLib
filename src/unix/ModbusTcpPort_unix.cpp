@@ -82,7 +82,7 @@ Modbus::StatusCode ModbusTcpPort::open()
             {
                 d->socket->close();
                 d->state = STATE_CLOSED;
-                return d->setError(Status_BadTcpConnect, StringLiteral("TCP. Error while connecting. Error code: ") + toString(errno));
+                return d->setError(Status_BadTcpConnect, StringLiteral("TCP. Error while connecting. Error code: ") + toModbusString(errno));
             }
         }
             break;
@@ -191,7 +191,7 @@ StatusCode ModbusTcpPort::read()
             if (e != EWOULDBLOCK)
             {
                 close();
-                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading. Error code: ") + toString(e));
+                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading. Error code: ") + toModbusString(e));
             }
         }
     }

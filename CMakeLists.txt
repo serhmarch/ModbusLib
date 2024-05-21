@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5) # 2.2 - case insensitive syntax
 
-project(ModbusLib VERSION 0.0.1 LANGUAGES C CXX)
+project(ModbusLib VERSION 0.0.2 LANGUAGES C CXX)
 
 option(MB_EXAMPLES_ENABLED "Build examples" ON)
 option(MB_TESTS_ENABLED "Enable unit tests" OFF)

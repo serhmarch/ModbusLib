@@ -137,9 +137,9 @@ void cDeleteModbusDevice(cModbusInterface dev)
 // ---------------------------------------------- ModbusPort ----------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-cModbusPort cPortCreate(ProtocolType type, bool blocking, const void *settings)
+cModbusPort cPortCreate(ProtocolType type, const void *settings, bool blocking)
 {
-    return createPort(type, blocking, settings);
+    return createPort(type, settings, blocking);
 }
 
 void cPortDelete(cModbusPort port)
@@ -151,9 +151,9 @@ void cPortDelete(cModbusPort port)
 // ------------------------------------------- ModbusClientPort -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-cModbusClientPort cCpoCreate(ProtocolType type, bool blocking, const void *settings)
+cModbusClientPort cCpoCreate(ProtocolType type, const void *settings, bool blocking)
 {
-    return createClientPort(type, blocking, settings);
+    return createClientPort(type, settings, blocking);
 }
 
 cModbusClientPort cCpoCreateForPort(cModbusPort port)
@@ -251,9 +251,9 @@ void cCpoDisconnectFunc(cModbusClientPort clientPort, void *funcPtr)
 // --------------------------------------------- ModbusClient ---------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-cModbusClient cCliCreate(uint8_t unit, ProtocolType type, bool blocking, const void *settings)
+cModbusClient cCliCreate(uint8_t unit, ProtocolType type, const void *settings, bool blocking)
 {
-    ModbusClientPort *clientPort = createClientPort(type, blocking, settings);
+    ModbusClientPort *clientPort = createClientPort(type, settings, blocking);
     ModbusClient *client = new ModbusClient(unit, clientPort);
     return client;
 }
@@ -384,9 +384,9 @@ const Char *cCliGetLastErrorText(cModbusClient client)
 // ------------------------------------------- ModbusServerPort -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-cModbusServerPort cSpoCreate(ProtocolType type, bool blocking, const void *settings, cModbusInterface device)
+cModbusServerPort cSpoCreate(cModbusInterface device, ProtocolType type, const void *settings, bool blocking)
 {
-    return createServerPort(type, blocking, settings, device);
+    return createServerPort(device, type, settings, blocking);
 }
 
 void cSpoDelete(cModbusServerPort serverPort)

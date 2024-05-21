@@ -79,7 +79,7 @@ StatusCode ModbusSerialPort::open()
 
             if (d->serialPortIsInvalid())
             {
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open serial port. Error code: ") + toString(GetLastError()));
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open serial port. Error code: ") + toModbusString(GetLastError()));
             }
 
             // Configure the serial port
@@ -88,7 +88,7 @@ StatusCode ModbusSerialPort::open()
             if (!GetCommState(d->serialPort, &dcbSerialParams))
             {
                 d->serialPortClose();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get serial port state. Error code: ") + toString(GetLastError()));
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get serial port state. Error code: ") + toModbusString(GetLastError()));
             }
 
             dcbSerialParams.BaudRate = static_cast<DWORD>(d->settings.baudRate);
@@ -100,7 +100,7 @@ StatusCode ModbusSerialPort::open()
             if (!SetCommState(d->serialPort, &dcbSerialParams))
             {
                 d->serialPortClose();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set serial port state. Error code: ") + toString(GetLastError()));
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set serial port state. Error code: ") + toModbusString(GetLastError()));
             }
 
             // Set timeouts
@@ -118,7 +118,7 @@ StatusCode ModbusSerialPort::open()
             if (!SetCommTimeouts(d->serialPort, &timeouts))
             {
                 d->serialPortClose();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set timeouts. Error code: ") + toString(GetLastError()));
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set timeouts. Error code: ") + toModbusString(GetLastError()));
             }
         }
             return Status_Good;

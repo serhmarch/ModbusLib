@@ -150,7 +150,7 @@ StatusCode ModbusTcpPort::readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff
             if (d->sz > 8)
             {
                 StatusCode r = static_cast<StatusCode>(d->buff[8]); // Returned modbus exception
-                return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("TCP. Returned Modbus-exception with code "))+toString(static_cast<int>(r)));
+                return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("TCP. Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
             }
             else
                 return d->setError(Status_BadNotCorrectResponse, StringLiteral("TCP. Exception status missed"));
