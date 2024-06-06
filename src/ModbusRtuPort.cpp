@@ -39,18 +39,10 @@ ModbusRtuPort::~ModbusRtuPort()
 StatusCode ModbusRtuPort::writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff)
 {
     ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
-    if (!d->modeServer)
-    {
-        if (d->block)
-            return Status_Processing;
-        d->unit = unit;
-        d->func = func;
-        d->block = true;
-    }
     uint16_t crc;
     // 2 is unit and function bytes + 2 bytes CRC16
     if (szInBuff > MB_RTU_IO_BUFF_SZ-(sizeof(crc)+2))
-        return d->setError(Status_BadWriteBufferOverflow, StringLiteral("Write-buffer overflow"));
+        return d->setError(Status_BadWriteBufferOverflow, StringLiteral("RTU. Write-buffer overflow"));
     d->buff[0] = unit;
     d->buff[1] = func;
     memcpy(&d->buff[2], buff, szInBuff);
@@ -67,32 +59,18 @@ StatusCode ModbusRtuPort::readBuffer(uint8_t& unit, uint8_t& func, uint8_t *buff
     ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
     uint16_t crc;
     if (d->sz < 5)
-        return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct response. Responsed data length to small"));
+        return d->setError(Status_BadNotCorrectRequest, StringLiteral("RTU. Not correct response. Responsed data length to small"));
 
     crc = d->buff[d->sz-2] | (d->buff[d->sz-1] << 8);
     if (Modbus::crc16(d->buff, d->sz-2) != crc)
-        return d->setError(Status_BadCrc, StringLiteral("Wrong CRC"));
-
-    if (!d->modeServer)
-    {
-        if (d->buff[0] != d->unit)
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct response. Requested unit (unit) address is not equal to responsed"));
-
-        if ((d->buff[1] & MBF_EXCEPTION) == MBF_EXCEPTION)
-        {
-            StatusCode r = d->buff[2] ? static_cast<StatusCode>(d->buff[2]) : Status_Bad;
-            return d->setError(static_cast<StatusCode>(r), StringLiteral("Returned modbus exception"));
-           }
-        if (d->buff[1] != d->func)
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct response. Requested function is not equal to responsed"));
-    }
+        return d->setError(Status_BadCrc, StringLiteral("RTU. Wrong CRC"));
 
     unit = d->buff[0];
     func = d->buff[1];
 
     d->sz -= 4;
     if (d->sz > maxSzBuff)
-        return d->setError(Status_BadReadBufferOverflow, StringLiteral("Read-buffer overflow"));
+        return d->setError(Status_BadReadBufferOverflow, StringLiteral("RTU. Read-buffer overflow"));
     memcpy(buff, &d->buff[2], d->sz);
     *szOutBuff = d->sz;
     return Status_Good;

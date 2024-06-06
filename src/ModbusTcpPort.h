@@ -40,7 +40,7 @@ public:
 
 public:
     /// \details Returns the Modbus protocol type. In this case it is `Modbus::TCP`.
-    Modbus::ProtocolType type() const override { return Modbus::RTU; }
+    Modbus::ProtocolType type() const override { return Modbus::TCP; }
 
     /// \details Native OS handle for the socket.
     Modbus::Handle handle() const override;
@@ -74,10 +74,10 @@ public:
     bool autoIncrement() const;
 
 public:
-    const uint8_t *readBufferData() override;
-    uint16_t readBufferSize() override;
-    const uint8_t *writeBufferData() override;
-    uint16_t writeBufferSize() override;
+    const uint8_t *readBufferData() const override;
+    uint16_t readBufferSize() const override;
+    const uint8_t *writeBufferData() const override;
+    uint16_t writeBufferSize() const override;
 
 protected:
     Modbus::StatusCode write() override;

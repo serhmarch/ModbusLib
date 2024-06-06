@@ -1,9 +1,7 @@
 TEMPLATE = lib
 
 #CONFIG += c++17
-CONFIG += qt
-
-QT = core
+CONFIG -= qt
 
 DEFINES += MODBUS_EXPORTS
 
@@ -17,7 +15,6 @@ HEADERS +=                          \
     $$PWD/ModbusGlobal.h            \
     $$PWD/Modbus.h                  \
     $$PWD/cModbus.h                 \
-    $$PWD/ModbusQt.h                \
     $$PWD/ModbusObject.h            \
     $$PWD/ModbusPort.h              \
     $$PWD/ModbusPort_p.h            \
@@ -38,12 +35,10 @@ HEADERS +=                          \
     $$PWD/ModbusServerResource_p.h  \
     $$PWD/ModbusTcpPort_p.h         \
     $$PWD/ModbusTcpServer_p.h       \
-    $$PWD/ModbusQt.h                \
 
 SOURCES +=                          \
     $$PWD/Modbus.cpp                \
     $$PWD/cModbus.cpp               \
-    $$PWD/ModbusQt.cpp              \
     $$PWD/ModbusObject.cpp          \
     $$PWD/ModbusPort.cpp            \
     $$PWD/ModbusSerialPort.cpp      \
@@ -55,6 +50,19 @@ SOURCES +=                          \
     $$PWD/ModbusServerPort.cpp      \
     $$PWD/ModbusServerResource.cpp  \
     $$PWD/ModbusTcpServer.cpp       \
+
+contains(CONFIG, qt) {
+#    message("Qt support is enabled.")
+QT = core
+HEADERS +=                          \
+    $$PWD/ModbusQt.h                \
+
+SOURCES +=                          \
+    $$PWD/ModbusQt.cpp              \
+
+} else {
+#    message("Qt support is NOT enabled.")
+}
 
 win32 {
 

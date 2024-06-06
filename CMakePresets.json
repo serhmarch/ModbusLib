@@ -1,0 +1,26 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "win",
+            "displayName": "Windows MSVC x64",
+            "description": "Using compilers for Visual Studio 17 2022 (x64 architecture)",
+            "generator": "Visual Studio 17 2022",
+            "toolset": "host=x64",
+            "architecture": "x64",
+            "binaryDir": "C:/tmp/cmake/ModbusLib",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "win-debug",
+            "displayName": "Visual Studio Community 2022 Release - amd64 - Debug",
+            "configurePreset": "win",
+            "configuration": "Debug"
+        }
+    ]
+}

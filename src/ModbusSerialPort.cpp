@@ -36,10 +36,11 @@ const Char *ModbusSerialPort::portName() const
 
 void ModbusSerialPort::setPortName(const Char *portName)
 {
-    if (d_ModbusSerialPort(d_ptr)->settings.portName != portName)
+    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
+    if (d->settings.portName != portName)
     {
-        d_ModbusSerialPort(d_ptr)->settings.portName = portName;
-        setChanged(true);
+        d->settings.portName = portName;
+        d->setChanged(true);
     }
 }
 
@@ -50,10 +51,11 @@ int32_t ModbusSerialPort::baudRate() const
 
 void ModbusSerialPort::setBaudRate(int32_t baudRate)
 {
-    if (d_ModbusSerialPort(d_ptr)->settings.baudRate != baudRate)
+    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
+    if (d->settings.baudRate != baudRate)
     {
-        d_ModbusSerialPort(d_ptr)->settings.baudRate = baudRate;
-        setChanged(true);
+        d->settings.baudRate = baudRate;
+        d->setChanged(true);
     }
 }
 
@@ -64,10 +66,11 @@ int8_t ModbusSerialPort::dataBits() const
 
 void ModbusSerialPort::setDataBits(int8_t dataBits)
 {
-    if (d_ModbusSerialPort(d_ptr)->settings.dataBits != dataBits)
+    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
+    if (d->settings.dataBits != dataBits)
     {
-        d_ModbusSerialPort(d_ptr)->settings.dataBits = dataBits;
-        setChanged(true);
+        d->settings.dataBits = dataBits;
+        d->setChanged(true);
     }
 }
 
@@ -78,10 +81,11 @@ Parity ModbusSerialPort::parity() const
 
 void ModbusSerialPort::setStopBits(StopBits stopBits)
 {
-    if (d_ModbusSerialPort(d_ptr)->settings.stopBits != stopBits)
+    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
+    if (d->settings.stopBits != stopBits)
     {
-        d_ModbusSerialPort(d_ptr)->settings.stopBits = stopBits;
-        setChanged(true);
+        d->settings.stopBits = stopBits;
+        d->setChanged(true);
     }
 }
 
@@ -92,10 +96,11 @@ FlowControl ModbusSerialPort::flowControl() const
 
 void ModbusSerialPort::setParity(Parity parity)
 {
-    if (d_ModbusSerialPort(d_ptr)->settings.parity != parity)
+    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
+    if (d->settings.parity != parity)
     {
-        d_ModbusSerialPort(d_ptr)->settings.parity = parity;
-        setChanged(true);
+        d->settings.parity = parity;
+        d->setChanged(true);
     }
 }
 
@@ -106,10 +111,11 @@ StopBits ModbusSerialPort::stopBits() const
 
 void ModbusSerialPort::setFlowControl(FlowControl flowControl)
 {
-    if (d_ModbusSerialPort(d_ptr)->settings.flowControl != flowControl)
+    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
+    if (d->settings.flowControl != flowControl)
     {
-        d_ModbusSerialPort(d_ptr)->settings.flowControl = flowControl;
-        setChanged(true);
+        d->settings.flowControl = flowControl;
+        d->setChanged(true);
     }
 }
 
@@ -120,10 +126,11 @@ uint32_t ModbusSerialPort::timeoutFirstByte() const
 
 void ModbusSerialPort::setTimeoutFirstByte(uint32_t timeout)
 {
-    if (d_ModbusSerialPort(d_ptr)->settings.timeoutFirstByte != timeout)
+    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
+    if (d->settings.timeoutFirstByte != timeout)
     {
-        d_ModbusSerialPort(d_ptr)->settings.timeoutFirstByte = timeout;
-        setChanged(true);
+        d->settings.timeoutFirstByte = timeout;
+        d->setChanged(true);
     }
 }
 
@@ -134,29 +141,30 @@ uint32_t ModbusSerialPort::timeoutInterByte() const
 
 void ModbusSerialPort::setTimeoutInterByte(uint32_t timeout)
 {
-    if (d_ModbusSerialPort(d_ptr)->settings.timeoutInterByte != timeout)
+    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
+    if (d->settings.timeoutInterByte != timeout)
     {
-        d_ModbusSerialPort(d_ptr)->settings.timeoutInterByte = timeout;
-        setChanged(true);
+        d->settings.timeoutInterByte = timeout;
+        d->setChanged(true);
     }
 }
 
-const uint8_t *ModbusSerialPort::readBufferData()
+const uint8_t *ModbusSerialPort::readBufferData() const
 {
     return d_ModbusSerialPort(d_ptr)->buff;
 }
 
-uint16_t ModbusSerialPort::readBufferSize()
+uint16_t ModbusSerialPort::readBufferSize() const
 {
     return d_ModbusSerialPort(d_ptr)->sz;
 }
 
-const uint8_t *ModbusSerialPort::writeBufferData()
+const uint8_t *ModbusSerialPort::writeBufferData() const
 {
     return d_ModbusSerialPort(d_ptr)->buff;
 }
 
-uint16_t ModbusSerialPort::writeBufferSize()
+uint16_t ModbusSerialPort::writeBufferSize() const
 {
     return d_ModbusSerialPort(d_ptr)->sz;
 }

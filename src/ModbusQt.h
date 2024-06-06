@@ -1,7 +1,7 @@
 #ifndef MODBUSQT_H
 #define MODBUSQT_H
 
-#include <Modbus.h>
+#include "Modbus.h"
 
 #include <QMetaEnum>
 #include <QHash>

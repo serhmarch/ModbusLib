@@ -411,10 +411,10 @@ int main(int argc, char **argv)
     {
     case RTU:
     case ASC:
-        client = cCliCreate(options.unit, options.type, true, &options.ser);
+        client = cCliCreate(options.unit, options.type, &options.ser, true);
         break;
     default:
-        client = cCliCreate(options.unit, options.type, true, &options.tcp);
+        client = cCliCreate(options.unit, options.type, &options.tcp, true);
         break;
     }
 
@@ -445,7 +445,7 @@ int main(int argc, char **argv)
             if (StatusIsGood(status))
                 printBits(values, options.count);
             else
-                printResult(status, cCliGetLastErrorText(client));
+                printResult(status, cCliGetLastPortErrorText(client));
             break;
         case MBF_READ_DISCRETE_INPUTS:
             printf("READ_DISCRETE_INPUTS(offset=%hu,count=%hu)\n", options.offset, options.count);
@@ -453,7 +453,7 @@ int main(int argc, char **argv)
             if (StatusIsGood(status))
                 printBits(values, options.count);
             else
-                printResult(status, cCliGetLastErrorText(client));
+                printResult(status, cCliGetLastPortErrorText(client));
             break;
         case MBF_READ_HOLDING_REGISTERS:
             printf("READ_HOLDING_REGISTERS(offset=%hu,count=%hu)\n", options.offset, options.count);
@@ -461,7 +461,7 @@ int main(int argc, char **argv)
             if (StatusIsGood(status))
                 printRegs(values, options.count);
             else
-                printResult(status, cCliGetLastErrorText(client));
+                printResult(status, cCliGetLastPortErrorText(client));
             break;
         case MBF_READ_INPUT_REGISTERS:
             printf("READ_INPUT_REGISTERS(offset=%hu,count=%hu)\n", options.offset, options.count);
@@ -469,21 +469,21 @@ int main(int argc, char **argv)
             if (StatusIsGood(status))
                 printRegs(values, options.count);
             else
-                printResult(status, cCliGetLastErrorText(client));
+                printResult(status, cCliGetLastPortErrorText(client));
             break;
         case MBF_WRITE_SINGLE_COIL:
             fillValues();
             printf("WRITE_SINGLE_COILS(offset=%hu)\n", options.offset);
             printBits(values, 1);
             status = cWriteSingleCoil(client, options.offset, values[0]);
-            printResult(status, cCliGetLastErrorText(client));
+            printResult(status, cCliGetLastPortErrorText(client));
             break;
         case MBF_WRITE_SINGLE_REGISTER:
             fillValues();
             printf("WRITE_SINGLE_REGISTE(offset=%hu)\n", options.offset);
             printRegs(values, 1);
             status = cWriteSingleRegister(client, options.offset, regs[0]);
-            printResult(status, cCliGetLastErrorText(client));
+            printResult(status, cCliGetLastPortErrorText(client));
             break;
         case MBF_READ_EXCEPTION_STATUS:
             printf("READ_EXCEPTION_STATUS\n");
@@ -492,21 +492,21 @@ int main(int argc, char **argv)
             if (StatusIsGood(status))
                 printRegs(values, 1);
             else
-                printResult(status, cCliGetLastErrorText(client));
+                printResult(status, cCliGetLastPortErrorText(client));
             break;
         case MBF_WRITE_MULTIPLE_COILS:
             fillValues();
             printf("WRITE_MULTIPLE_COILS(offset=%hu,count=%hu)\n", options.offset, options.count);
             printBits(values, options.count);
             status = cWriteMultipleCoils(client, options.offset, options.count, values);
-            printResult(status, cCliGetLastErrorText(client));
+            printResult(status, cCliGetLastPortErrorText(client));
             break;
         case MBF_WRITE_MULTIPLE_REGISTERS:
             fillValues();
             printf("WRITE_MULTIPLE_REGISTERS(offset=%hu,count=%hu)\n", options.offset, options.count);
             printRegs(values, options.count);
             status = cWriteMultipleRegisters(client, options.offset, options.count, regs);
-            printResult(status, cCliGetLastErrorText(client));
+            printResult(status, cCliGetLastPortErrorText(client));
             break;
         default:
             printf("Unknown function: %d", options.func);

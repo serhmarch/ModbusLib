@@ -413,13 +413,18 @@ MODBUS_EXPORT StatusCode writeMemBits(uint32_t offset, uint32_t count, const voi
 /// where most signified tetrabits represented as leading byte in hex digit in ASCII encoding (upper) and
 /// less signified tetrabits represented as tailing byte in hex digit in ASCII encoding (upper).
 /// \c count is count bytes of \c bytesBuff.
-/// \note Output array \c asciiBuff must be twice bigger than input array \c bytesBuff.
-/// \returns Returns size of \c asciiBuff in bytes which calc as \c {outCount = count * 2}
-MODBUS_EXPORT uint16_t bytesToAscii(const uint8_t* bytesBuff, uint8_t* asciiBuff, uint32_t count);
+/// \note Output array \c asciiBuff must be at least twice bigger than input array \c bytesBuff.
+/// \returns Returns size of \c asciiBuff in bytes which calc as \c {output = count * 2}
+MODBUS_EXPORT uint32_t bytesToAscii(const uint8_t* bytesBuff, uint8_t* asciiBuff, uint32_t count);
 
-/// \details Convert ASCII array to bytes array.
-/// \returns Returns count bytes converted
-MODBUS_EXPORT uint16_t asciiToBytes(const uint8_t* asciiBuff, uint8_t* bytesBuff, uint32_t count);
+/// \details Function converts ASCII repr \c asciiBuff to binary byte array.
+/// Every byte of output \c bytesBuff are repr as two bytes in \c asciiBuff,
+/// where most signified tetrabits represented as leading byte in hex digit in ASCII encoding (upper) and
+/// less signified tetrabits represented as tailing byte in hex digit in ASCII encoding (upper).
+/// \c count is a size of input array \c asciiBuff.
+/// \note Output array \c bytesBuff must be at least twice smaller than input array \c asciiBuff.
+/// \returns Returns size of \c bytesBuff in bytes which calc as \c {output = count / 2}
+MODBUS_EXPORT uint32_t asciiToBytes(const uint8_t* asciiBuff, uint8_t* bytesBuff, uint32_t count);
 
 /// \details Make string representation of bytes array and separate bytes by space
 MODBUS_EXPORT Char *sbytes(const uint8_t* buff, uint32_t count, Char *str, uint32_t strmaxlen);

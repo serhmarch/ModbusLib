@@ -1,11 +1,11 @@
 set(MB_LIBRARY_NAME modbus)
 
 set(HEADERS 
-    Modbus_config.h       
-    ModbusPlatform.h       
-    ModbusGlobal.h       
+    Modbus_config.h         
+    ModbusPlatform.h        
+    ModbusGlobal.h          
     Modbus.h                
-    cModbus.h                
+    cModbus.h               
     ModbusObject.h          
     ModbusPort.h            
     ModbusPort_p.h          
@@ -30,7 +30,7 @@ set(HEADERS
 
 set(SOURCES 
     Modbus.cpp              
-    cModbus.cpp              
+    cModbus.cpp             
     ModbusObject.cpp        
     ModbusPort.cpp          
     ModbusSerialPort.cpp    
@@ -41,42 +41,56 @@ set(SOURCES
     ModbusClient.cpp        
     ModbusServerPort.cpp    
     ModbusServerResource.cpp
-    ModbusTcpServer.cpp
+    ModbusTcpServer.cpp     
     )     
 
-if (WIN32)
+if (MB_QT_ENABLED)
+    message("MB: QT is enabled!")
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    find_package(Qt5 REQUIRED Core)
+    #find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+    #find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+    set(HEADERS ${HEADERS}
+        ModbusQt.h         
+        ) 
 
-set(HEADERS ${HEADERS}
-    win/Modbus_win.h         
-    win/ModbusTCP_win.h         
-    win/ModbusSerialPort_p_win.h
-    win/ModbusTcpPort_p_win.h   
-    win/ModbusTcpServer_p_win.h
-    ) 
-
-set(SOURCES ${SOURCES}
-    win/Modbus_win.cpp           
-    win/ModbusTcpPort_win.cpp    
-    win/ModbusTcpServer_win.cpp  
-    win/ModbusSerialPort_win.cpp
-    )
- 
+    set(SOURCES ${SOURCES}
+        ModbusQt.cpp
+        )
 else()
+    message("MB: QT is disabled!")
+endif()
 
-set(HEADERS ${HEADERS}
-    unix/ModbusTCP_unix.h         
-    unix/ModbusSerialPort_p_unix.h
-    unix/ModbusTcpPort_p_unix.h   
-    unix/ModbusTcpServer_p_unix.h
-    ) 
+if (WIN32)
+    set(HEADERS ${HEADERS}
+        win/Modbus_win.h         
+        win/ModbusTCP_win.h         
+        win/ModbusSerialPort_p_win.h
+        win/ModbusTcpPort_p_win.h   
+        win/ModbusTcpServer_p_win.h
+        ) 
 
-set(SOURCES ${SOURCES}
-    unix/Modbus_unix.cpp           
-    unix/ModbusTcpPort_unix.cpp    
-    unix/ModbusTcpServer_unix.cpp  
-    unix/ModbusSerialPort_unix.cpp
-    )
-
+    set(SOURCES ${SOURCES}
+        win/Modbus_win.cpp           
+        win/ModbusTcpPort_win.cpp    
+        win/ModbusTcpServer_win.cpp  
+        win/ModbusSerialPort_win.cpp
+        )
+else()
+    set(HEADERS ${HEADERS}
+        unix/ModbusTCP_unix.h         
+        unix/ModbusSerialPort_p_unix.h
+        unix/ModbusTcpPort_p_unix.h   
+        unix/ModbusTcpServer_p_unix.h
+        ) 
+    set(SOURCES ${SOURCES}
+        unix/Modbus_unix.cpp           
+        unix/ModbusTcpPort_unix.cpp    
+        unix/ModbusTcpServer_unix.cpp  
+        unix/ModbusSerialPort_unix.cpp
+        )
 endif()
 
 add_library(${MB_LIBRARY_NAME} SHARED ${HEADERS} ${SOURCES})
@@ -90,6 +104,11 @@ set_target_properties(
     SOVERSION ${PROJECT_VERSION_MAJOR}
     )
         
+if (MB_QT_ENABLED)
+    message("MB: Try to link QT library: Qt5::Core")
+    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Qt5::Core)
+endif()
+
 if (WIN32)
-target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm)
+    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm)
 endif()

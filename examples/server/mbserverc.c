@@ -541,17 +541,17 @@ int main(int argc, char **argv)
     switch (options.type)
     {
     case RTU:
-        serv = cSpoCreate(options.type, blocking, &options.ser, cdev);
+        serv = cSpoCreate(cdev, options.type, &options.ser, blocking);
         cSpoConnectTx(serv, printTx);
         cSpoConnectRx(serv, printRx);
         break;
     case ASC:
-        serv = cSpoCreate(options.type, blocking, &options.ser, cdev);
+        serv = cSpoCreate(cdev, options.type, &options.ser, blocking);
         cSpoConnectTx(serv, printTxAsc);
         cSpoConnectRx(serv, printRxAsc);
         break;
     default:
-        serv = cSpoCreate(TCP, blocking, &options.tcp, cdev);
+        serv = cSpoCreate(cdev, TCP, &options.tcp, blocking);
         cSpoConnectTx(serv, printTx);
         cSpoConnectRx(serv, printRx);
         cSpoConnectNewConnection(serv, printNewConnection);

@@ -50,22 +50,7 @@ const Modbus::Char *ModbusPort::lastErrorText() const
     return d_ptr->lastErrorText();
 }
 
-bool ModbusPort::isWriteBufferBlocked() const
-{
-    return d_ptr->block;
-}
-
-void ModbusPort::freeWriteBuffer()
-{
-    d_ptr->block = false;
-}
-
 StatusCode ModbusPort::setError(StatusCode status, const Char *text)
 {
     return d_ptr->setError(status, String(text));
-}
-
-void ModbusPort::setChanged(bool changed)
-{
-    d_ptr->setChanged(changed);
 }

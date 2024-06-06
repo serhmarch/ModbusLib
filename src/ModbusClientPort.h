@@ -21,7 +21,7 @@ class ModbusPort;
 
  */
 
-class MODBUS_EXPORT ModbusClientPort : public ModbusObject
+class MODBUS_EXPORT ModbusClientPort : public ModbusObject, public ModbusInterface
 {
 public:
     /*! \brief Sets the status of the request for the client.
@@ -60,6 +60,27 @@ public:
     /// \details Sets the number of times a Modbus request is repeated if it fails.
     void setRepeatCount(uint32_t v);
 
+public: // Modbus Interface
+    Modbus::StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values) override;
+    Modbus::StatusCode readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values) override;
+    Modbus::StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) override;
+    Modbus::StatusCode readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) override;
+    Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value) override;
+    Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value) override;
+    Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *value) override;
+    Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values) override;
+    Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) override;
+
+public:
+    /// \details The same as `ModbusClient::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    inline Modbus::StatusCode readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readCoilsAsBoolArray(this, unit, offset, count, values); }
+
+    /// \details The same as `ModbusClient::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    inline Modbus::StatusCode readDiscreteInputsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readDiscreteInputsAsBoolArray(this, unit, offset, count, values); }
+
+    /// \details The same as `ModbusClient::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the input buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    inline Modbus::StatusCode writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values) { return writeMultipleCoilsAsBoolArray(this, unit, offset, count, values); }
+
 public:
     /// \details Returns the status of the last operation performed.
     Modbus::StatusCode lastStatus() const;
@@ -71,34 +92,15 @@ public:
     const Modbus::Char *lastErrorText() const;
 
 public:
-    /// \details The function performs a read/write request for a given algorithm. Returns the status of the last operation performed.
-    Modbus::StatusCode request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
-
-    /// \details The function implements the algorithm of this object. Returns the status of the last operation performed.
-    Modbus::StatusCode process();
-
-public:
-    /// \cond
-    struct RequestParams;
-    /// \endcond
-    
     /// \details Returns a pointer to the client object whose request is currently being processed by the algorithm.
     const ModbusObject *currentClient() const;
 
-    /// \details Returns a pointer to the request structure for the client. `obj` - a pointer to the client, also known as a unique client identifier.\n
-    /// The client usually calls this function in its own counterpart.
-    RequestParams *createRequestParams(ModbusObject *object);
-
-    /// \details Deletes the `*rp` request structure for the client.
-    /// The client usually calls this function in its destructor.
-    void deleteRequestParams(RequestParams *rp);
-
     /// \details Deletes the request structure `*rp` for the client.\n
     /// The client usually calls this function to determine whether its request is pending/finished/blocked.
-    RequestStatus getRequestStatus(RequestParams *rp);
+    RequestStatus getRequestStatus(ModbusObject *client);
 
     /// \details Cancels the previous request specified by the `*rp` pointer for the client.
-    void cancelRequest(RequestParams* rp);
+    void cancelRequest(ModbusObject *client);
 
 public: // SIGNALS
     /// \details
@@ -116,6 +118,22 @@ public: // SIGNALS
     /// \details Calls each callback of the port when error is occured with error's status and text.
     void signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text);
 
+private:
+    Modbus::StatusCode readCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+    Modbus::StatusCode readDiscreteInputs(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+    Modbus::StatusCode readHoldingRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+    Modbus::StatusCode readInputRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+    Modbus::StatusCode writeSingleCoil(ModbusObject *client, uint8_t unit, uint16_t offset, bool value);
+    Modbus::StatusCode writeSingleRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t value);
+    Modbus::StatusCode readExceptionStatus(ModbusObject *client, uint8_t unit, uint8_t *value);
+    Modbus::StatusCode writeMultipleCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const void *values);
+    Modbus::StatusCode writeMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+    Modbus::StatusCode readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
+    Modbus::StatusCode readDiscreteInputsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
+    Modbus::StatusCode writeMultipleCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const bool *values);
+    Modbus::StatusCode request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+    Modbus::StatusCode process();
+    friend class ModbusClient;
 };
 
 #endif // MODBUSCLIENTPORT_H

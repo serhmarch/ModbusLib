@@ -151,9 +151,9 @@ StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, voi
 }
 
 
-uint16_t bytesToAscii(const uint8_t *bytesBuff, uint8_t* asciiBuff, uint32_t count)
+uint32_t bytesToAscii(const uint8_t *bytesBuff, uint8_t* asciiBuff, uint32_t count)
 {
-    uint16_t i, j, qAscii = 0;
+    uint32_t i, j, qAscii = 0;
     uint8_t tmp;
 
     for (i = 0; i < count; i++)
@@ -168,9 +168,9 @@ uint16_t bytesToAscii(const uint8_t *bytesBuff, uint8_t* asciiBuff, uint32_t cou
     return qAscii;
 }
 
-uint16_t asciiToBytes(const uint8_t *asciiBuff, uint8_t* bytesBuff, uint32_t count)
+uint32_t asciiToBytes(const uint8_t *asciiBuff, uint8_t* bytesBuff, uint32_t count)
 {
-    uint16_t i, j, qBytes = 0;
+    uint32_t i, j, qBytes = 0;
     uint8_t tmp;
     for (i = 0; i < count; i++)
     {

@@ -3,6 +3,9 @@
 
 #include <string>
 
+#include <string.h>
+#include <cstring>
+
 #include "ModbusObject_p.h"
 
 #include "ModbusClientPort.h"
@@ -12,8 +15,6 @@ class ModbusClientPrivate : public ModbusObjectPrivate
 public:
     uint8_t unit;
     ModbusClientPort *port;
-    ModbusClientPort::RequestParams *rp;
-    uint8_t buff[MB_VALUE_BUFF_SZ];
     Modbus::StatusCode lastStatus;
     Modbus::StatusCode lastErrorStatus;
     Modbus::String lastErrorText;

@@ -11,7 +11,9 @@
 #include <string>
 #include <list>
 
-#include "ModbusObject.h"
+#include "Modbus.h"
+
+class ModbusPortPrivate;
 
 /*! \brief The abstract class `ModbusPort` is the base class for a specific implementation of the Modbus communication protocol.
 
@@ -19,9 +21,6 @@
     For example, versions for working with a TCP port or a serial port.
 
  */
-
-class ModbusPortPrivate;
-
 class MODBUS_EXPORT ModbusPort
 {
 public:
@@ -71,12 +70,6 @@ public: // errors
     const Modbus::Char *lastErrorText() const;
 
 public:
-    /// \details Returns `true` if the port is blocked - it has already received a request and is processing it, `false` otherwise.
-    bool isWriteBufferBlocked() const;
-
-    /// \details Unblocks the port and makes it ready to receive the next request.
-    void freeWriteBuffer();
-
     /// \details The function directly generates a packet and places it in the buffer for further sending. Returns the status of the operation.
     virtual Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff) = 0;
 
@@ -90,18 +83,21 @@ public:
     virtual Modbus::StatusCode read() = 0;
 
 public: // buffer
-    virtual const uint8_t *readBufferData() = 0;
-    virtual uint16_t readBufferSize() = 0;
-    virtual const uint8_t *writeBufferData() = 0;
-    virtual uint16_t writeBufferSize() = 0;
+    /// \details Returns pointer to data of read buffer.
+    virtual const uint8_t *readBufferData() const = 0;
+
+    /// \details Returns size of data of read buffer.
+    virtual uint16_t readBufferSize() const = 0;
+
+    /// \details Returns pointer to data of write buffer.
+    virtual const uint8_t *writeBufferData() const = 0;
+
+    /// \details Returns size of data of write buffer.
+    virtual uint16_t writeBufferSize() const = 0;
 
 protected:
     /// \details Sets the error parameters of the last operation performed.
     Modbus::StatusCode setError(Modbus::StatusCode status, const Modbus::Char *text);
-
-    /// \details If `setChanged(true)` - sets the sign that the port settings have been changed and it is necessary to reopen the port/reestablish communication with the remote device.
-    /// If `setChanged(false)` - clears this sign.
-    void setChanged(bool changed = true);
 
 protected:
     ModbusPortPrivate *d_ptr;

@@ -35,9 +35,6 @@ public:
     ModbusPortPrivate(bool blocking)
     {
         this->state = STATE_UNKNOWN;
-        this->block = false;;
-        this->unit = 0;
-        this->func = 0;
         this->modeServer = false;
         this->modeSynch = blocking;
         this->clearChanged();
@@ -48,7 +45,7 @@ public:
     }
 
 public:
-    inline bool isBlocking() const { return block; }
+    inline bool isBlocking() const { return modeSynch; }
     inline bool isStateClosed() const { return state == STATE_CLOSED; }
     inline void setChanged(bool changed) { this->changed = changed; }
     inline void clearChanged() { setChanged(false); }
@@ -59,9 +56,6 @@ public:
 
 public:
     State state;
-    bool block;
-    uint8_t unit;
-    uint8_t func;
     bool changed;
     bool modeServer;
     bool modeSynch;

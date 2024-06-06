@@ -175,6 +175,13 @@ protected:
     ModbusObjectPrivate *d_ptr;
     ModbusObject(ModbusObjectPrivate *d);
 };
+/*
+#define EXPAND(x) x
+#define MB_SIGNAL(functionName, ...) \
+    void functionName(__VA_ARGS__) { \
+        emitSignal(&std::remove_pointer_t<decltype(this)>::functionName, __VA_ARGS__); \
+    }
 
-
+#define MB_SIGNAL_WRAPPER(functionName, ...) EXPAND(MB_SIGNAL(functionName, __VA_ARGS__))
+*/
 #endif // MODBUSOBJECT_H

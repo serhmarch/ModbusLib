@@ -21,10 +21,11 @@ const Char *ModbusTcpPort::host() const
 
 void ModbusTcpPort::setHost(const Char *host)
 {
-    if (d_ModbusTcpPort(d_ptr)->settings.host != host)
+    ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
+    if (d->settings.host != host)
     {
-        d_ModbusTcpPort(d_ptr)->settings.host = host;
-        setChanged(true);
+        d->settings.host = host;
+        d->setChanged(true);
     }
 }
 
@@ -34,11 +35,12 @@ uint16_t ModbusTcpPort::port() const
 }
 
 void ModbusTcpPort::setPort(uint16_t port)
-{ 
-    if (d_ModbusTcpPort(d_ptr)->settings.port != port)
+{
+    ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
+    if (d->settings.port != port)
     {
-        d_ModbusTcpPort(d_ptr)->settings.port = port;
-        setChanged(true);
+        d->settings.port = port;
+        d->setChanged(true);
     }
 }
 
@@ -49,10 +51,11 @@ uint32_t ModbusTcpPort::timeout() const
 
 void ModbusTcpPort::setTimeout(uint32_t timeout)
 {
-    if (d_ModbusTcpPort(d_ptr)->settings.timeout != timeout)
+    ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
+    if (d->settings.timeout != timeout)
     {
-        d_ModbusTcpPort(d_ptr)->settings.timeout = timeout;
-        setChanged(true);
+        d->settings.timeout = timeout;
+        d->setChanged(true);
     }
 }
 
@@ -66,22 +69,22 @@ bool ModbusTcpPort::autoIncrement() const
     return d_ModbusTcpPort(d_ptr)->autoIncrement;
 }
 
-const uint8_t *ModbusTcpPort::readBufferData()
+const uint8_t *ModbusTcpPort::readBufferData() const
 {
     return d_ModbusTcpPort(d_ptr)->buff;
 }
 
-uint16_t ModbusTcpPort::readBufferSize()
+uint16_t ModbusTcpPort::readBufferSize() const
 {
     return d_ModbusTcpPort(d_ptr)->sz;
 }
 
-const uint8_t *ModbusTcpPort::writeBufferData()
+const uint8_t *ModbusTcpPort::writeBufferData() const
 {
     return d_ModbusTcpPort(d_ptr)->buff;
 }
 
-uint16_t ModbusTcpPort::writeBufferSize()
+uint16_t ModbusTcpPort::writeBufferSize() const
 {
     return d_ModbusTcpPort(d_ptr)->sz;
 }
@@ -91,13 +94,8 @@ StatusCode ModbusTcpPort::writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff,
     ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
     if (!d->modeServer)
     {
-        if (d->block)
-            return Status_Processing;
         d->transaction += d->autoIncrement;
         d->autoIncrement = true;
-        d->unit = unit;
-        d->func = func;
-        d->block = true;
     } // if (!d->modeServer)
     // 8 = 6(TCP prefix size in bytes) + 2(unit and function bytes)
     if (szInBuff > MBCLIENTTCP_BUFF_SZ - 8)
@@ -141,23 +139,6 @@ StatusCode ModbusTcpPort::readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff
     {
         if (d->transaction != transaction)
             return d->setError(Status_BadNotCorrectResponse, StringLiteral("TCP. Not correct response. Requested transaction id is not equal to responded"));
-
-        if (d->buff[6] != d->unit)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("TCP. Not correct response. Requested unit (unit) is not equal to responsed"));
-
-        if ((d->buff[7] & MBF_EXCEPTION) == MBF_EXCEPTION)
-        {
-            if (d->sz > 8)
-            {
-                StatusCode r = static_cast<StatusCode>(d->buff[8]); // Returned modbus exception
-                return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("TCP. Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
-            }
-            else
-                return d->setError(Status_BadNotCorrectResponse, StringLiteral("TCP. Exception status missed"));
-        }
-
-        if (d->buff[7] != d->func)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("TCP. Not correct response. Requested function is not equal to responsed"));
     }
     unit = d->buff[6];
     func = d->buff[7];

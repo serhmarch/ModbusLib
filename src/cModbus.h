@@ -119,6 +119,42 @@ MODBUS_EXPORT uint32_t cCpoGetRepeatCount(cModbusClientPort clientPort);
 MODBUS_EXPORT void cCpoSetRepeatCount(cModbusClientPort clientPort, uint32_t count);
 
 /// \details
+MODBUS_EXPORT StatusCode cCpoReadCoils(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoReadDiscreteInputs(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoReadHoldingRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoReadInputRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoWriteSingleCoil(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, bool value);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoWriteSingleRegister(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t value);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoReadExceptionStatus(cModbusClientPort clientPort, uint8_t unit, uint8_t *value);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoWriteMultipleCoils(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const void *values);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoReadCoilsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoReadDiscreteInputsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
+
+/// \details
+MODBUS_EXPORT StatusCode cCpoWriteMultipleCoilsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const bool *values);
+
+/// \details
 MODBUS_EXPORT StatusCode cCpoGetLastStatus(cModbusClientPort clientPort);
 
 /// \details
@@ -217,13 +253,13 @@ MODBUS_EXPORT StatusCode cReadDiscreteInputsAsBoolArray(cModbusClient client, ui
 MODBUS_EXPORT StatusCode cWriteMultipleCoilsAsBoolArray(cModbusClient client, uint16_t offset, uint16_t count, const bool *values);
 
 /// \details
-MODBUS_EXPORT StatusCode cCliGetLastStatus(cModbusClient client);
+MODBUS_EXPORT StatusCode cCliGetLastPortStatus(cModbusClient client);
 
 /// \details
-MODBUS_EXPORT StatusCode cCliGetLastErrorStatus(cModbusClient client);
+MODBUS_EXPORT StatusCode cCliGetLastPortErrorStatus(cModbusClient client);
 
 /// \details
-MODBUS_EXPORT const Char *cCliGetLastErrorText(cModbusClient client);
+MODBUS_EXPORT const Char *cCliGetLastPortErrorText(cModbusClient client);
 
 
 // --------------------------------------------------------------------------------------------------------

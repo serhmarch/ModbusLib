@@ -68,10 +68,10 @@ public: // settings
     void setTimeoutInterByte(uint32_t timeout);
 
 public:
-    const uint8_t *readBufferData() override;
-    uint16_t readBufferSize() override;
-    const uint8_t *writeBufferData() override;
-    uint16_t writeBufferSize() override;
+    const uint8_t *readBufferData() const override;
+    uint16_t readBufferSize() const override;
+    const uint8_t *writeBufferData() const override;
+    uint16_t writeBufferSize() const override;
 
 protected:
     Modbus::StatusCode write() override;

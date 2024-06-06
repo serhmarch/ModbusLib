@@ -39,14 +39,6 @@ ModbusAscPort::~ModbusAscPort()
 StatusCode ModbusAscPort::writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff)
 {
     ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
-    if (!d->modeServer)
-    {
-        if (d->block)
-            return Status_Processing;
-        d->unit = unit;
-        d->func = func;
-        d->block = true;
-    }
     const uint16_t szIBuff = MB_ASC_IO_BUFF_SZ/2;
     uint8_t ibuff[szIBuff];
     // 3 is unit, func and LRC bytes
@@ -71,38 +63,26 @@ StatusCode ModbusAscPort::readBuffer(uint8_t& unit, uint8_t &func, uint8_t* buff
     uint8_t ibuff[szIBuff];
 
     if (d->sz < 9) // 9 = 1(':')+2(unit)+2(func)+2(lrc)+1('\r')+1('\n')
-        return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct response. Responsed data length to small"));
+        return d->setError(Status_BadNotCorrectRequest, StringLiteral("ASCII. Not correct response. Responsed data length to small"));
 
     if (d->buff[0] != ':')
-        return d->setError(Status_BadAscMissColon, StringLiteral("ASCII-mode. Missed colon ':' symbol"));
+        return d->setError(Status_BadAscMissColon, StringLiteral("ASCII. Missed colon ':' symbol"));
 
     if ((d->buff[d->sz-2] != '\r') || (d->buff[d->sz-1] != '\n'))
-        return d->setError(Status_BadAscMissCrLf, StringLiteral("ASCII-mode. Missed CR-LF ending symbols"));
+        return d->setError(Status_BadAscMissCrLf, StringLiteral("ASCII. Missed CR-LF ending symbols"));
 
     if ((d->sz = Modbus::asciiToBytes(&d->buff[1], ibuff, d->sz-3)) == 0)
-        return d->setError(Status_BadAscChar, StringLiteral("ASCII-mode. Bad ASCII symbol"));
+        return d->setError(Status_BadAscChar, StringLiteral("ASCII. Bad ASCII symbol"));
 
     if (Modbus::lrc(ibuff, d->sz-1) != ibuff[d->sz-1])
-        return d->setError(Status_BadLrc, StringLiteral("ASCII-mode. Error LRC"));
-
-    if (!d->modeServer)
-    {
-        if (d->unit != ibuff[0])
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct response. Requested unit (unit) address not equal to responded"));
-
-        if ((ibuff[1] & MBF_EXCEPTION) == MBF_EXCEPTION)
-            return d->setError(static_cast<StatusCode>(Status_Bad | buff[2]), StringLiteral("Returned modbus exception"));
-
-        if (d->func != ibuff[1])
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct response. Requested function not equal to responded"));
-    }
+        return d->setError(Status_BadLrc, StringLiteral("ASCII. Error LRC"));
 
     unit = ibuff[0];
     func = ibuff[1];
 
     d->sz -= 3; // 3 = 1(unit)+1(func)+1(lrc)
     if (d->sz > maxSzBuff)
-        return d->setError(Modbus::Status_BadReadBufferOverflow, StringLiteral("Read-buffer overflow"));
+        return d->setError(Modbus::Status_BadReadBufferOverflow, StringLiteral("ASCII. Read-buffer overflow"));
     memcpy(buff, &ibuff[2], d->sz);
     *szOutBuff = d->sz;
     return Status_Good;

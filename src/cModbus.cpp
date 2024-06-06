@@ -201,6 +201,66 @@ void cCpoSetRepeatCount(cModbusClientPort clientPort, uint32_t count)
     clientPort->setRepeatCount(count);
 }
 
+StatusCode cCpoReadCoils(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, void *values)
+{
+    return clientPort->readCoils(unit, offset, count, values);
+}
+
+StatusCode cCpoReadDiscreteInputs(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, void *values)
+{
+    return clientPort->readDiscreteInputs(unit, offset, count, values);
+}
+
+StatusCode cCpoReadHoldingRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+{
+    return clientPort->readHoldingRegisters(unit, offset, count, values);
+}
+
+StatusCode cCpoReadInputRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+{
+    return clientPort->readInputRegisters(unit, offset, count, values);
+}
+
+StatusCode cCpoWriteSingleCoil(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, bool value)
+{
+    return clientPort->writeSingleCoil(unit, offset, value);
+}
+
+StatusCode cCpoWriteSingleRegister(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t value)
+{
+    return clientPort->writeSingleRegister(unit, offset, value);
+}
+
+StatusCode cCpoReadExceptionStatus(cModbusClientPort clientPort, uint8_t unit, uint8_t *value)
+{
+    return clientPort->readExceptionStatus(unit, value);
+}
+
+StatusCode cCpoWriteMultipleCoils(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const void *values)
+{
+    return clientPort->writeMultipleCoils(unit, offset, count, values);
+}
+
+StatusCode cCpoWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
+{
+    return clientPort->writeMultipleRegisters(unit, offset, count, values);
+}
+
+StatusCode cCpoReadCoilsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, bool *values)
+{
+    return clientPort->readCoilsAsBoolArray(unit, offset, count, values);
+}
+
+StatusCode cCpoReadDiscreteInputsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, bool *values)
+{
+    return clientPort->readDiscreteInputsAsBoolArray(unit, offset, count, values);
+}
+
+StatusCode cCpoWriteMultipleCoilsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const bool *values)
+{
+    return clientPort->writeMultipleCoilsAsBoolArray(unit, offset, count, values);
+}
+
 StatusCode cCpoGetLastStatus(cModbusClientPort clientPort)
 {
     return clientPort->lastStatus();
@@ -364,19 +424,19 @@ StatusCode cWriteMultipleCoilsAsBoolArray(cModbusClient client, uint16_t offset,
     return client->writeMultipleCoilsAsBoolArray(offset, count, values);
 }
 
-StatusCode cCliGetLastStatus(cModbusClient client)
+StatusCode cCliGetLastPortStatus(cModbusClient client)
 {
-    return client->lastStatus();
+    return client->lastPortStatus();
 }
 
-StatusCode cCliGetLastErrorStatus(cModbusClient client)
+StatusCode cCliGetLastPortErrorStatus(cModbusClient client)
 {
-    return client->lastErrorStatus();
+    return client->lastPortErrorStatus();
 }
 
-const Char *cCliGetLastErrorText(cModbusClient client)
+const Char *cCliGetLastPortErrorText(cModbusClient client)
 {
-    return client->lastErrorText();
+    return client->lastPortErrorText();
 }
 
 
