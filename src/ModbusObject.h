@@ -4,7 +4,7 @@
  *
  * \author march
  * \date   May 2024
- *********************************************************************/
+ */
 #ifndef MODBUSOBJECT_H
 #define MODBUSOBJECT_H
 
@@ -76,6 +76,21 @@ private:
 };
 
 class ModbusObjectPrivate;
+
+/*! \brief The `ModbusObject` class is the base class for objects that use signal/slot mechanism.
+
+    \details `ModbusObject` is designed to be a base class for objects that need to use 
+    simplified Qt-like signal/slot mechanism. 
+    User can connect signal of the object he want to listen to his own function or method
+    of his own class and then it can be disconnected if he is not interesting of this signal anymore.
+    Callbacks will be called in order which it were connected.
+
+    `ModbusObject` has a map which key means signal identifier (pointer to signal) and 
+    value is a list of callbacks functions/methods connected to this signal.
+
+    `ModbusObject` has `objectName()` and `setObjectName` methods. This methods can be used to 
+    simply identify object which is signal's source (e.g. to print info in console).
+ */
 
 class MODBUS_EXPORT ModbusObject
 {
@@ -175,13 +190,5 @@ protected:
     ModbusObjectPrivate *d_ptr;
     ModbusObject(ModbusObjectPrivate *d);
 };
-/*
-#define EXPAND(x) x
-#define MB_SIGNAL(functionName, ...) \
-    void functionName(__VA_ARGS__) { \
-        emitSignal(&std::remove_pointer_t<decltype(this)>::functionName, __VA_ARGS__); \
-    }
 
-#define MB_SIGNAL_WRAPPER(functionName, ...) EXPAND(MB_SIGNAL(functionName, __VA_ARGS__))
-*/
 #endif // MODBUSOBJECT_H

@@ -3,7 +3,7 @@
  * \brief  Header file of abstract class `ModbusPort`.
  *
  * \author march
- * \date   April 2024
+ * \date   May 2024
  */
 #ifndef MODBUSPORT_H
 #define MODBUSPORT_H

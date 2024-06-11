@@ -273,7 +273,7 @@ String asciiToString(const uint8_t* buff, uint32_t count)
     return str;
 }
 
-MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
+ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
 {
     ModbusPort *port = nullptr;
     switch (type)
@@ -322,14 +322,14 @@ MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bo
     return port;
 }
 
-MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking)
+ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking)
 {
     ModbusPort *port = createPort(type, settings, blocking);
     ModbusClientPort *clientPort = new ModbusClientPort(port);
     return clientPort;
 }
 
-MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking)
+ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking)
 {
     ModbusServerPort *serv = nullptr;
     switch (type)
@@ -355,3 +355,48 @@ MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, Protoc
 }
 
 } //namespace Modbus
+
+Modbus::StatusCode ModbusInterface::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t unit, uint8_t *status)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
+{
+    return Modbus::Status_BadIllegalFunction;
+}

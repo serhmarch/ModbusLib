@@ -47,6 +47,11 @@ public:
         port->setServerMode(false);
     }
 
+    ~ModbusClientPortPrivate()
+    {
+        delete this->port;
+    }
+
 public:
     inline bool isWriteBufferBlocked() const  { return block; }
 

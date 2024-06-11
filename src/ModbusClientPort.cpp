@@ -8,11 +8,6 @@ ModbusClientPort::ModbusClientPort(ModbusPort *port) :
 {
 }
 
-ModbusClientPort::~ModbusClientPort()
-{
-    delete d_ModbusClientPort(d_ptr)->port;
-}
-
 ProtocolType ModbusClientPort::type() const
 {
     return d_ModbusClientPort(d_ptr)->port->type();
@@ -44,128 +39,6 @@ void ModbusClientPort::setRepeatCount(uint32_t v)
 {
     if (v > 0)
         d_ModbusClientPort(d_ptr)->settings.repeatCount = v;
-}
-
-StatusCode ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)
-{
-    return readCoils(this, unit, offset, count, values);
-}
-
-StatusCode ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)
-{
-    return readDiscreteInputs(this, unit, offset, count, values);
-}
-
-StatusCode ModbusClientPort::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
-{
-    return readHoldingRegisters(this, unit, offset, count, values);
-}
-
-StatusCode ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
-{
-    return readInputRegisters(this, unit, offset, count, values);
-}
-
-StatusCode ModbusClientPort::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)
-{
-    return writeSingleCoil(this, unit, offset, value);
-}
-
-StatusCode ModbusClientPort::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)
-{
-    return writeSingleRegister(this, unit, offset, value);
-}
-
-StatusCode ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *value)
-{
-    return readExceptionStatus(this, unit, value);
-}
-
-StatusCode ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)
-{
-    return writeMultipleCoils(this, unit, offset, count, values);
-}
-
-StatusCode ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
-{
-    return writeMultipleRegisters(this, unit, offset, count, values);
-}
-
-ModbusPort *ModbusClientPort::port() const
-{
-    return d_ModbusClientPort(d_ptr)->port;
-}
-
-StatusCode ModbusClientPort::lastStatus() const
-{
-    return d_ModbusClientPort(d_ptr)->lastStatus;
-}
-
-Modbus::StatusCode ModbusClientPort::lastErrorStatus() const
-{
-    return d_ModbusClientPort(d_ptr)->port->lastErrorStatus();
-}
-
-const Char *ModbusClientPort::lastErrorText() const
-{
-    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
-    if (d->isLastPortError)
-        return d->port->lastErrorText();
-    else
-        return d->lastErrorText.data();
-}
-
-const ModbusObject *ModbusClientPort::currentClient() const
-{
-    return d_ModbusClientPort(d_ptr)->currentClient;
-}
-
-ModbusClientPort::RequestStatus ModbusClientPort::getRequestStatus(ModbusObject *client)
-{
-    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
-    if (d->currentClient)
-    {
-        if (d->currentClient == client)
-            return Process;
-        return Disable;
-    }
-    else
-    {
-        d->currentClient = client;
-        return Enable;
-    }
-}
-
-void ModbusClientPort::cancelRequest(ModbusObject *client)
-{
-    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
-    if (d->currentClient == client)
-        d->currentClient = nullptr;
-}
-
-void ModbusClientPort::signalOpened(const Modbus::Char *source)
-{
-    emitSignal(&ModbusClientPort::signalOpened, source);
-}
-
-void ModbusClientPort::signalClosed(const Modbus::Char *source)
-{
-    emitSignal(&ModbusClientPort::signalClosed, source);
-}
-
-void ModbusClientPort::signalTx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
-{
-    emitSignal(&ModbusClientPort::signalTx, source, buff, size);
-}
-
-void ModbusClientPort::signalRx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
-{
-    emitSignal(&ModbusClientPort::signalRx, source, buff, size);
-}
-
-void ModbusClientPort::signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text)
-{
-    emitSignal(&ModbusClientPort::signalError, source, status, text);
 }
 
 Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values)
@@ -645,6 +518,128 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoilsAsBoolArray(ModbusObject 
     else if (this->currentClient() == client)
         return writeMultipleCoils(client, unit, offset, count, d->buff);
     return Status_Processing;
+}
+
+StatusCode ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+{
+    return readCoils(this, unit, offset, count, values);
+}
+
+StatusCode ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+{
+    return readDiscreteInputs(this, unit, offset, count, values);
+}
+
+StatusCode ModbusClientPort::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+{
+    return readHoldingRegisters(this, unit, offset, count, values);
+}
+
+StatusCode ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+{
+    return readInputRegisters(this, unit, offset, count, values);
+}
+
+StatusCode ModbusClientPort::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)
+{
+    return writeSingleCoil(this, unit, offset, value);
+}
+
+StatusCode ModbusClientPort::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)
+{
+    return writeSingleRegister(this, unit, offset, value);
+}
+
+StatusCode ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *value)
+{
+    return readExceptionStatus(this, unit, value);
+}
+
+StatusCode ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)
+{
+    return writeMultipleCoils(this, unit, offset, count, values);
+}
+
+StatusCode ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
+{
+    return writeMultipleRegisters(this, unit, offset, count, values);
+}
+
+ModbusPort *ModbusClientPort::port() const
+{
+    return d_ModbusClientPort(d_ptr)->port;
+}
+
+StatusCode ModbusClientPort::lastStatus() const
+{
+    return d_ModbusClientPort(d_ptr)->lastStatus;
+}
+
+Modbus::StatusCode ModbusClientPort::lastErrorStatus() const
+{
+    return d_ModbusClientPort(d_ptr)->port->lastErrorStatus();
+}
+
+const Char *ModbusClientPort::lastErrorText() const
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    if (d->isLastPortError)
+        return d->port->lastErrorText();
+    else
+        return d->lastErrorText.data();
+}
+
+const ModbusObject *ModbusClientPort::currentClient() const
+{
+    return d_ModbusClientPort(d_ptr)->currentClient;
+}
+
+ModbusClientPort::RequestStatus ModbusClientPort::getRequestStatus(ModbusObject *client)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    if (d->currentClient)
+    {
+        if (d->currentClient == client)
+            return Process;
+        return Disable;
+    }
+    else
+    {
+        d->currentClient = client;
+        return Enable;
+    }
+}
+
+void ModbusClientPort::cancelRequest(ModbusObject *client)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    if (d->currentClient == client)
+        d->currentClient = nullptr;
+}
+
+void ModbusClientPort::signalOpened(const Modbus::Char *source)
+{
+    emitSignal(&ModbusClientPort::signalOpened, source);
+}
+
+void ModbusClientPort::signalClosed(const Modbus::Char *source)
+{
+    emitSignal(&ModbusClientPort::signalClosed, source);
+}
+
+void ModbusClientPort::signalTx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
+{
+    emitSignal(&ModbusClientPort::signalTx, source, buff, size);
+}
+
+void ModbusClientPort::signalRx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
+{
+    emitSignal(&ModbusClientPort::signalRx, source, buff, size);
+}
+
+void ModbusClientPort::signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text)
+{
+    emitSignal(&ModbusClientPort::signalError, source, status, text);
 }
 
 StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)

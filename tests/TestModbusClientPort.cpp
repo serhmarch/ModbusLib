@@ -1,33 +1,11 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include <ModbusClientPort.h>
-#include <ModbusPort.h>
-#include <ModbusPort_p.h>
+
+#include "MockModbusPort.h"
 
 using namespace testing;
 using namespace Modbus;
-
-class MockModbusPort : public ModbusPort
-{
-public:
-    MockModbusPort(bool block = true) : ModbusPort(new ModbusPortPrivate(block)) {}
-
-public:
-    MOCK_METHOD(Modbus::ProtocolType, type, (), (const, override));
-    MOCK_METHOD(Modbus::Handle, handle, (), (const, override));
-    MOCK_METHOD(Modbus::StatusCode, open, (), (override));
-    MOCK_METHOD(Modbus::StatusCode, close, (), (override));
-    MOCK_METHOD(bool, isOpen, (), (const, override));
-    MOCK_METHOD(Modbus::StatusCode, writeBuffer, (uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff), (override));
-    MOCK_METHOD(Modbus::StatusCode, readBuffer, (uint8_t &unit, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff), (override));
-    MOCK_METHOD(Modbus::StatusCode, write, (), (override));
-    MOCK_METHOD(Modbus::StatusCode, read, (), (override));
-    MOCK_METHOD(const uint8_t*, readBufferData, (), (const, override));
-    MOCK_METHOD(uint16_t, readBufferSize, (), (const, override));
-    MOCK_METHOD(const uint8_t*, writeBufferData, (), (const, override));
-    MOCK_METHOD(uint16_t, writeBufferSize, (), (const, override));
-};
 
 typedef Modbus::StatusCode (ModbusClientPort::*ReadMethodPtr)(uint8_t, uint16_t, uint16_t, void*);
 typedef Modbus::StatusCode (ModbusClientPort::*ReadMethodRegsPtr)(uint8_t, uint16_t, uint16_t, uint16_t*);
@@ -35,24 +13,24 @@ typedef Modbus::StatusCode (ModbusClientPort::*ReadMethodRegsPtr)(uint8_t, uint1
 void testAlgorithmRead(ModbusClientPort *cp, ReadMethodPtr method,
                        uint8_t unit, uint8_t func, uint16_t offset, uint16_t count, uint8_t *outbuff, uint16_t szoutbuff)
 {
-    MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
-    EXPECT_CALL(*port, isOpen())
+    MockModbusPort &port = *static_cast<MockModbusPort*>(cp->port());
+    EXPECT_CALL(port, isOpen())
         .Times(1)
         .WillOnce(Return(true));
 
-    EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
+    EXPECT_CALL(port, writeBuffer(unit,func,_,_))
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, write())
+    EXPECT_CALL(port, write())
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, read())
+    EXPECT_CALL(port, read())
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
+    EXPECT_CALL(port, readBuffer(_,_,_,_,_))
         .Times(1)
         .WillOnce(DoAll(SetArgReferee<0>(unit),
                         SetArgReferee<1>(func),
@@ -208,7 +186,8 @@ void testAlgorithmWrite(ModbusClientPort *cp, WriteMethodPtr method,
 
 TEST(ModbusClientPort, testAlgorithmBlocking)
 {
-    MockModbusPort *port = new MockModbusPort;
+    // NiceMock for ignoring uninteresting calls
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
     ModbusClientPort cp(port);
     const uint8_t  unit   = 1;
     const uint16_t offset = 0;

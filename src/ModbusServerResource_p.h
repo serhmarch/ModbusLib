@@ -17,6 +17,11 @@ public:
         port->setServerMode(true);
     }
 
+    ~ModbusServerResourcePrivate()
+    {
+        delete this->port;
+    }
+
 public:
     inline StatusCode lastPortErrorStatus() const { return port->lastErrorStatus(); }
     inline const Char *lastPortErrorText() const { return port->lastErrorText(); }

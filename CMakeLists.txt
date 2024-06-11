@@ -4,7 +4,7 @@ project(ModbusLib VERSION 0.0.2 LANGUAGES C CXX)
 
 option(MB_QT_ENABLED "Build Qt additinal info" OFF)
 option(MB_EXAMPLES_ENABLED "Build examples" ON)
-option(MB_TESTS_ENABLED "Enable unit tests" OFF)
+option(MB_TESTS_ENABLED "Enable unit tests" ON)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")

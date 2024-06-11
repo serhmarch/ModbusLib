@@ -1,3 +1,10 @@
+/*!
+ * \file   ModbusQt.h
+ * \brief  Qt support file for ModbusLib.
+ *
+ * \author serhmarch
+ * \date   May 2024
+ */
 #ifndef MODBUSQT_H
 #define MODBUSQT_H
 

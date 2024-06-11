@@ -1,3 +1,10 @@
+/*!
+ * \file   ModbusPlatform.h
+ * \brief  Definition of platform specific macros.
+ *
+ * \author serhmarch
+ * \date   May 2024
+ */
 #ifndef MODBUSPLATFORM_H
 #define MODBUSPLATFORM_H
 

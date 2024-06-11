@@ -4,7 +4,7 @@
 #include <cModbus.h>
 
 const char* help_options =
-"Usage: mbclientc [options]\n"
+"Usage: mbclient [options]\n"
 "\n"
 "Options:\n"
 "  -help (-?)               - show this help.\n"
@@ -46,8 +46,8 @@ Options options;
 
 void initOptions()
 {
-    options.unit                 = 1;
     options.type                 = TCP;
+    options.unit                 = 1;
     options.tcp.host             = StringLiteral("localhost");
     options.tcp.port             = STANDARD_TCP_PORT;
     options.tcp.timeout          = 3000;
@@ -145,7 +145,7 @@ void parseOptions(int argc, char **argv)
                 options.tcp.timeout = (uint32_t)atoi(argv[i]);
                 continue;
             }
-            printf("'-port' option must have a value: 0-65535\n");
+            printf("'-tm' option must have an integer value\n");
             exit(1);
         }
         if (!strcmp(opt, "serial") || !strcmp(opt, "sl"))
@@ -406,6 +406,7 @@ int main(int argc, char **argv)
     initOptions();
     parseOptions(argc, argv);
 
+    // Note: creating blocking client: cCliCreate(..., true) 
     cModbusClient client;
     switch (options.type)
     {
@@ -418,17 +419,17 @@ int main(int argc, char **argv)
         break;
     }
 
-    cModbusClientPort cpo = cCliGetPort(client);
-    ProtocolType cpoType = cCpoGetType(cpo);
-    switch (cpoType)
+    cModbusClientPort clientPort = cCliGetPort(client);
+    ProtocolType clientPortType = cCpoGetType(clientPort);
+    switch (clientPortType)
     {
     case ASC:
-        cCpoConnectTx(cpo, printTxAsc);
-        cCpoConnectRx(cpo, printRxAsc);
+        cCpoConnectTx(clientPort, printTxAsc);
+        cCpoConnectRx(clientPort, printRxAsc);
         break;
     default:
-        cCpoConnectTx(cpo, printTx);
-        cCpoConnectRx(cpo, printRx);
+        cCpoConnectTx(clientPort, printTx);
+        cCpoConnectRx(clientPort, printRx);
         break;
     }
 
@@ -525,5 +526,7 @@ int main(int argc, char **argv)
         }
         break;
     }
+    cCpoDelete(clientPort);
+    cCliDelete(client);
     return 0;
 }

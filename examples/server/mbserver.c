@@ -141,7 +141,7 @@ void parseOptions(int argc, char **argv)
                 options.tcp.timeout = (uint32_t)atoi(argv[i]);
                 continue;
             }
-            printf("'-port' option must have a value: 0-65535\n");
+            printf("'-tm' option must have an integer value\n");
             exit(1);
         }
         if (!strcmp(opt, "serial") || !strcmp(opt, "sl"))

@@ -21,18 +21,76 @@ class ModbusServerPort;
 // ------------------------------------------- Modbus interface -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-class ModbusInterface
+class MODBUS_EXPORT ModbusInterface
 {
 public:
-    virtual Modbus::StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values) = 0;
-    virtual Modbus::StatusCode readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values) = 0;
-    virtual Modbus::StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) = 0;
-    virtual Modbus::StatusCode readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) = 0;
-    virtual Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value) = 0;
-    virtual Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value) = 0;
-    virtual Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *status) = 0;
-    virtual Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values) = 0;
-    virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) = 0;
+    /// \details Function for read discrete outputs (coils, 0x bits).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of coils (bits).
+    /// \param[out] values  Pointer to the output buffer (bit array) where the read values are stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values);
+
+    /// \details Function for read digital inputs (1x bits).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of inputs (bits).
+    /// \param[out] values  Pointer to the output buffer (bit array) where the read values are stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values);
+
+    /// \details Function for read holding (output) 16-bit registers (4x regs).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of registers.
+    /// \param[out] values  Pointer to the output buffer (bit array) where the read values are stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+
+    /// \details Function for read input 16-bit registers (3x regs).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of registers.
+    /// \param[out] values  Pointer to the output buffer (bit array) where the read values are stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+
+    /// \details Function for write one separate discrete output (0x coil).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[out] value   Boolean value to be set.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value);
+
+    /// \details Function for write one separate 16-bit holding register (4x).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[out] value   16-bit unsigned integer value to be set.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value);
+
+    /// \details Function to read ExceptionStatus.
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[out] status  Pointer to the byte (bit array) where the exception status is stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *status);
+
+    /// \details Function for write discrete outputs (coils, 0x bits).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of coils.
+    /// \param[out] values  Pointer to the input buffer (bit array) which values are must be written.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values);
+
+    /// \details Function for write holding (output) 16-bit registers (4x regs).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of registers.
+    /// \param[out] values  Pointer to the input buffer which values are must be written.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 };
 
 // --------------------------------------------------------------------------------------------------------

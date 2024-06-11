@@ -1,3 +1,10 @@
+/*!
+ * \file   ModbusServerResource.h
+ * \brief  The header file defines the class that controls specific port
+ *
+ * \author march
+ * \date   May 2024
+ */
 #ifndef MODBUSSERVERRESOURCE_H
 #define MODBUSSERVERRESOURCE_H
 
