@@ -21,13 +21,18 @@ class ModbusTcpSocket;
 class MODBUS_EXPORT ModbusTcpPort : public ModbusPort
 {
 public:
+    /*! \brief `Defaults` class constain default settings values for `ModbusTcpPort`.
+     */
     struct MODBUS_EXPORT Defaults
     {
-        const Modbus::Char *host   ;
-        const uint16_t      port   ;
-        const uint32_t      timeout;
+        const Modbus::Char *host   ; ///< Default setting 'TCP host name (DNS or IP address)'
+        const uint16_t      port   ; ///< Default setting 'TCP port number' for the listening server
+        const uint32_t      timeout; ///< Default setting for the read timeout of every single conncetion
 
+        ///  \details Constructor of the class.
         Defaults();
+
+        /// \details Returns a reference to the global default value object.
         static const Defaults &instance();
     };
 

@@ -21,7 +21,7 @@ class ModbusTcpSocket;
 class MODBUS_EXPORT ModbusTcpServer : public ModbusServerPort
 {
 public:
-    /*! \brief Sets the default settings to constant values.
+    /*! \brief `Defaults` class constain default settings values for `ModbusTcpServer`.
      */
     struct MODBUS_EXPORT Defaults
     {
@@ -83,17 +83,17 @@ public:
     virtual ModbusServerPort *createTcpPort(ModbusTcpSocket *socket);
     
 public: // SIGNALS
-    /// \details
+    /// \details Signal occured when new TCP connection was accepted. `source` - name of the current connection.
     void signalNewConnection(const Modbus::Char *source);
 
-    /// \details
+    /// \details Signal occured when TCP connection was closed. `source` - name of the current connection.
     void signalCloseConnection(const Modbus::Char *source);
 
 protected:
     /// \details Checks for incoming connections and returns pointer `ModbusTcpSocket` if new connection established, `nullptr` otherwise.
     ModbusTcpSocket *nextPendingConnection();
 
-    /// \details Clear all memory allocated for previously established connections.
+    /// \details Clear all allocated memory for previously established connections.
     void clearConnections();
 
 protected:

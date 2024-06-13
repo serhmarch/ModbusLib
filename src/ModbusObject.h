@@ -10,29 +10,43 @@
 
 #include "Modbus.h"
 
-
+/// \brief `ModbusMethodPointer`-pointer to class method template type
 template <class T, class ReturnType, class ... Args>
 using ModbusMethodPointer = ReturnType(T::*)(Args...);
 
+/// \brief `ModbusFunctionPointer` pointer to function template type
 template <class ReturnType, class ... Args>
 using ModbusFunctionPointer = ReturnType (*)(Args...);
 
+/// \brief `ModbusSlotBase` base template for slot (method or function)
 template <class ReturnType, class ... Args>
 class ModbusSlotBase
 {
 public:
+    /// \details Virtual destructor of the class
     virtual ~ModbusSlotBase() {}
+
+    /// \details Return pointer to object which method belongs to (in case of method slot) or
+    /// `nullptr` in case of function slot
     virtual void *object() const { return nullptr; }
+
+    /// \details Return pointer to method (in case of method slot) or function (in case of function slot)
     virtual void *methodOrFunction() const = 0;
+
+    /// \details Execute method or function slot
     virtual ReturnType exec(Args ...  args) = 0;
 };
 
 
 
+/// \brief `ModbusSlotMethod` template class hold pointer to object and its method
 template <class T, class ReturnType, class ... Args>
 class ModbusSlotMethod : public ModbusSlotBase<ReturnType, Args ...>
 {
 public:
+    /// \details Constructor of the slot.
+    /// \param[in]  object      Pointer to object.
+    /// \param[in]  methodPtr   Pointer to object's method.
     ModbusSlotMethod(T* object, ModbusMethodPointer<T, ReturnType, Args...> methodPtr) : m_object(object), m_methodPtr(methodPtr) {}
 
 public:
@@ -54,10 +68,13 @@ private:
 };
 
 
+/// \brief `ModbusSlotFunction` template class hold pointer to slot function
 template <class ReturnType, class ... Args>
 class ModbusSlotFunction : public ModbusSlotBase<ReturnType, Args ...>
 {
 public:
+    /// \details Constructor of the slot.
+    /// \param[in]  funcPtr   Pointer to slot function.
     ModbusSlotFunction(ModbusFunctionPointer<ReturnType, Args...> funcPtr) : m_funcPtr(funcPtr) {}
 
 public:
@@ -90,22 +107,43 @@ class ModbusObjectPrivate;
 
     `ModbusObject` has `objectName()` and `setObjectName` methods. This methods can be used to 
     simply identify object which is signal's source (e.g. to print info in console).
+
+    \note `ModbusObject` class is not thread safe
  */
 
 class MODBUS_EXPORT ModbusObject
 {
 public:
+    /// \details Returns a pointer to the object that sent the signal. 
+    /// This pointer is valid in thread where signal was occured only. 
+    /// So this function must be called only within the slot that is a callback of signal occured.
     static ModbusObject *sender();
 
 public:
+    /// \details Constructor of the class.
     ModbusObject();
+
+    /// \details Virtual destructor of the class.
     virtual ~ModbusObject();
 
 public:
+    /// \details Returns a pointer to current object's name string. 
     const Modbus::Char *objectName() const;
+
+    /// \details Set name of current object. 
     void setObjectName(const Modbus::Char *name);
 
 public:
+    /// \details Connect `this` object's signal `signalMethodPtr` to the `object`s method `objectMethodPtr`.
+    /// ```cpp
+    /// class MyClass : public ModbusObject { /* ... */ public: void signalSomething(int a, int b) { emitSignal(&MyClass::signalSomething, a, b); } };
+    /// class MyReceiver { /* ... */ public: void slotSomething(int a, int b) { doSomething(); } };
+    /// MyClass c;
+    /// MyReceiver r;
+    /// c.connect(&MyClass::signalSomething, r, &MyReceiver::slotSomething);
+    /// ```
+    /// \note `SignalClass` template type refers to any class but it must `this` or derived class. 
+    /// It make separate `SignalClass` to easely refers derived class signal.
     template <class SignalClass, class T, class ReturnType, class ... Args>
     void connect(ModbusMethodPointer<SignalClass, ReturnType, Args ...> signalMethodPtr, T *object, ModbusMethodPointer<T, ReturnType, Args ...> objectMethodPtr)
     {
@@ -118,6 +156,8 @@ public:
         setSlot(converter.voidPtr, slotMethod);
     }
 
+    /// \details Same as `ModbusObject::connect(ModbusMethodPointer, T*, ModbusMethodPointer)` 
+    /// but connects `ModbusFunctionPointer` to current object's signal `signalMethodPtr`.
     template <class SignalClass, class ReturnType, class ... Args>
     void connect(ModbusMethodPointer<SignalClass, ReturnType, Args ...> signalMethodPtr, ModbusFunctionPointer<ReturnType, Args ...> funcPtr)
     {
@@ -130,17 +170,20 @@ public:
         setSlot(converter.voidPtr, slotFunc);
     }
 
+    /// \details Disconnects function `funcPtr` from all signals of current object. 
     template <class ReturnType, class ... Args>
     inline void disconnect(ModbusFunctionPointer<ReturnType, Args ...> funcPtr)
     {
         disconnect(nullptr, funcPtr);
     }
 
+    /// \details Disconnects function `funcPtr` from all signals of current object, but `funcPtr` is a void pointer.
     inline void disconnectFunc(void *funcPtr)
     {
         disconnect(nullptr, funcPtr);
     }
 
+    /// \details Disconnects slot represented by pair `(object, objectMethodPtr)` from all signals of current object. 
     template <class T, class ReturnType, class ... Args>
     inline void disconnect(T *object, ModbusMethodPointer<T, ReturnType, Args ...> objectMethodPtr)
     {
@@ -152,15 +195,22 @@ public:
         disconnect(object, converter.voidPtr);
     }
 
+    /// \details Disconnect all slots of `T *object` from all signals of current object. 
     template <class T>
     inline void disconnect(T *object)
     {
         disconnect(object, nullptr);
     }
 
+
+protected:
+    /// \details Template method for emit signal. Must be called from within of the signal method. 
     template <class T, class ... Args>
-    void emitSignal(ModbusMethodPointer<T, void, Args ...> thisMethod, Args ... args)
+    void emitSignal(const char *thisMethodId, ModbusMethodPointer<T, void, Args ...> thisMethod, Args ... args)
     {
+        dummy = thisMethodId; // Note: present because of weird MSVC compiler optimization, 
+                              // when diff signals can have same address
+        //printf("Emit signal: %s\n", thisMethodId);
         union {
             ModbusMethodPointer<T, void, Args ...> thisMethod;
             void* voidPtr;
@@ -187,6 +237,7 @@ private:
     static void popSender();
 
 protected:
+    static const char* dummy; // Note: prevent weird MSVC compiler optimization
     ModbusObjectPrivate *d_ptr;
     ModbusObject(ModbusObjectPrivate *d);
 };

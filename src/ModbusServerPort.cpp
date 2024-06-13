@@ -40,25 +40,25 @@ bool ModbusServerPort::isStateClosed() const
 
 void ModbusServerPort::signalOpened(const Modbus::Char *source)
 {
-    emitSignal(&ModbusServerPort::signalOpened, source);
+    emitSignal(__func__, &ModbusServerPort::signalOpened, source);
 }
 
 void ModbusServerPort::signalClosed(const Modbus::Char *source)
 {
-    emitSignal(&ModbusServerPort::signalClosed, source);
+    emitSignal(__func__, &ModbusServerPort::signalClosed, source);
 }
 
 void ModbusServerPort::signalTx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
 {
-    emitSignal(&ModbusServerPort::signalTx, source, buff, size);
+    emitSignal(__func__, &ModbusServerPort::signalTx, source, buff, size);
 }
 
 void ModbusServerPort::signalRx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
 {
-    emitSignal(&ModbusServerPort::signalRx, source, buff, size);
+    emitSignal(__func__, &ModbusServerPort::signalRx, source, buff, size);
 }
 
 void ModbusServerPort::signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text)
 {
-    emitSignal(&ModbusServerPort::signalError, source, status, text);
+    emitSignal(__func__, &ModbusServerPort::signalError, source, status, text);
 }

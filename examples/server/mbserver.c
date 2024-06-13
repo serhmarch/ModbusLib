@@ -32,7 +32,7 @@ typedef struct _Options
 {
     ProtocolType        type;
     uint8_t             unit;
-    SerialPortSettings  ser ;
+    SerialSettings  ser ;
     TcpSettings         tcp ;
     uint32_t            c0  ;
     uint32_t            c1  ;
@@ -559,7 +559,7 @@ int main(int argc, char **argv)
         break;
     }
 
-    puts("Server starts ...\n");
+    puts("mbserver starts ...");
     while (1)
     {
         cSpoProcess(serv);

@@ -10,13 +10,23 @@
 
 #include "ModbusSerialPort.h"
 
+/*! \brief Implements RTU version of the Modbus communication protocol.
+
+    \details `ModbusRtuPort` derived from `ModbusSerialPort` and implements `writeBuffer` and `readBuffer`
+    for RTU version of Modbus communication protocol.
+
+ */
 class MODBUS_EXPORT ModbusRtuPort : public ModbusSerialPort
 {
 public:
+    ///  \details Constructor of the class. if `blocking = true` then defines blocking mode, non blocking otherwise.
     ModbusRtuPort(bool blocking = false);
+
+    ///  \details Destructor of the class.
     ~ModbusRtuPort();
 
 public:
+    /// \details Returns the Modbus protocol type. For `ModbusAscPort` returns `Modbus::RTU`.
     Modbus::ProtocolType type() const override { return Modbus::RTU; }
 
 protected:

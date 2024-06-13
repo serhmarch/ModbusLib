@@ -147,7 +147,7 @@ TEST(Modbus, createPortTcp)
 
 TEST(Modbus, createPortRtu)
 {
-    SerialPortSettings ser;
+    SerialSettings ser;
     ser.portName         = StringLiteral("COM1");
     ser.baudRate         = 19200;
     ser.dataBits         = 7;
@@ -173,7 +173,7 @@ TEST(Modbus, createPortRtu)
 
 TEST(Modbus, createPortAsc)
 {
-    SerialPortSettings ser;
+    SerialSettings ser;
     ser.portName         = StringLiteral("COM1");
     ser.baudRate         = 115200;
     ser.dataBits         = 7;

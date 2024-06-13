@@ -281,7 +281,7 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
     case RTU:
     {
         ModbusRtuPort *rtu = new ModbusRtuPort(blocking);
-        const SerialPortSettings *s = reinterpret_cast<const SerialPortSettings*>(settings);
+        const SerialSettings *s = reinterpret_cast<const SerialSettings*>(settings);
         rtu->setPortName        (s->portName        );
         rtu->setBaudRate        (s->baudRate        );
         rtu->setDataBits        (s->dataBits        );
@@ -296,7 +296,7 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
     case ASC:
     {
         ModbusAscPort *asc = new ModbusAscPort(blocking);
-        const SerialPortSettings *s = reinterpret_cast<const SerialPortSettings*>(settings);
+        const SerialSettings *s = reinterpret_cast<const SerialSettings*>(settings);
         asc->setPortName        (s->portName        );
         asc->setBaudRate        (s->baudRate        );
         asc->setDataBits        (s->dataBits        );

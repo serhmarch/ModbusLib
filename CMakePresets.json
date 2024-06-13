@@ -2,7 +2,7 @@
     "version": 8,
     "configurePresets": [
         {
-            "name": "win",
+            "name": "Win64",
             "displayName": "Windows MSVC x64",
             "description": "Using compilers for Visual Studio 17 2022 (x64 architecture)",
             "generator": "Visual Studio 17 2022",
@@ -18,9 +18,16 @@
     "buildPresets": [
         {
             "name": "win-debug",
-            "displayName": "Visual Studio Community 2022 Release - amd64 - Debug",
-            "configurePreset": "win",
+            "displayName": "Visual Studio Community 2022 x64 Debug",
+            "configurePreset": "Win64",
             "configuration": "Debug"
+        },
+        {
+            "name": "win-release",
+            "displayName": "Visual Studio Community 2022 x64 Release",
+            "configurePreset": "Win64",
+            "configuration": "Release"
         }
+
     ]
 }

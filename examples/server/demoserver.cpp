@@ -66,8 +66,8 @@ public:
     Device(uint8_t unit, uint16_t regs) { m_unit = unit; m_buff.resize(regs); }
 
 public:
-    inline uint32_t regCount() const { return m_buff.size(); }
-    inline uint32_t bitCount() const { return m_buff.size() * MB_REGE_SZ_BITES; }
+    inline uint32_t regCount() const { return static_cast<uint32_t>(m_buff.size()); }
+    inline uint32_t bitCount() const { return static_cast<uint32_t>(m_buff.size() * MB_REGE_SZ_BITES); }
     inline void inc() { m_buff[0]++; }
 
     inline Modbus::StatusCode readRegs(uint8_t unit, uint16_t offset, uint16_t count, void *values)
@@ -148,7 +148,7 @@ struct Options
 {
     Modbus::ProtocolType        type  ;
     uint8_t                     unit  ;
-    Modbus::SerialPortSettings  ser   ;
+    Modbus::SerialSettings  ser   ;
     Modbus::TcpSettings         tcp   ; 
     uint16_t                    count ;
 
@@ -399,6 +399,7 @@ int main(int argc, char **argv)
         break;
     }
 
+    puts("demoserver starts ...");
     Modbus::Timer tmr = Modbus::timer();
     while (1)
     {

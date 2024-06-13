@@ -32,7 +32,7 @@ typedef struct _Options
 {
     ProtocolType        type  ;
     uint8_t             unit  ;
-    SerialPortSettings  ser   ;
+    SerialSettings  ser   ;
     TcpSettings         tcp   ; 
     int                 func  ;
     uint16_t            offset;

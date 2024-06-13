@@ -118,13 +118,22 @@ MODBUS_EXPORT String asciiToString(const uint8_t* buff, uint32_t count);
 /// \details Return list of names of available serial ports
 MODBUS_EXPORT List<String> availableSerialPorts();
 
-/// \details
+/// \details Function for creation `ModbusPort` with defined parameters:
+/// \param[in]  type        Protocol type: TCP, RTU, ASC.
+/// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
+/// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking);
 
-/// \details 
+/// \details Function for creation `ModbusClientPort` with defined parameters:
+/// \param[in]  type        Protocol type: TCP, RTU, ASC.
+/// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
+/// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking);
 
-/// \details 
+/// \details Function for creation `ModbusServerPort` with defined parameters:
+/// \param[in]  type        Protocol type: TCP, RTU, ASC.
+/// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
+/// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking);
 
 } //namespace Modbus

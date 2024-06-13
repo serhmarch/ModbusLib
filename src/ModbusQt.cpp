@@ -214,7 +214,7 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
             {
                 const ModbusSerialPort::Defaults &d = ModbusSerialPort::Defaults::instance();
                 QByteArray portName = settings.value(s.serialPortName, d.portName).toString().toLatin1();
-                Modbus::SerialPortSettings sl;
+                Modbus::SerialSettings sl;
                 sl.portName = portName.data();
                 sl.baudRate = settings.value(s.baudRate, d.baudRate).toInt();
                 sl.dataBits = settings.value(s.dataBits, d.dataBits).toInt();

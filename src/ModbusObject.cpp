@@ -4,6 +4,7 @@
 #include <list>
 
 thread_local std::list<ModbusObject*> thl_senders;
+const char *ModbusObject::dummy = nullptr; // Note: prevent weird MSVC compiler optimization
 
 ModbusObject *ModbusObject::sender()
 {

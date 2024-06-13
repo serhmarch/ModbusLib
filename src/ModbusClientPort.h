@@ -16,8 +16,38 @@ class ModbusPort;
 
     \details `ModbusClient` contains a list of Modbus functions that are implemented by the Modbus client program.
     It implements functions for reading and writing various types of Modbus memory defined by the specification.
-    The operations that return `Modbus::StatusCode` are asynchronous, that is, if the operation is not completed, it returns the intermediate status `Modbus::Status_Processing`,
+    In the non blocking mode if the operation is not completed it returns the intermediate status `Modbus::Status_Processing`,
     and then it must be called until it is successfully completed or returns an error status.
+
+    `ModbusClientPort` has number of Modbus functions with interface like `readCoils(ModbusObject *client, ...)`. 
+    Several clients can automatically share a current `ModbusClientPort` resource. The first one to access the port seizes 
+    the resource until the operation with the remote device is completed. Then the first client will release the resource and 
+    the next client in the queue will capture it, and so on in a circle.
+
+```cpp
+#include <ModbusClient.h>
+//...
+void main()
+{
+    //...
+    ModbusClientPort *port = Modbus::createClientPort(Modbus::TCP, &settings, false);
+    ModbusClient c1(1, port);
+    ModbusClient c2(2, port);
+    ModbusClient c3(3, port);
+    Modbus::StatusCode s1, s2, s3;
+    //...
+    while(1)
+    {
+        s1 = c1.readHoldingRegisters(0, 10, values);
+        s2 = c2.readHoldingRegisters(0, 10, values);
+        s3 = c3.readHoldingRegisters(0, 10, values);
+        doSomeOtherStuffInCurrentThread();
+        Modbus::msleep(1);
+    }
+    //...
+}
+//...
+```
 
  */
 
@@ -58,17 +88,40 @@ public:
     void setRepeatCount(uint32_t v);
 
 public: // Main interface
+    /// \details Same as `ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+
+    /// \details Same as `ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readDiscreteInputs(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+
+    /// \details Same as `ModbusClientPort::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readHoldingRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+
+    /// \details Same as `ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readInputRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+
+    /// \details Same as `ModbusClientPort::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeSingleCoil(ModbusObject *client, uint8_t unit, uint16_t offset, bool value);
+
+    /// \details Same as `ModbusClientPort::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeSingleRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t value);
+
+    /// \details Same as `ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *status)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readExceptionStatus(ModbusObject *client, uint8_t unit, uint8_t *value);
+
+    /// \details Same as `ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeMultipleCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const void *values);
+
+    /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+
+    /// \details Same as `ModbusClientPort::readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
+
+    /// \details Same as `ModbusClientPort::readDiscreteInputsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readDiscreteInputsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
+
+    /// \details Same as `ModbusClientPort::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeMultipleCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const bool *values);
 
 public: // Modbus Interface
@@ -83,13 +136,13 @@ public: // Modbus Interface
     Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) override;
 
 public:
-    /// \details The same as `ModbusClient::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    /// \details Same as `ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
     inline Modbus::StatusCode readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readCoilsAsBoolArray(this, unit, offset, count, values); }
 
-    /// \details The same as `ModbusClient::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    /// \details Same as `ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
     inline Modbus::StatusCode readDiscreteInputsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readDiscreteInputsAsBoolArray(this, unit, offset, count, values); }
 
-    /// \details The same as `ModbusClient::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the input buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    /// \details Same as `ModbusClientPort::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the input buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
     inline Modbus::StatusCode writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values) { return writeMultipleCoilsAsBoolArray(this, unit, offset, count, values); }
 
 public:

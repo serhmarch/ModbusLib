@@ -155,17 +155,12 @@ StatusCode ModbusTcpServer::process()
             break;
         default:
             if (d->cmdClose && isOpen())
-            {
                 d->state = STATE_WAIT_FOR_CLOSE;
-                fRepeatAgain = true;
-            }
             else if (isOpen())
-            {
                 d->state = STATE_OPENED;
-                fRepeatAgain = true;
-            }
             else
                 d->state = STATE_CLOSED;
+            fRepeatAgain = true;
             break;
         }
     }
@@ -188,10 +183,10 @@ ModbusServerPort *ModbusTcpServer::createTcpPort(ModbusTcpSocket *socket)
 
 void ModbusTcpServer::signalNewConnection(const Modbus::Char *source)
 {
-    this->emitSignal(&ModbusTcpServer::signalNewConnection, source);
+    this->emitSignal(__func__, &ModbusTcpServer::signalNewConnection, source);
 }
 
 void ModbusTcpServer::signalCloseConnection(const Modbus::Char *source)
 {
-    this->emitSignal(&ModbusTcpServer::signalCloseConnection, source);
+    this->emitSignal(__func__, &ModbusTcpServer::signalCloseConnection, source);
 }

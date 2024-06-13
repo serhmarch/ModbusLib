@@ -66,7 +66,7 @@ struct Options
 {
     Modbus::ProtocolType        type  ;
     uint8_t                     unit  ;
-    Modbus::SerialPortSettings  ser   ;
+    Modbus::SerialSettings  ser   ;
     Modbus::TcpSettings         tcp   ; 
     uint16_t                    offset;
     uint16_t                    count ;

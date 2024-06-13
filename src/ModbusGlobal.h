@@ -330,7 +330,7 @@ typedef struct
     FlowControl flowControl     ;
     uint32_t    timeoutFirstByte;
     uint32_t    timeoutInterByte;
-} SerialPortSettings;
+} SerialSettings;
 
 typedef struct 
 {

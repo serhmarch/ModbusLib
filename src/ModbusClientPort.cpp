@@ -619,27 +619,27 @@ void ModbusClientPort::cancelRequest(ModbusObject *client)
 
 void ModbusClientPort::signalOpened(const Modbus::Char *source)
 {
-    emitSignal(&ModbusClientPort::signalOpened, source);
+    emitSignal(__func__, &ModbusClientPort::signalOpened, source);
 }
 
 void ModbusClientPort::signalClosed(const Modbus::Char *source)
 {
-    emitSignal(&ModbusClientPort::signalClosed, source);
+    emitSignal(__func__, &ModbusClientPort::signalClosed, source);
 }
 
 void ModbusClientPort::signalTx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
 {
-    emitSignal(&ModbusClientPort::signalTx, source, buff, size);
+    emitSignal(__func__, &ModbusClientPort::signalTx, source, buff, size);
 }
 
 void ModbusClientPort::signalRx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
 {
-    emitSignal(&ModbusClientPort::signalRx, source, buff, size);
+    emitSignal(__func__, &ModbusClientPort::signalRx, source, buff, size);
 }
 
 void ModbusClientPort::signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text)
 {
-    emitSignal(&ModbusClientPort::signalError, source, status, text);
+    emitSignal(__func__, &ModbusClientPort::signalError, source, status, text);
 }
 
 StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
