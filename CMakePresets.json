@@ -2,8 +2,8 @@
     "version": 8,
     "configurePresets": [
         {
-            "name": "Win64",
-            "displayName": "Windows MSVC x64",
+            "name": "Win64-Default",
+            "displayName": "Win64 Config Default MSVC",
             "description": "Using compilers for Visual Studio 17 2022 (x64 architecture)",
             "generator": "Visual Studio 17 2022",
             "toolset": "host=x64",
@@ -12,22 +12,102 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
             }
+        },
+        {
+            "name": "Win64-Qt",
+            "displayName": "Windows MSVC x64 Qt",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_QT_ENABLED": "ON",
+                "CMAKE_PREFIX_PATH": "C:/Qt/5.15.2/msvc2019_64"
+            }
+        },
+        {
+            "name": "No-Examples-Tests",
+            "displayName": "No Examples And Tests",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_EXAMPLES_ENABLED": "OFF",
+                "MB_TESTS_ENABLED": "OFF"
+            }
+        },
+        {
+            "name": "Win64-All",
+            "displayName": "Win64 Config All",
+            "inherits": "Win64-Default"
+        },
+        {
+            "name": "Win64-Qt-All",
+            "displayName": "Win64 Config Qt All",
+            "inherits": [
+                "Win64-Default",
+                "Win64-Qt"
+            ]
+        },
+        {
+            "name": "Win64-No-Examples-Tests",
+            "displayName": "Win64 Config No Examples And Tests",
+            "inherits": [
+                "Win64-Default",
+                "No-Examples-Tests"
+            ]
+        },
+        {
+            "name": "Win64-Qt-No-Examples-Tests",
+            "displayName": "Win64 Config Qt No Examples And Tests",
+            "inherits": [
+                "Win64-Default",
+                "Win64-Qt",
+                "No-Examples-Tests"
+            ]
         }
     ],
     "buildPresets": [
         {
-            "name": "win-debug",
-            "displayName": "Visual Studio Community 2022 x64 Debug",
-            "configurePreset": "Win64",
-            "configuration": "Debug"
+            "name": "Win64-All-Debug",
+            "configurePreset": "Win64-All" ,
+            "configuration": "Debug"        
         },
         {
-            "name": "win-release",
-            "displayName": "Visual Studio Community 2022 x64 Release",
-            "configurePreset": "Win64",
-            "configuration": "Release"
+            "name": "Win64-All-Release",
+            "configurePreset": "Win64-All" ,
+            "configuration": "Release"        
+        },
+        {
+            "name": "Win64-Qt-All-Debug",
+            "configurePreset": "Win64-Qt-All" ,
+            "configuration": "Debug"        
+        },
+        {
+            "name": "Win64-Qt-All-Release",
+            "configurePreset": "Win64-Qt-All" ,
+            "configuration": "Release"        
+        },
+        {
+            "name": "Win64-No-Examples-Tests-Debug",
+            "configurePreset": "Win64-No-Examples-Tests" ,
+            "configuration": "Debug"        
+        },
+        {
+            "name": "Win64-No-Examples-Tests-Release",
+            "configurePreset": "Win64-No-Examples-Tests" ,
+            "configuration": "Release"        
+        },
+        {
+            "name": "Win64-Qt-No-Examples-Tests-Debug",
+            "configurePreset": "Win64-Qt-No-Examples-Tests" ,
+            "configuration": "Debug"        
+        },
+        {
+            "name": "Win64-Qt-No-Examples-Tests-Release",
+            "configurePreset": "Win64-Qt-No-Examples-Tests" ,
+            "configuration": "Release"        
         }
-
     ]
 }
