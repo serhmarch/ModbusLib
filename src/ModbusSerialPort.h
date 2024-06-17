@@ -20,18 +20,23 @@
 class MODBUS_EXPORT ModbusSerialPort : public ModbusPort
 {
 public:
+/*! \brief Holds the default values of the settings.
+*/
     struct MODBUS_EXPORT Defaults
     {
-        const Modbus::Char       *portName        ;
-        const int32_t             baudRate        ;
-        const int8_t              dataBits        ;
-        const Modbus::Parity      parity          ;
-        const Modbus::StopBits    stopBits        ;
-        const Modbus::FlowControl flowControl     ;
-        const uint32_t            timeoutFirstByte;
-        const uint32_t            timeoutInterByte;
+        const Modbus::Char       *portName        ; ///< Default value for the serial port name 
+        const int32_t             baudRate        ; ///< Default value for the serial port's baud rate
+        const int8_t              dataBits        ; ///< Default value for the serial port's data bits
+        const Modbus::Parity      parity          ; ///< Default value for the serial port's patiry
+        const Modbus::StopBits    stopBits        ; ///< Default value for the serial port's stop bits
+        const Modbus::FlowControl flowControl     ; ///< Default value for the serial port's flow control
+        const uint32_t            timeoutFirstByte; ///< Default value for the serial port's timeout waiting first byte of packet
+        const uint32_t            timeoutInterByte; ///< Default value for the serial port's timeout waiting next byte of packet
 
+        /// \details Constructor ot the class.
         Defaults();
+        
+        /// \details Returns a reference to the global `ModbusSerialPort::Defaults` object.
         static const Defaults &instance();
     };
 
@@ -108,7 +113,9 @@ protected:
     Modbus::StatusCode read() override;
 
 protected:
+    /// \cond
     using ModbusPort::ModbusPort;
+    /// \endcond
 };
 
 #endif // MODBUSSERIALPORT_H

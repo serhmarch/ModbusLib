@@ -24,6 +24,9 @@ class ModbusPort;
 class MODBUS_EXPORT ModbusServerResource : public ModbusServerPort
 {
 public:
+    /// \details Constructor of the class.
+    /// \param[in]  port    Pointer to the `ModbusPort` which is managed by the current class object.
+    /// \param[in]  device  Pointer to the `ModbusInterface` implementation to which all requests for Modbus functions are forwarded.
     ModbusServerResource(ModbusPort *port, ModbusInterface *device);
 
 public:

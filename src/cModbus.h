@@ -31,12 +31,23 @@ typedef struct ModbusServerPort ModbusServerPort;
 typedef struct ModbusInterface  ModbusInterface ;
 #endif
 
-typedef ModbusPort      * cModbusPort      ;
-typedef ModbusClientPort* cModbusClientPort;
-typedef ModbusClient    * cModbusClient    ;
-typedef ModbusServerPort* cModbusServerPort;
-typedef ModbusInterface * cModbusInterface ;
 
+/// \brief Handle (pointer) of `ModbusPort` for C interface
+typedef ModbusPort* cModbusPort;
+
+/// \brief Handle (pointer) of `ModbusClientPort` for C interface
+typedef ModbusClientPort* cModbusClientPort;
+
+/// \brief Handle (pointer) of `ModbusClient` for C interface
+typedef ModbusClient* cModbusClient;
+
+/// \brief Handle (pointer) of `ModbusServerPort` for C interface
+typedef ModbusServerPort* cModbusServerPort;
+
+/// \brief Handle (pointer) of `ModbusInterface` for C interface
+typedef ModbusInterface* cModbusInterface;
+
+/// \brief Handle (pointer) of `ModbusDevice` for C interface
 typedef void* cModbusDevice;
 
 /// \details Pointer to C function for read coils (0x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readCoils`

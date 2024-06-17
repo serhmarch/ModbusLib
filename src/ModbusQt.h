@@ -16,64 +16,98 @@
 
 namespace Modbus {
 
+/// \brief Map for settings of Modbus protocol where key has type `QString` and value is `QVariant`.
 typedef QHash<QString, QVariant> Settings;
 
+/*! \brief Sets constant key values for the map of settings.
+ */
 class MODBUS_EXPORT Strings
 {
 public:
-    const QString unit            ;
-    const QString type            ;
-    const QString host            ;
-    const QString port            ;
-    const QString timeout         ;
-    const QString serialPortName  ;
-    const QString baudRate        ;
-    const QString dataBits        ;
-    const QString parity          ;
-    const QString stopBits        ;
-    const QString flowControl     ;
-    const QString timeoutFirstByte;
-    const QString timeoutInterByte;
+    const QString unit            ; ///< Setting key for the unit number of remote device
+    const QString type            ; ///< Setting key for the type of Modbus protocol
+    const QString host            ; ///< Setting key for the IP address or DNS name of the remote device
+    const QString port            ; ///< Setting key for the TCP port number of the remote device
+    const QString timeout         ; ///< Setting key for connection timeout (milliseconds)
+    const QString serialPortName  ; ///< Setting key for the serial port name
+    const QString baudRate        ; ///< Setting key for the serial port's baud rate
+    const QString dataBits        ; ///< Setting key for the serial port's data bits
+    const QString parity          ; ///< Setting key for the serial port's patiry
+    const QString stopBits        ; ///< Setting key for the serial port's stop bits
+    const QString flowControl     ; ///< Setting key for the serial port's flow control
+    const QString timeoutFirstByte; ///< Setting key for the serial port's timeout waiting first byte of packet
+    const QString timeoutInterByte; ///< Setting key for the serial port's timeout waiting next byte of packet
 
+    /// \details Constructor ot the class.
     Strings();
+
+    /// \details Returns a reference to the global `Modbus::Strings` object.
     static const Strings &instance();
 };
 
+/*! \brief Holds the default values of the settings.
+*/
 class MODBUS_EXPORT Defaults
 {
 public:
-    const uint8_t      unit            ;
-    const ProtocolType type            ;
-    const QString      host            ;
-    const uint16_t     port            ;
-    const uint32_t     timeout         ;
-    const QString      serialPortName  ;
-    const int32_t      baudRate        ;
-    const int8_t       dataBits        ;
-    const Parity       parity          ;
-    const StopBits     stopBits        ;
-    const FlowControl  flowControl     ;
-    const uint32_t     timeoutFirstByte;
-    const uint32_t     timeoutInterByte;
+    const uint8_t      unit            ; ///< Default value for the unit number of remote device
+    const ProtocolType type            ; ///< Default value for the type of Modbus protocol
+    const QString      host            ; ///< Default value for the IP address or DNS name of the remote device
+    const uint16_t     port            ; ///< Default value for the TCP port number of the remote device
+    const uint32_t     timeout         ; ///< Default value for connection timeout (milliseconds)
+    const QString      serialPortName  ; ///< Default value for the serial port name
+    const int32_t      baudRate        ; ///< Default value for the serial port's baud rate
+    const int8_t       dataBits        ; ///< Default value for the serial port's data bits
+    const Parity       parity          ; ///< Default value for the serial port's patiry
+    const StopBits     stopBits        ; ///< Default value for the serial port's stop bits
+    const FlowControl  flowControl     ; ///< Default value for the serial port's flow control
+    const uint32_t     timeoutFirstByte; ///< Default value for the serial port's timeout waiting first byte of packet
+    const uint32_t     timeoutInterByte; ///< Default value for the serial port's timeout waiting next byte of packet
 
+    /// \details Constructor ot the class.
     Defaults();
+
+    /// \details Returns a reference to the global `Modbus::Defaults` object.
     static const Defaults &instance();
 };
 
+/*! \brief Class for convinient manipulation with Modbus Data Address.
+*/
 class MODBUS_EXPORT Address
 {
 public:
+    /// \details Defauilt constructor ot the class. Creates invalid Modbus Data Address
     Address();
+
+    /// \details Constructor ot the class. E.g. `Address(Modbus::Memory_4x, 0)` creates `400001` standard address. 
     Address(Modbus::MemoryType, quint16 offset);
+
+    /// \details Constructor ot the class. E.g. `Address(400001)` creates `Address` with type `Modbus::Memory_4x`
+    /// and offset `0`, and `Address(1)` creates `Address` with type `Modbus::Memory_0x` and offset `0`. 
     Address(quint32 adr);
 
 public:
+    /// \details Returns `true` if memory type is `Modbus::Memory_Unknown`, `false` otherwise
     inline bool isValid() const { return m_type != Memory_Unknown; }
+
+    /// \details Returns memory type of Modbus Data Address
     inline MemoryType type() const { return static_cast<MemoryType>(m_type); }
+ 
+    /// \details Returns memory offset of Modbus Data Address
     inline quint16 offset() const { return m_offset; }
+ 
+    /// \details Returns memory number (offset+1) of Modbus Data Address
     inline quint32 number() const { return m_offset+1; }
+ 
+    /// \details Returns string repr of Modbus Data Address
+    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `QString("400001")`.
     QString toString() const;
+
+    /// \details Converts current Modbus Data Address to `quint32`,
+    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `400001`.
     inline operator quint32 () const { return number() | (m_type<<16);  }
+
+    /// \details Assigment operator definition.
     Address &operator= (quint32 v);
 
 private:
@@ -81,10 +115,10 @@ private:
     quint16 m_offset;
 };
 
-// Convert String repr to Modbus::Address
+/// \details Convert String repr to Modbus::Address
 inline Address addressFromString(const QString &s) { return Address(s.toUInt()); }
 
-// convert value to QString key for type
+/// \details Convert value to QString key for type
 template <class EnumType>
 inline QString enumKey(int value)
 {
@@ -92,7 +126,7 @@ inline QString enumKey(int value)
     return QString(me.valueToKey(value));
 }
 
-// convert value to QString key for type
+/// \details Convert value to QString key for type
 template <class EnumType>
 inline QString enumKey(EnumType value, const QString &byDef = QString())
 {
@@ -104,7 +138,7 @@ inline QString enumKey(EnumType value, const QString &byDef = QString())
         return byDef;
 }
 
-// convert key to value for enumeration by QString key
+/// \details Convert key to value for enumeration by QString key
 template <class EnumType>
 inline EnumType enumValue(const QString& key, bool* ok = nullptr)
 {
@@ -113,7 +147,8 @@ inline EnumType enumValue(const QString& key, bool* ok = nullptr)
 
 }
 
-// Convert value for enumeration by QVariant (int - value, string - key)
+/// \details Convert `QVariant` value to enumeration value (int - value, string - key).
+/// Stores result of convertion in output parameter `ok`
 template <class EnumType>
 inline EnumType enumValue(const QVariant& value, bool *ok)
 {
@@ -135,6 +170,8 @@ inline EnumType enumValue(const QVariant& value, bool *ok)
     return enumValue<EnumType>(value.toString(), ok);
 }
 
+/// \details Convert `QVariant` value to enumeration value (int - value, string - key).
+/// If `value` can't be converted, `defaultValue` is returned.
 template <class EnumType>
 inline EnumType enumValue(const QVariant& value, EnumType defaultValue)
 {
@@ -145,6 +182,7 @@ inline EnumType enumValue(const QVariant& value, EnumType defaultValue)
     return defaultValue;
 }
 
+/// \details Convert `QVariant` value to enumeration value (int - value, string - key).
 template <class EnumType>
 inline EnumType enumValue(const QVariant& value)
 {
@@ -201,13 +239,16 @@ MODBUS_EXPORT QString toString(FlowControl v);
 /// \details Returns list of string that represent names of serial ports
 MODBUS_EXPORT QStringList availableSerialPortList();
 
-/// \details
+/// \details Same as `Modbus::createPort(ProtocolType type, const void *settings, bool blocking)`
+/// but `ProtocolType type` and `const void *settings` are defined by `Modbus::Settings` key-value map.
 MODBUS_EXPORT ModbusPort *createPort(const Settings &settings, bool blocking = false);
 
-/// \details
+/// \details Same as `Modbus::createClientPort(ProtocolType type, const void *settings, bool blocking)`
+/// but `ProtocolType type` and `const void *settings` are defined by `Modbus::Settings` key-value map.
 MODBUS_EXPORT ModbusClientPort *createClientPort(const Settings &settings, bool blocking = false);
 
-/// \details
+/// \details Same as `Modbus::createServerPort(ProtocolType type, const void *settings, bool blocking)`
+/// but `ProtocolType type` and `const void *settings` are defined by `Modbus::Settings` key-value map.
 MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, const Settings &settings, bool blocking = false);
 
 } // namespace Modbus

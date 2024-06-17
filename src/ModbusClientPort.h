@@ -1,6 +1,6 @@
 /*!
  * \file   ModbusClientPort.h
- * \brief General file of the algorithm of the client part of the Modbus protocol port.
+ * \brief  General file of the algorithm of the client part of the Modbus protocol port.
  *
  * \author march
  * \date   May 2024
@@ -142,35 +142,38 @@ public:
     /// \details Same as `ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
     inline Modbus::StatusCode readDiscreteInputsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readDiscreteInputsAsBoolArray(this, unit, offset, count, values); }
 
-    /// \details Same as `ModbusClientPort::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the input buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    /// \details Same as `ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the input buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
     inline Modbus::StatusCode writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values) { return writeMultipleCoilsAsBoolArray(this, unit, offset, count, values); }
 
 public:
     /// \details Returns the status of the last operation performed.
     Modbus::StatusCode lastStatus() const;
 
-     /// \details Returns the status of the last error of the performed operation.
+    /// \details Returns the status of the last error of the performed operation.
     Modbus::StatusCode lastErrorStatus() const;
 
-   /// \details Returns the text of the last error of the performed operation.
+    /// \details Returns the text of the last error of the performed operation.
     const Modbus::Char *lastErrorText() const;
 
 public:
-    /// \details Returns a pointer to the client object whose request is currently being processed by the algorithm.
+    /// \details Returns a pointer to the client object whose request is currently being processed by the current port.
     const ModbusObject *currentClient() const;
 
-    /// \details Deletes the request structure `*rp` for the client.\n
+    /// \details Returns status the current request for `client`.\n
     /// The client usually calls this function to determine whether its request is pending/finished/blocked.
+    /// If function returns `Enable`, `client` has just became current and can make request to the port, 
+    /// `Process` - current `client` is already processing,
+    /// `Disable` - other client owns the port.
     RequestStatus getRequestStatus(ModbusObject *client);
 
     /// \details Cancels the previous request specified by the `*rp` pointer for the client.
     void cancelRequest(ModbusObject *client);
 
 public: // SIGNALS
-    /// \details
+    /// \details Calls each callback of the port when the port is opened. `source` - current port's name
     void signalOpened(const Modbus::Char *source);
 
-    /// \details
+    /// \details Calls each callback of the port when the port is closed. `source` - current port's name
     void signalClosed(const Modbus::Char *source);
 
     /// \details Calls each callback of the original packet 'Tx' from the internal list of callbacks, passing them the original array 'buff' and its size 'size'.

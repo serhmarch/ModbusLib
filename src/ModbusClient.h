@@ -93,7 +93,9 @@ public:
     const Modbus::Char *lastPortErrorText() const;
 
 protected:
+    /// \cond
     using ModbusObject::ModbusObject;
+    /// \endcond
 };
 
 #endif // MODBUSCLIENT_H

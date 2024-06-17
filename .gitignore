@@ -1,9 +1,0 @@
-#ignore build dir
-build/
-external/
-.vscode/
-
-# Ignore Qt-Project user files
-*.user
-
-TODO

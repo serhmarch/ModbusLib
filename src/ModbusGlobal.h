@@ -18,22 +18,19 @@
 #include "ModbusPlatform.h"
 #include "Modbus_config.h"
 
-/*
-   MODBUSLIB_VERSION is (major << 16) + (minor << 8) + patch.
-*/
+/// \brief ModbusLib version value that defines as MODBUSLIB_VERSION = (major << 16) + (minor << 8) + patch.
 #define MODBUSLIB_VERSION ((MODBUSLIB_VERSION_MAJOR<<16)|(MODBUSLIB_VERSION_MINOR<<8)|(MODBUSLIB_VERSION_PATCH))
 
-/*
-   MODBUSLIB_VERSION_STR "major.minor.patch"
-*/
-
+/// \cond
 #define MODBUSLIB_VERSION_STR_HELPER(major,minor,patch) #major"."#minor"."#patch
 
 #define MODBUSLIB_VERSION_STR_MAKE(major,minor,patch) MODBUSLIB_VERSION_STR_HELPER(major,minor,patch)
+/// \endcond
 
+/// \brief ModbusLib version value that defines as MODBUSLIB_VERSION_STR "major.minor.patch"
 #define MODBUSLIB_VERSION_STR MODBUSLIB_VERSION_STR_MAKE(MODBUSLIB_VERSION_MAJOR,MODBUSLIB_VERSION_MINOR,MODBUSLIB_VERSION_PATCH)
 
-
+/// \brief MODBUS_EXPORT defines macro for import/export functions and classes.
 #if defined(MODBUS_EXPORTS) && defined(MB_DECL_EXPORT)
 #define MODBUS_EXPORT MB_DECL_EXPORT
 #elif defined(MB_DECL_IMPORT)
@@ -42,25 +39,32 @@
 #define MODBUS_EXPORT
 #endif
 
+/// \brief Macro for creating string literal, must be used like: `StringLiteral("Some string")`
 #define StringLiteral(cstr) cstr
+
+/// \brief Macro for creating char literal, must be used like: `CharLiteral('A')`
 #define CharLiteral(cchar) cchar
 
 // --------------------------------------------------------------------------------------------------------
 // -------------------------------------------- Helper macros ---------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
+/// \brief Macro for get bit with number `bitNum` from array `bitBuff`.
 #define GET_BIT(bitBuff, bitNum) ((((const uint8_t*)(bitBuff))[(bitNum)/8] & (1<<((bitNum)%8))) != 0)
 
+/// \brief Macro for set bit `value` with number `bitNum` to array `bitBuff`.
 #define SET_BIT(bitBuff, bitNum, value)                                                                                     \
     if (value)                                                                                                              \
         ((uint8_t*)(bitBuff))[(bitNum)/8] |= (1<<((bitNum)%8));                                                             \
     else                                                                                                                    \
         ((uint8_t*)(bitBuff))[(bitNum)/8] &= (~(1<<((bitNum)%8)));
 
+/// \brief Macro for get bits begins with number `bitNum` with `count` from input bit array `bitBuff` to output bool array `boolBuff`.
 #define GET_BITS(bitBuff, bitNum, bitCount, boolBuff)                                                                       \
     for (uint16_t __i__ = 0; __i__ < bitCount; __i__++)                                                                     \
         boolBuff[__i__] = (((const uint8_t*)(bitBuff))[((bitNum)+__i__)/8] & (1<<(((bitNum)+__i__)%8))) != 0;
 
+/// \brief Macro for set bits begins with number `bitNum` with `count` from input bool array `boolBuff`to output bit array `bitBuff`.
 #define SET_BITS(bitBuff, bitNum, bitCount, boolBuff)                                                                       \
     for (uint16_t __i__ = 0; __i__ < bitCount; __i__++)                                                                     \
         if (boolBuff[__i__])                                                                                                \
@@ -104,34 +108,34 @@
 // ---------------------------------------- Modbus count constants ----------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
-// 8 = count bits in byte (byte size in bits)
+/// \brief 8 = count bits in byte (byte size in bits)
 #define MB_BYTE_SZ_BITES 8
 
-// 16 = count bits in 16 bit register (register size in bits) 
+/// \brief 16 = count bits in 16 bit register (register size in bits) 
 #define MB_REGE_SZ_BITES 16
 
-// 2 = count bytes in 16 bit register (register size in bytes) 
+/// \brief 2 = count bytes in 16 bit register (register size in bytes) 
 #define MB_REGE_SZ_BYTES 2
 
-// 255 - count_of_bytes in function readHoldingRegisters, readCoils etc
+/// \brief 255 - count_of_bytes in function readHoldingRegisters, readCoils etc
 #define MB_VALUE_BUFF_SZ 255
 
-// 127 = 255(count_of_bytes in function readHoldingRegisters etc) / 2 (register size in bytes)
+/// \brief 127 = 255(count_of_bytes in function readHoldingRegisters etc) / 2 (register size in bytes)
 #define MB_MAX_REGISTERS 127
 
-// 2040 = 255(count_of_bytes in function readCoils etc) * 8 (bits in byte)
+/// \brief 2040 = 255(count_of_bytes in function readCoils etc) * 8 (bits in byte)
 #define MB_MAX_DISCRETS 2040
 
-// Maximum func data size: WriteMultipleCoils
-// 261 = 1 byte(function) + 2 bytes (starting offset) + 2 bytes (count) + 1 bytes (byte count) + 255 bytes(maximum data length)
+/// \brief Maximum func data size: WriteMultipleCoils
+/// 261 = 1 byte(function) + 2 bytes (starting offset) + 2 bytes (count) + 1 bytes (byte count) + 255 bytes(maximum data length)
 
-// 1 byte(unit) + 261 (max func data size: WriteMultipleCoils) + 2 bytes(CRC)
+/// \brief 1 byte(unit) + 261 (max func data size: WriteMultipleCoils) + 2 bytes(CRC)
 #define MB_RTU_IO_BUFF_SZ 264
 
-// 1 byte(start symbol ':')+(( 1 byte(unit) + 261 (max func data size: WriteMultipleCoils)) + 1 byte(LRC) ))*2+2 bytes(CR+LF)
+/// \brief 1 byte(start symbol ':')+(( 1 byte(unit) + 261 (max func data size: WriteMultipleCoils)) + 1 byte(LRC) ))*2+2 bytes(CR+LF)
 #define MB_ASC_IO_BUFF_SZ 529
 
-// 6 bytes(tcp-prefix)+1 byte(unit)+261 (max func data size: WriteMultipleCoils)
+/// \brief 6 bytes(tcp-prefix)+1 byte(unit)+261 (max func data size: WriteMultipleCoils)
 #define MB_TCP_IO_BUFF_SZ 268
 
 #ifdef __cplusplus
@@ -144,8 +148,13 @@ Q_NAMESPACE
 
 #endif // __cplusplus
 
+/// \brief Handle type for native OS values
 typedef void* Handle;
+
+/// \brief Type for Modbus character
 typedef char Char;
+
+/// \brief Type for Modbus timer
 typedef uint32_t Timer;
 
 /// \brief Define list of contants of Modbus protocol.
@@ -161,7 +170,7 @@ enum Constants
 /// \brief Defines type of memory used in Modbus protocol.
 typedef enum _MemoryType
 {
-    Memory_Unknown = 0xFFFF,
+    Memory_Unknown = 0xFFFF,                 ///< Invalid memory type
     Memory_0x = 0,                           ///< Memory allocated for coils/discrete outputs
     Memory_Coils = Memory_0x,                ///< Same as `Memory_0x`.
     Memory_1x = 1,                           ///< Memory allocated for discrete inputs
@@ -248,9 +257,9 @@ enum ProtocolType
 typedef enum _ProtocolType
 #endif
 {
-    ASC,
-    RTU,
-    TCP
+    ASC, ///< ASCII version of Modbus communication protocol.
+    RTU, ///< RTU version of Modbus communication protocol.
+    TCP  ///< TCP version of Modbus communication protocol.
 }
 #ifdef __cplusplus
 ;
@@ -266,11 +275,11 @@ enum Parity
 typedef enum _Parity
 #endif
 {
-    NoParity,
-    EvenParity,
-    OddParity,
-    SpaceParity,
-    MarkParity
+    NoParity,    ///< No parity bit it sent. This is the most common parity setting.
+    EvenParity,  ///< The number of 1 bits in each character, including the parity bit, is always even.
+    OddParity,   ///< The number of 1 bits in each character, including the parity bit, is always odd. It ensures that at least one state transition occurs in each character.
+    SpaceParity, ///< Space parity. The parity bit is sent in the space signal condition. It does not provide error detection information.
+    MarkParity   ///< Mark parity. The parity bit is always set to the mark signal condition (logical 1). It does not provide error detection information.
 }
 #ifdef __cplusplus
 ;
@@ -286,9 +295,9 @@ enum StopBits
 typedef enum _StopBits
 #endif
 {
-    OneStop,
-    OneAndHalfStop,
-    TwoStop
+    OneStop,        ///< 1 stop bit.
+    OneAndHalfStop, ///< 1.5 stop bit.
+    TwoStop         ///< 2 stop bits.
 }
 #ifdef __cplusplus
 ;
@@ -296,15 +305,16 @@ typedef enum _StopBits
 StopBits;
 #endif
 
+/// \brief FlowControl Parity for serial port
 #ifdef __cplusplus // Note: for Qt/moc support
 enum FlowControl
 #else
 typedef enum _FlowControl
 #endif
 {
-    NoFlowControl,
-    HardwareControl,
-    SoftwareControl
+    NoFlowControl,   ///< No flow control.
+    HardwareControl, ///< Hardware flow control (RTS/CTS).
+    SoftwareControl  ///< Software flow control (XON/XOFF).
 }
 #ifdef __cplusplus
 ;
@@ -320,23 +330,25 @@ Q_ENUM_NS(StopBits)
 Q_ENUM_NS(FlowControl)
 #endif
 
+/// \brief Struct to define settings for Serial Port
 typedef struct 
 {
-    const Char *portName        ;
-    int32_t     baudRate        ;
-    int8_t      dataBits        ;
-    Parity      parity          ;
-    StopBits    stopBits        ;
-    FlowControl flowControl     ;
-    uint32_t    timeoutFirstByte;
-    uint32_t    timeoutInterByte;
+    const Char *portName        ; ///< Value for the serial port name
+    int32_t     baudRate        ; ///< Value for the serial port's baud rate
+    int8_t      dataBits        ; ///< Value for the serial port's data bits
+    Parity      parity          ; ///< Value for the serial port's patiry
+    StopBits    stopBits        ; ///< Value for the serial port's stop bits
+    FlowControl flowControl     ; ///< Value for the serial port's flow control
+    uint32_t    timeoutFirstByte; ///< Value for the serial port's timeout waiting first byte of packet
+    uint32_t    timeoutInterByte; ///< Value for the serial port's timeout waiting next byte of packet
 } SerialSettings;
 
+/// \brief Struct to define settings for TCP connection
 typedef struct 
 {
-    const Char *host   ;
-    uint16_t    port   ;
-    uint16_t    timeout;
+    const Char *host   ; ///< Value for the IP address or DNS name of the remote device
+    uint16_t    port   ; ///< Value for the TCP port number of the remote device
+    uint16_t    timeout; ///< Value for connection timeout (milliseconds)
 } TcpSettings;
 
 #ifdef __cplusplus
@@ -388,24 +400,44 @@ inline void *setBits(void *bitBuff, uint16_t bitNum, uint16_t bitCount, const bo
 /// \return A pointer to the `bitBuff` array.
 inline void *setBitsS(void *bitBuff, uint16_t bitNum, uint16_t bitCount, const bool *boolBuff, uint16_t maxBitCount) { if ((bitNum + bitCount) <= maxBitCount) setBits(bitBuff, bitNum, bitCount, boolBuff); return bitBuff; }
 
-/// \details CRC16 checksum, hash function (for Modbus RTU).
+/// \details CRC16 checksum hash function (for Modbus RTU).
 /// \returns Returns a 16-bit unsigned integer value of the checksum
 MODBUS_EXPORT uint16_t crc16(const uint8_t *byteArr, uint32_t count);
 
-/// \details LRC checksum, hash function (for Modbus ASCII).
+/// \details LRC checksum hash function (for Modbus ASCII).
 /// \returns Returns an 8-bit unsigned integer value of the checksum
 MODBUS_EXPORT uint8_t lrc(const uint8_t *byteArr, uint32_t count);
 
-/// \details
+/// \details Function for copy (read) values from memory input `memBuff` and put it to the output buffer `values` for 16 bit registers:
+/// \param[in]  offset      Memory offset to read from `memBuff` in 16-bit registers size.
+/// \param[in]  count       Count of 16-bit registers to read from memory `memBuff`.
+/// \param[out] values      Output buffer to store data.
+/// \param[in]  memBuff     Pointer to the memory which holds data.
+/// \param[in]  memRegCount Size of memory buffer `memBuff` in 16-bit registers.
 MODBUS_EXPORT StatusCode readMemRegs(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memRegCount);
 
-/// \details
+/// \details Function for copy (write) values from input buffer `values` to memory `memBuff` for 16 bit registers:
+/// \param[in]  offset      Memory offset to write to `memBuff` in 16-bit registers size.
+/// \param[in]  count       Count of 16-bit registers to write into memory `memBuff`.
+/// \param[out] values      Input buffer that holds data to write.
+/// \param[in]  memBuff     Pointer to the memory buffer.
+/// \param[in]  memRegCount Size of memory buffer `memBuff` in 16-bit registers.
 MODBUS_EXPORT StatusCode writeMemRegs(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memRegCount);
 
-/// \details
+/// \details Function for copy (read) values from memory input `memBuff` and put it to the output buffer `values` for discretes (bits):
+/// \param[in]  offset      Memory offset to read from `memBuff` in bit size.
+/// \param[in]  count       Count of bits to read from memory `memBuff`.
+/// \param[out] values      Output buffer to store data.
+/// \param[in]  memBuff     Pointer to the memory which holds data.
+/// \param[in]  memBitCount Size of memory buffer `memBuff` in bits.
 MODBUS_EXPORT StatusCode readMemBits(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memBitCount);
 
-/// \details
+/// \details Function for copy (write) values from input buffer `values` to memory `memBuff` for discretes (bits):
+/// \param[in]  offset      Memory offset to write to `memBuff` in bit size.
+/// \param[in]  count       Count of bits to write into memory `memBuff`.
+/// \param[out] values      Input buffer that holds data to write.
+/// \param[in]  memBuff     Pointer to the memory buffer.
+/// \param[in]  memBitCount Size of memory buffer `memBuff` in bits.
 MODBUS_EXPORT StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memBitCount);
 
 /// \details Function converts byte array \c bytesBuff to ASCII repr of byte array.

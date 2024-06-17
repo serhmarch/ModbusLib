@@ -21,6 +21,22 @@ class ModbusServerPort;
 // ------------------------------------------- Modbus interface -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
+/*! \brief Main interface of Modbus communication protocol.
+
+    \details `ModbusInterface` constains list of functions that ModbusLib is supported.
+    There are such functions as:
+    * 1  (0x01) - `READ_COILS`
+    * 2  (0x02) - `READ_DISCRETE_INPUTS`
+    * 3  (0x03) - `READ_HOLDING_REGISTERS`
+    * 4  (0x04) - `READ_INPUT_REGISTERS`
+    * 5  (0x05) - `WRITE_SINGLE_COIL`
+    * 6  (0x06) - `WRITE_SINGLE_REGISTER`
+    * 7  (0x07) - `READ_EXCEPTION_STATUS`
+    * 15 (0x0F) - `WRITE_MULTIPLE_COILS`
+    * 16 (0x10) - `WRITE_MULTIPLE_REGISTERS`
+
+    Default implementation of every Modbus function returns `Modbus::Status_BadIllegalFunction`.
+ */
 class MODBUS_EXPORT ModbusInterface
 {
 public:
@@ -80,7 +96,7 @@ public:
     /// \param[in]  unit    Address of the remote Modbus device.
     /// \param[in]  offset  Starting offset (0-based).
     /// \param[in]  count   Count of coils.
-    /// \param[out] values  Pointer to the input buffer (bit array) which values are must be written.
+    /// \param[out] values  Pointer to the input buffer (bit array) which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values);
 
@@ -88,7 +104,7 @@ public:
     /// \param[in]  unit    Address of the remote Modbus device.
     /// \param[in]  offset  Starting offset (0-based).
     /// \param[in]  count   Count of registers.
-    /// \param[out] values  Pointer to the input buffer which values are must be written.
+    /// \param[out] values  Pointer to the input buffer which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 };
@@ -100,8 +116,10 @@ public:
 /// Main Modbus namespace. Contains classes, functions and constants to work with Modbus-protocol.
 namespace Modbus {
 
+/// \brief Modbus::String class for strings
 typedef std::string String;
 
+/// \brief Modbus::List template class
 template <class T>
 using List = std::list<T>;
 
@@ -131,6 +149,7 @@ MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bo
 MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking);
 
 /// \details Function for creation `ModbusServerPort` with defined parameters:
+/// \param[in]  device      Pointer to the `ModbusInterface` implementation to which all requests for Modbus functions are forwarded.
 /// \param[in]  type        Protocol type: TCP, RTU, ASC.
 /// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.

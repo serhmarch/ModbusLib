@@ -24,6 +24,7 @@ class ModbusPortPrivate;
 class MODBUS_EXPORT ModbusPort
 {
 public:
+    /// \details Virtual destructor.
     virtual ~ModbusPort();
 
 public:
@@ -100,8 +101,10 @@ protected:
     Modbus::StatusCode setError(Modbus::StatusCode status, const Modbus::Char *text);
 
 protected:
+    /// \cond
     ModbusPortPrivate *d_ptr;
     ModbusPort(ModbusPortPrivate *d);
+    /// \endcond
 };
 
 #endif // MODBUSPORT_H

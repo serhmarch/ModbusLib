@@ -136,14 +136,14 @@ public:
 public:
     /// \details Connect `this` object's signal `signalMethodPtr` to the `object`s method `objectMethodPtr`.
     /// ```cpp
-    /// class MyClass : public ModbusObject { /* ... */ public: void signalSomething(int a, int b) { emitSignal(&MyClass::signalSomething, a, b); } };
-    /// class MyReceiver { /* ... */ public: void slotSomething(int a, int b) { doSomething(); } };
+    /// class MyClass : public ModbusObject { public: void signalSomething(int a, int b) { emitSignal(&MyClass::signalSomething, a, b); } };
+    /// class MyReceiver { public: void slotSomething(int a, int b) { doSomething(); } };
     /// MyClass c;
     /// MyReceiver r;
     /// c.connect(&MyClass::signalSomething, r, &MyReceiver::slotSomething);
     /// ```
-    /// \note `SignalClass` template type refers to any class but it must `this` or derived class. 
-    /// It make separate `SignalClass` to easely refers derived class signal.
+    /// \note `SignalClass` template type refers to any class but it must be `this` or derived class. 
+    /// It makes separate `SignalClass` to easely refers signal of the derived class.
     template <class SignalClass, class T, class ReturnType, class ... Args>
     void connect(ModbusMethodPointer<SignalClass, ReturnType, Args ...> signalMethodPtr, T *object, ModbusMethodPointer<T, ReturnType, Args ...> objectMethodPtr)
     {
@@ -237,9 +237,11 @@ private:
     static void popSender();
 
 protected:
+    /// \cond
     static const char* dummy; // Note: prevent weird MSVC compiler optimization
     ModbusObjectPrivate *d_ptr;
     ModbusObject(ModbusObjectPrivate *d);
+    /// \endcond
 };
 
 #endif // MODBUSOBJECT_H

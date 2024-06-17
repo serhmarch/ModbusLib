@@ -960,7 +960,7 @@ INPUT                  = pages \
 # See also: INPUT_FILE_ENCODING
 # The default value is: UTF-8.
 
-INPUT_ENCODING         = CP1251
+INPUT_ENCODING         = UTF-8
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses The INPUT_FILE_ENCODING tag can be used to specify
@@ -1050,10 +1050,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = *_p.h    \
-                         *_win.h  \
-                         *_unix.h \
-                         *.cpp    \
+EXCLUDE                =
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -1069,7 +1066,10 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       =
+EXCLUDE_PATTERNS       = *_p.h \
+                         *_win.h \
+                         *_unix.h \
+                         *.cpp
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -1590,14 +1590,14 @@ DOCSET_PUBLISHER_NAME  = Publisher
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-GENERATE_HTMLHELP      = NO
+GENERATE_HTMLHELP      = YES
 
 # The CHM_FILE tag can be used to specify the file name of the resulting .chm
 # file. You can add a path in front of the file if the result should not be
 # written to the html output directory.
 # This tag requires that the tag GENERATE_HTMLHELP is set to YES.
 
-CHM_FILE               =
+CHM_FILE               = ModbusLib.chm
 
 # The HHC_LOCATION tag can be used to specify the location (absolute path
 # including file name) of the HTML help compiler (hhc.exe). If non-empty,
@@ -1605,7 +1605,7 @@ CHM_FILE               =
 # The file has to be specified with full path.
 # This tag requires that the tag GENERATE_HTMLHELP is set to YES.
 
-HHC_LOCATION           =
+HHC_LOCATION           = "C:/Program Files (x86)/HTML Help Workshop/hhc.exe"
 
 # The GENERATE_CHI flag controls if a separate .chi index file is generated
 # (YES) or that it should be included in the main .chm file (NO).
@@ -1755,7 +1755,7 @@ DISABLE_INDEX          = NO
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-GENERATE_TREEVIEW      = YES
+GENERATE_TREEVIEW      = NO
 
 # When both GENERATE_TREEVIEW and DISABLE_INDEX are set to YES, then the
 # FULL_SIDEBAR option determines if the side bar is limited to only the treeview
@@ -2457,14 +2457,7 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = PORT_CMD_ITEM_TYPE(name)= typedef ChainPortCommandSvIoItemBool<&ChainPort::Cmd##name> \
-                         PORT_CFG_ITEM_TYPE(name)= typedef ChainPortConfigSvIoItemBase<decltype(getPortCfgMethodRT(&ChainPort::Cfg##name)), &ChainPort::Cfg##name> \
-                         PORT_SET_ITEM_TYPE(name)= typedef ChainPortSettingSvIoItemBase<decltype(getPortSetMethodRT(&ChainPort::Setting##name)), &ChainPort::Setting##name, &ChainPort::setSetting##name> \
-                         PORT_STAT_ITEM_TYPE(name)=typedef ChainPortStatisticSvIoItemBase<decltype(getPortStatMethodRT(&ChainPort::Stat##name)), &ChainPort::Stat##name> \
-                         DEVICE_CMD_ITEM_TYPE(name)= typedef ChainDeviceCommandSvIoItemBool<&ChainDevice::Cmd##name> \
-                         DEVICE_CFG_ITEM_TYPE(name)= typedef ChainDeviceConfigSvIoItemBase<decltype(getDeviceCfgMethodRT(&ChainDevice::Cfg##name)), &ChainDevice::Cfg##name> \
-                         DEVICE_SET_ITEM_TYPE(name)= typedef ChainDeviceSettingSvIoItemBase<decltype(getDeviceSetMethodRT(&ChainDevice::Setting##name)), &ChainDevice::Setting##name, &ChainDevice::setSetting##name> \
-                         DEVICE_STAT_ITEM_TYPE(name)=typedef ChainDeviceStatisticSvIoItemBase<decltype(getDeviceStatMethodRT(&ChainDevice::Stat##name)), &ChainDevice::Stat##name>
+PREDEFINED             = __cplusplus
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
