@@ -23,15 +23,10 @@ Library implements such Modbus functions as:
 
 ## Build using CMake
 
-### Brief
-
 1.  Build Tools
 
     Previously you need to install c++ compiler kit, git and cmake itself (qt tools if needed).
-
     Then set PATH env variable to find compliler, cmake, git etc.
-
-    Don't forget to use appropriate version of compiler, linker (x86|x64).
 
 2.  Create project directory, move to it and clone repository:
     ```console

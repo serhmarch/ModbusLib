@@ -41,6 +41,7 @@
             "name": "Win64-Qt",
             "displayName": "Windows MSVC x64 Qt",
             "hidden": true,
+            "binaryDir": "${sourceDir}/bin/Win64-Qt",
             "cacheVariables": {
                 "MB_QT_ENABLED": "ON",
                 "CMAKE_PREFIX_PATH": "C:/Qt/5.15.2/msvc2019_64"
@@ -102,6 +103,7 @@
             "name": "Win32-Qt",
             "displayName": "Windows MSVC x32 Qt",
             "hidden": true,
+            "binaryDir": "${sourceDir}/bin/Win32-Qt",
             "cacheVariables": {
                 "MB_QT_ENABLED": "ON",
                 "CMAKE_PREFIX_PATH": "C:/Qt/5.15.2/msvc2019"
@@ -119,8 +121,8 @@
             "name": "Win32-Qt-All",
             "displayName": "Win32 Config Qt All",
             "inherits": [
-                "Win32-All",
-                "Win32-Qt"
+                "Win32-Qt",
+                "Win32-All"
             ]
         },
         {
@@ -135,8 +137,8 @@
             "name": "Win32-Qt-No-Examples-Tests",
             "displayName": "Win32 Config Qt No Examples And Tests",
             "inherits": [
-                "Win32-Default",
                 "Win32-Qt",
+                "Win32-Default",
                 "Config-No-Examples-Tests"
             ]
         },
@@ -147,19 +149,6 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "/usr/bin/gcc",
                 "CMAKE_CXX_COMPILER": "/usr/bin/g++"
-            },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            }
-        },
-        {
-            "name": "Linux-Qt",
-            "displayName": "Linux GCC Qt",
-            "hidden": true,
-            "cacheVariables": {
-                "MB_QT_ENABLED": "ON"
             },
             "condition": {
                 "type": "equals",
@@ -184,6 +173,31 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "Linux-Qt",
+            "displayName": "Linux GCC Qt",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_QT_ENABLED": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "Linux-Qt-Debug",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/bin/Linux-Qt/Debug",
+            "inherits": "Linux-Qt"
+        },
+        {
+            "name": "Linux-Qt-Release",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/bin/Linux-Qt/Release",
+            "inherits": "Linux-Qt"
         },
         {
             "name": "Linux-All-Debug",
@@ -221,16 +235,16 @@
             "name": "Linux-Qt-All-Debug",
             "displayName": "Linux GCC Config Qt All Debug",
             "inherits": [
+                "Linux-Qt-Debug",
                 "Linux-Debug",
-                "Config-All",
-                "Linux-Qt"
+                "Config-All"
             ]
         },
         {
             "name": "Linux-Qt-All-Release",
             "displayName": "Linux GCC Config Qt All Release",
             "inherits": [
-                "Linux-Qt",
+                "Linux-Qt-Release",
                 "Linux-Release",
                 "Config-All"
             ]
@@ -239,7 +253,7 @@
             "name": "Linux-Qt-No-Examples-Tests-Debug",
             "displayName": "Linux Config Qt No Examples And Tests Debug",
             "inherits": [
-                "Linux-Qt",
+                "Linux-Qt-Debug",
                 "Linux-Debug",
                 "Config-No-Examples-Tests"
             ]
@@ -248,7 +262,7 @@
             "name": "Linux-Qt-No-Examples-Tests-Release",
             "displayName": "Linux Config Qt No Examples And Tests Release",
             "inherits": [
-                "Linux-Qt",
+                "Linux-Qt-Release",
                 "Linux-Release",
                 "Config-No-Examples-Tests"
             ]
