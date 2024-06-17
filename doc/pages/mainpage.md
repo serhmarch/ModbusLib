@@ -307,7 +307,7 @@ $ ./mbclient -func 3 -offset 0 -count 10 -period 500 -n inf
 
 ### `demoserver`
 
-`democlient` example demonstrate all implemented functions for server.
+`demoserver` example demonstrate all implemented functions for server.
 It uses single block for every type of Modbus memory (0x, 1x, 3x and 4x)
 and emulates value change for the first 16 bit register by inceremting it 
 by 1 every 1000 milliseconds. So user can run Modbus Client to check
