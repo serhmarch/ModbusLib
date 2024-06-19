@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5) # 2.2 - case insensitive syntax
 
-project(ModbusLib VERSION 0.1.0 LANGUAGES C CXX)
+project(ModbusLibAll LANGUAGES C CXX)
 
 option(MB_QT_ENABLED "Build Qt additinal info" OFF)
 option(MB_EXAMPLES_ENABLED "Build examples" ON)
@@ -13,13 +13,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 if (NOT WIN32)
-#set(CMAKE_SKIP_BUILD_RPATH  FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH $ORIGIN)
-#set(CMAKE_INSTALL_RPATH "\${ORIGIN}")
+    #set(CMAKE_SKIP_BUILD_RPATH  FALSE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH $ORIGIN)
+    #set(CMAKE_INSTALL_RPATH "\${ORIGIN}")
 endif()
 
-configure_file(Modbus_config.h.in ${PROJECT_SOURCE_DIR}/src/Modbus_config.h)
 add_subdirectory(src)
 
 if (MB_EXAMPLES_ENABLED)

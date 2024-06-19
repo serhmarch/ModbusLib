@@ -1,3 +1,9 @@
+cmake_minimum_required(VERSION 3.5) # 2.2 - case insensitive syntax
+
+project(ModbusLib VERSION 0.1.0 LANGUAGES C CXX)
+
+configure_file(Modbus_config.h.in Modbus_config.h)
+
 set(MB_LIBRARY_NAME modbus)
 
 set(HEADERS 
@@ -49,9 +55,8 @@ if (MB_QT_ENABLED)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
-    find_package(Qt5 REQUIRED Core)
-    #find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-    #find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+    find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
     set(HEADERS ${HEADERS}
         ModbusQt.h         
         ) 
@@ -106,11 +111,12 @@ set_target_properties(
     SOVERSION ${PROJECT_VERSION_MAJOR}
     )
         
-if (MB_QT_ENABLED)
-    message("MB: Try to link QT library: Qt5::Core")
-    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Qt5::Core)
-endif()
-
 if (WIN32)
     target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm)
 endif()
+
+if (MB_QT_ENABLED)
+    message("MB: Try to link QT library: Qt5::Core")
+    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+endif()
+
