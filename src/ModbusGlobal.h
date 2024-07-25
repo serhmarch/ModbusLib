@@ -118,13 +118,16 @@
 #define MB_REGE_SZ_BYTES 2
 
 /// \brief 255 - count_of_bytes in function readHoldingRegisters, readCoils etc
-#define MB_VALUE_BUFF_SZ 255
+#define MB_MAX_BYTES 255
 
 /// \brief 127 = 255(count_of_bytes in function readHoldingRegisters etc) / 2 (register size in bytes)
 #define MB_MAX_REGISTERS 127
 
 /// \brief 2040 = 255(count_of_bytes in function readCoils etc) * 8 (bits in byte)
 #define MB_MAX_DISCRETS 2040
+
+/// \brief Same as `MB_MAX_BYTES`
+#define MB_VALUE_BUFF_SZ 255
 
 /// \brief Maximum func data size: WriteMultipleCoils
 /// 261 = 1 byte(function) + 2 bytes (starting offset) + 2 bytes (count) + 1 bytes (byte count) + 255 bytes(maximum data length)
@@ -275,9 +278,9 @@ enum Parity
 typedef enum _Parity
 #endif
 {
-    NoParity,    ///< No parity bit it sent. This is the most common parity setting.
-    EvenParity,  ///< The number of 1 bits in each character, including the parity bit, is always even.
-    OddParity,   ///< The number of 1 bits in each character, including the parity bit, is always odd. It ensures that at least one state transition occurs in each character.
+    NoParity   ,    ///< No parity bit it sent. This is the most common parity setting.
+    EvenParity ,  ///< The number of 1 bits in each character, including the parity bit, is always even.
+    OddParity  ,   ///< The number of 1 bits in each character, including the parity bit, is always odd. It ensures that at least one state transition occurs in each character.
     SpaceParity, ///< Space parity. The parity bit is sent in the space signal condition. It does not provide error detection information.
     MarkParity   ///< Mark parity. The parity bit is always set to the mark signal condition (logical 1). It does not provide error detection information.
 }
@@ -295,7 +298,7 @@ enum StopBits
 typedef enum _StopBits
 #endif
 {
-    OneStop,        ///< 1 stop bit.
+    OneStop       , ///< 1 stop bit.
     OneAndHalfStop, ///< 1.5 stop bit.
     TwoStop         ///< 2 stop bits.
 }
@@ -312,7 +315,7 @@ enum FlowControl
 typedef enum _FlowControl
 #endif
 {
-    NoFlowControl,   ///< No flow control.
+    NoFlowControl  , ///< No flow control.
     HardwareControl, ///< Hardware flow control (RTS/CTS).
     SoftwareControl  ///< Software flow control (XON/XOFF).
 }

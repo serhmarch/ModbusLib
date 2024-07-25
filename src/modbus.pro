@@ -1,7 +1,7 @@
 TEMPLATE = lib
 
 #CONFIG += c++17
-CONFIG -= qt
+CONFIG += qt
 
 DEFINES += MODBUS_EXPORTS
 

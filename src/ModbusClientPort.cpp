@@ -16,10 +16,8 @@ ProtocolType ModbusClientPort::type() const
 StatusCode ModbusClientPort::close()
 {
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
-    StatusCode s = Status_Good;
-    s = d->port->close();
-    if (StatusIsGood(s))
-        signalClosed(d->getName());
+    StatusCode s = d->port->close();
+    signalClosed(this->objectName());
     d->currentClient = nullptr;
     d->setPortStatus(s);
     return s;
@@ -713,7 +711,7 @@ StatusCode ModbusClientPort::process()
                 return r;
             }
             d->state = STATE_OPENED;
-            signalOpened(d->getName());
+            signalOpened(this->objectName());
             fRepeatAgain = true;
             break;
         case STATE_WAIT_FOR_CLOSE:
@@ -771,7 +769,14 @@ StatusCode ModbusClientPort::process()
             if (StatusIsBad(r))
                 signalError(d->getName(), r, d->port->lastErrorText());
             else
+            {
+                if (!d->port->isOpen())
+                {
+                    d->state = STATE_CLOSED;
+                    return Status_Uncertain;
+                }
                 signalRx(d->getName(), d->port->readBufferData(), d->port->readBufferSize());
+            }
             d->state = STATE_BEGIN_WRITE;
             return r;
         default:

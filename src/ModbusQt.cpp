@@ -117,6 +117,40 @@ ProtocolType toProtocolType(const QVariant &v, bool *ok)
     return enumValue<ProtocolType>(v, ok);
 }
 
+int8_t toDataBits(const QString &s, bool *ok)
+{
+    bool okInner;
+    int8_t r = static_cast<int8_t>(s.toInt(&okInner));
+    if (!okInner)
+    {
+        okInner = true;
+        if      (s == QStringLiteral("Data8"))
+            r = 8;
+        else if (s == QStringLiteral("Data7"))
+            r = 7;
+        else if (s == QStringLiteral("Data6"))
+            r = 6;
+        else if (s == QStringLiteral("Data5"))
+            r = 5;
+        else
+            okInner = false;
+    }
+    if (ok)
+        *ok = okInner;
+    return r;
+}
+
+int8_t toDataBits(const QVariant &v, bool *ok)
+{
+    bool okInner;
+    int8_t r = static_cast<int8_t>(v.toInt(&okInner));
+    if (!okInner)
+        r = toDataBits(v.toString(), &okInner);
+    if (ok)
+        *ok = okInner;
+    return r;
+}
+
 Parity toParity(const QString &v, bool *ok)
 {
     return enumValue<Parity>(v, ok);

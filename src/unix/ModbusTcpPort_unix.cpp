@@ -178,7 +178,8 @@ StatusCode ModbusTcpPort::read()
         else if (c == 0)
         {
             close();
-            return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading - remote connection closed"));
+            return Status_Uncertain;
+            //return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading - remote connection closed"));
         }
         else if (isNonBlocking() && (timer() - d->timestamp >= d->settings.timeout)) // waiting timeout read first byte elapsed
         {

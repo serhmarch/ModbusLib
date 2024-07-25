@@ -1,0 +1,61 @@
+# Exclude all files in the bin directory and its subdirectories
+#bin/*
+
+# Include .dll and .exe files in bin and its subdirectories
+#!bin/**/*.dll
+#!bin/**/*.exe
+
+# Exclude other files in bin subdirectories (overrides previous includes)
+#bin/**/*.*
+bin/**/CMakeFiles/
+bin/**/CMakeScripts
+bin/**/cmake-build-debug
+bin/**/*.txt
+bin/**/*.cmake
+bin/**/Makefile
+bin/**/*.make
+bin/**/*.ts
+bin/**/*.marks
+bin/**/*.log
+bin/**/*.check_cache
+bin/**/*.cbp
+bin/**/vc*.pdb
+bin/**/*.cbp
+bin/**/*.ilk
+bin/**/*.filters
+bin/**/*.sln
+bin/**/*.vcxproj
+bin/**/*.stamp
+bin/**/*.depend
+bin/**/*.recipe
+bin/**/*.tlog
+bin/**/*.lastbuildstate
+bin/**/*.h
+bin/**/*.c
+bin/**/*.cpp
+bin/**/*.d
+# Compiled Object files
+bin/**/.DS_Store
+bin/**/*.slo
+bin/**/*.lo
+bin/**/*.o
+bin/**/*.obj
+bin/**/*.out
+bin/**/*.bin
+# Precompiled Headers
+bin/**/*.gch
+bin/**/*.pch
+# Fortran module files
+bin/**/*.mod
+bin/**/*.smod
+
+#ignore external
+external/
+
+#ignore vscode
+.vscode/
+
+# Ignore Qt-Project user files
+*.user
+
+TODO

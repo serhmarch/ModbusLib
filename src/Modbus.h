@@ -136,6 +136,21 @@ MODBUS_EXPORT String asciiToString(const uint8_t* buff, uint32_t count);
 /// \details Return list of names of available serial ports
 MODBUS_EXPORT List<String> availableSerialPorts();
 
+/// \details Return list of baud rates
+MODBUS_EXPORT List<int32_t> availableBaudRate();
+
+/// \details Return list of data bits
+MODBUS_EXPORT List<int8_t> availableDataBits();
+
+/// \details Return list of `Parity` values
+MODBUS_EXPORT List<Parity> availableParity();
+
+/// \details Return list of `StopBits` values
+MODBUS_EXPORT List<StopBits> availableStopBits();
+
+/// \details Return list of `FlowControl` values
+MODBUS_EXPORT List<FlowControl> availableFlowControl();
+
 /// \details Function for creation `ModbusPort` with defined parameters:
 /// \param[in]  type        Protocol type: TCP, RTU, ASC.
 /// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.

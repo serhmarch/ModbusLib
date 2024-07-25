@@ -14,6 +14,24 @@ void msleep(uint32_t msec)
     timeBeginPeriod(1);
     Sleep(msec);
     timeEndPeriod(1);
+    /*
+    // Create a waitable timer
+    HANDLE timer = CreateWaitableTimer(NULL, TRUE, NULL);
+    if (timer == NULL)
+        return; // Handle error if needed
+    // Set the timer to the specified interval
+    LARGE_INTEGER li;
+    li.QuadPart = -(static_cast<LONGLONG>(msec) * 10000); // Convert milliseconds to 100-nanosecond intervals
+    if (!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE))
+    {
+        CloseHandle(timer);
+        return; // Handle error if needed
+    }
+    // Wait for the timer
+    WaitForSingleObject(timer, INFINITE);
+    // Clean up
+    CloseHandle(timer);
+    */
 }
 
 List<String> availableSerialPorts()

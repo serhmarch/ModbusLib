@@ -354,49 +354,102 @@ ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, c
     return serv;
 }
 
+List<int32_t> availableBaudRate()
+{
+    List<int32_t> ls;
+    ls.push_back(1200);
+    ls.push_back(2400);
+    ls.push_back(4800);
+    ls.push_back(9600);
+    ls.push_back(19200);
+    ls.push_back(38400);
+    ls.push_back(57600);
+    ls.push_back(115200);
+    return ls;
+}
+
+List<int8_t> availableDataBits()
+{
+    List<int8_t> ls;
+    ls.push_back(5);
+    ls.push_back(6);
+    ls.push_back(7);
+    ls.push_back(8);
+    return ls;
+}
+
+List<Parity> availableParity()
+{
+    List<Parity> ls;
+    ls.push_back(NoParity   );
+    ls.push_back(EvenParity );
+    ls.push_back(OddParity  );
+    ls.push_back(SpaceParity);
+    ls.push_back(MarkParity );
+    return ls;
+}
+
+List<StopBits> availableStopBits()
+{
+    List<StopBits> ls;
+    ls.push_back(OneStop       );
+    ls.push_back(OneAndHalfStop);
+    ls.push_back(TwoStop       );
+    return ls;
+}
+
+List<FlowControl> availableFlowControl()
+{
+    List<FlowControl> ls;
+    ls.push_back(NoFlowControl  );
+    ls.push_back(HardwareControl);
+    ls.push_back(SoftwareControl);
+    return ls;
+}
+
 } //namespace Modbus
 
-Modbus::StatusCode ModbusInterface::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+Modbus::StatusCode ModbusInterface::readCoils(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, void */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+Modbus::StatusCode ModbusInterface::readDiscreteInputs(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, void */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+Modbus::StatusCode ModbusInterface::readHoldingRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+Modbus::StatusCode ModbusInterface::readInputRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)
+Modbus::StatusCode ModbusInterface::writeSingleCoil(uint8_t /*unit*/, uint16_t /*offset*/, bool /*value*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)
+Modbus::StatusCode ModbusInterface::writeSingleRegister(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*value*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t unit, uint8_t *status)
+Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t /*unit*/, uint8_t */*status*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)
+Modbus::StatusCode ModbusInterface::writeMultipleCoils(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const void */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
+Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }

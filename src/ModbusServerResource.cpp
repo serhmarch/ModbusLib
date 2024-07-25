@@ -126,6 +126,11 @@ StatusCode ModbusServerResource::process()
                 return r;
             }
             signalRx(d->getName(), d->port->readBufferData(), d->port->readBufferSize());
+            if (!d->port->isOpen())
+            {
+                d->state = STATE_CLOSED;
+                return Status_Uncertain;
+            }
             d->state = STATE_READ;
             // no need break
         case STATE_READ:

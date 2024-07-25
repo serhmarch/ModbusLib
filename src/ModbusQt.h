@@ -193,15 +193,23 @@ inline EnumType enumValue(const QVariant& value)
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT ProtocolType toProtocolType(const QString &s, bool *ok = nullptr);
 
-/// \details Converts string representation to `ProtocolType` enum value.
+/// \details Converts QVariant value to `ProtocolType` enum value.
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT ProtocolType toProtocolType(const QVariant &v, bool *ok = nullptr);
+
+/// \details Converts string representation to `DataBits` value.
+/// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
+MODBUS_EXPORT int8_t toDataBits(const QString &s, bool *ok = nullptr);
+
+/// \details Converts QVariant value to `DataBits` value.
+/// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
+MODBUS_EXPORT int8_t toDataBits(const QVariant &v, bool *ok = nullptr);
 
 /// \details Converts string representation to `Parity` enum value.
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT Parity toParity(const QString &s, bool *ok = nullptr);
 
-/// \details Converts string representation to `Parity` enum value.
+/// \details Converts QVariant value to `Parity` enum value.
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT Parity toParity(const QVariant &v, bool *ok = nullptr);
 
@@ -209,7 +217,7 @@ MODBUS_EXPORT Parity toParity(const QVariant &v, bool *ok = nullptr);
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT StopBits toStopBits(const QString &s, bool *ok = nullptr);
 
-/// \details Converts string representation to `StopBits` enum value.
+/// \details Converts QVariant value to `StopBits` enum value.
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT StopBits toStopBits(const QVariant &v, bool *ok = nullptr);
 
@@ -217,7 +225,7 @@ MODBUS_EXPORT StopBits toStopBits(const QVariant &v, bool *ok = nullptr);
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT FlowControl toFlowControl(const QString &s, bool *ok = nullptr);
 
-/// \details Converts string representation to `FlowControl` enum value.
+/// \details Converts QVariant value to `FlowControl` enum value.
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT FlowControl toFlowControl(const QVariant &v, bool *ok = nullptr);
 
@@ -235,6 +243,12 @@ MODBUS_EXPORT QString toString(StopBits v);
 
 /// \details Returns string representation of `FlowControl` enum value
 MODBUS_EXPORT QString toString(FlowControl v);
+
+/// \details Make string representation of bytes array and separate bytes by space
+inline QString bytesToString(const QByteArray &v) { return bytesToString(reinterpret_cast<const uint8_t*>(v.constData()), v.size()).data(); }
+
+/// \details Make string representation of ASCII array and separate bytes by space
+inline QString asciiToString(const QByteArray &v) { return bytesToString(reinterpret_cast<const uint8_t*>(v.constData()), v.size()).data(); }
 
 /// \details Returns list of string that represent names of serial ports
 MODBUS_EXPORT QStringList availableSerialPortList();
