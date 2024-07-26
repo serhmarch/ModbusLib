@@ -200,17 +200,12 @@ StatusCode ModbusServerResource::process()
             return r;
         default:
             if (d->cmdClose && isOpen())
-            {
                 d->state = STATE_WAIT_FOR_CLOSE;
-                fRepeatAgain = true;
-            }
             else if (isOpen())
-            {
                 d->state = STATE_OPENED;
-                fRepeatAgain = true;
-            }
             else
                 d->state = STATE_CLOSED;
+            fRepeatAgain = true;
             break;
         }
     }

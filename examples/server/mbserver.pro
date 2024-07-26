@@ -12,8 +12,7 @@ INCLUDEPATH += . ..   \
     $$PWD/../../src
     
 SOURCES += \
-    $$PWD/mbserver
-    .c
+    $$PWD/mbserver.c
 
 LIBS += -L../../bin -lmodbus
 

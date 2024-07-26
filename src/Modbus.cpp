@@ -11,6 +11,16 @@ namespace Modbus {
 
 static inline Char hexDigit(uint8_t value) { return value < 10 ? '0' + value : 'A' + (value - 10); }
 
+uint32_t modbusLibVersion()
+{
+    return MODBUSLIB_VERSION;
+}
+
+const Char* modbusLibVersionStr()
+{
+    return MODBUSLIB_VERSION_STR;
+}
+
 uint16_t crc16(const uint8_t *bytes, uint32_t count)
 {
     uint16_t crc = 0xFFFF;

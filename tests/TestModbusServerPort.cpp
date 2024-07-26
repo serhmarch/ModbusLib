@@ -22,8 +22,7 @@ TEST(ModbusServerPort, testAlgorithm)
     const uint16_t count  = 16;
 
     EXPECT_CALL(*port, isOpen())
-        .Times(1)
-        .WillOnce(Return(true));
+        .WillRepeatedly(Return(true));
 
     EXPECT_CALL(*port, read())
         .Times(1)

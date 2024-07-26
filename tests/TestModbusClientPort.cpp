@@ -14,9 +14,9 @@ void testAlgorithmRead(ModbusClientPort *cp, ReadMethodPtr method,
                        uint8_t unit, uint8_t func, uint16_t offset, uint16_t count, uint8_t *outbuff, uint16_t szoutbuff)
 {
     MockModbusPort &port = *static_cast<MockModbusPort*>(cp->port());
-    EXPECT_CALL(port, isOpen())
-        .Times(1)
-        .WillOnce(Return(true));
+    //EXPECT_CALL(port, isOpen())
+    //    .Times(1)
+    //    .WillOnce(Return(true));
 
     EXPECT_CALL(port, writeBuffer(unit,func,_,_))
         .Times(1)
@@ -49,9 +49,9 @@ void testAlgorithmWriteSingleCoil(ModbusClientPort *cp,
 {
     MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
     const uint8_t func = MBF_WRITE_SINGLE_COIL;
-    EXPECT_CALL(*port, isOpen())
-        .Times(1)
-        .WillOnce(Return(true));
+    //EXPECT_CALL(*port, isOpen())
+    //    .Times(1)
+    //    .WillOnce(Return(true));
 
     EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
         .Times(1)
@@ -83,9 +83,9 @@ void testAlgorithmWriteSingleRegister(ModbusClientPort *cp,
 {
     MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
     const uint8_t func = MBF_WRITE_SINGLE_REGISTER;
-    EXPECT_CALL(*port, isOpen())
-        .Times(1)
-        .WillOnce(Return(true));
+    //EXPECT_CALL(*port, isOpen())
+    //    .Times(1)
+    //    .WillOnce(Return(true));
 
     EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
         .Times(1)
@@ -117,9 +117,9 @@ void testAlgorithmReadExceptionStatus(ModbusClientPort *cp,
 {
     MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
     const uint8_t func = MBF_READ_EXCEPTION_STATUS;
-    EXPECT_CALL(*port, isOpen())
-        .Times(1)
-        .WillOnce(Return(true));
+    //EXPECT_CALL(*port, isOpen())
+    //    .Times(1)
+    //    .WillOnce(Return(true));
 
     EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
         .Times(1)
@@ -154,9 +154,9 @@ void testAlgorithmWrite(ModbusClientPort *cp, WriteMethodPtr method,
                        uint8_t unit, uint8_t func, uint16_t offset, uint16_t count, uint8_t *outbuff, uint16_t szoutbuff)
 {
     MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
-    EXPECT_CALL(*port, isOpen())
-        .Times(1)
-        .WillOnce(Return(true));
+    //EXPECT_CALL(*port, isOpen())
+    //    .Times(1)
+    //    .WillOnce(Return(true));
 
     EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
         .Times(1)

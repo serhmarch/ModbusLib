@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.5) # 2.2 - case insensitive syntax
 
-project(ModbusLib VERSION 0.1.0 LANGUAGES C CXX)
+project(ModbusLib VERSION 0.1.1 LANGUAGES C CXX)
 
-configure_file(Modbus_config.h.in Modbus_config.h)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h)
 
 set(MB_LIBRARY_NAME modbus)
 

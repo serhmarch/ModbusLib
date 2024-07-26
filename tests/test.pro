@@ -18,4 +18,5 @@ LIBS += -L../bin -lmodbus
 SOURCES += \
         TestModbus.cpp \
         TestModbusClientPort.cpp \
+        TestModbusServerPort.cpp \
         main.cpp

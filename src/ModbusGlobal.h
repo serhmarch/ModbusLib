@@ -403,6 +403,12 @@ inline void *setBits(void *bitBuff, uint16_t bitNum, uint16_t bitCount, const bo
 /// \return A pointer to the `bitBuff` array.
 inline void *setBitsS(void *bitBuff, uint16_t bitNum, uint16_t bitCount, const bool *boolBuff, uint16_t maxBitCount) { if ((bitNum + bitCount) <= maxBitCount) setBits(bitBuff, bitNum, bitCount, boolBuff); return bitBuff; }
 
+/// \details Returns version of current lib like (major << 16) + (minor << 8) + patch.
+MODBUS_EXPORT uint32_t modbusLibVersion();
+
+/// \details Returns version of current lib as string constant pointer like "major.minor.patch".
+MODBUS_EXPORT const Char* modbusLibVersionStr();
+
 /// \details CRC16 checksum hash function (for Modbus RTU).
 /// \returns Returns a 16-bit unsigned integer value of the checksum
 MODBUS_EXPORT uint16_t crc16(const uint8_t *byteArr, uint32_t count);
