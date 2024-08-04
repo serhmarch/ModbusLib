@@ -7,10 +7,10 @@
 
 #include "ModbusTCP_unix.h"
 
-class ModbusTcpPortPrivateWin : public ModbusTcpPortPrivate
+class ModbusTcpPortPrivateUnix : public ModbusTcpPortPrivate
 {
 public:
-    ModbusTcpPortPrivateWin(ModbusTcpSocket *socket, bool blocking) :
+    ModbusTcpPortPrivateUnix(ModbusTcpSocket *socket, bool blocking) :
         ModbusTcpPortPrivate(blocking)
     {
         this->timestamp = 0;
@@ -27,7 +27,7 @@ public:
         }
     }
 
-    ~ModbusTcpPortPrivateWin()
+    ~ModbusTcpPortPrivateUnix()
     {
         this->freeAddr();
     }
@@ -48,6 +48,6 @@ public:
     struct addrinfo *addr;
 };
 
-inline ModbusTcpPortPrivateWin *d_unix(ModbusPortPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivateWin*>(d_ptr); }
+inline ModbusTcpPortPrivateUnix *d_unix(ModbusPortPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivateUnix*>(d_ptr); }
 
 #endif // MODBUSTCPPORT_P_UNIX_H

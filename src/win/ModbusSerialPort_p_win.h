@@ -19,7 +19,7 @@ public:
     inline bool serialPortIsInvalid() const { return serialPort == INVALID_HANDLE_VALUE; }
     inline bool serialPortIsValid() const { return serialPort != INVALID_HANDLE_VALUE; }
     inline bool serialPortIsOpen() const { return serialPortIsValid(); }
-    inline void serialPortClose() { CloseHandle(serialPort); }
+    inline void serialPortClose() { CloseHandle(serialPort); serialPort = INVALID_HANDLE_VALUE; }
     inline void timestampRefresh() { timestamp = GetTickCount(); }
 
 public:

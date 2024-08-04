@@ -55,6 +55,153 @@ const Defaults &Defaults::instance()
     return s;
 }
 
+#define MB_GET_SETTING_MACRO(type, name, assign)                                    \
+    type v;                                                                         \
+    bool okInner = false;                                                           \
+    Modbus::Settings::const_iterator it = s.find(Modbus::Strings::instance().name); \
+    if (it != s.end())                                                              \
+    {                                                                               \
+        QVariant var = it.value();                                                  \
+        assign;                                                                     \
+    }                                                                               \
+    if (ok)                                                                         \
+        *ok = okInner;                                                              \
+    if (okInner)                                                                    \
+        return v;                                                                   \
+    return Modbus::Defaults::instance().name;
+
+
+uint8_t getSettingUnit(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(uint8_t, unit, v = static_cast<uint8_t>(var.toUInt(&okInner)))
+}
+
+ProtocolType getSettingType(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(Modbus::ProtocolType, type, v = Modbus::toProtocolType(var, &okInner))
+}
+
+QString getSettingHost(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(QString, host, v = var.toString(); okInner = true)
+}
+
+uint16_t getSettingPort(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(uint16_t, port, v = static_cast<uint16_t>(var.toUInt(&okInner)))
+}
+
+uint32_t getSettingTimeout(const Settings &s, bool *ok)
+{
+   MB_GET_SETTING_MACRO(uint32_t, timeout, v = static_cast<uint32_t>(var.toUInt(&okInner)))
+}
+
+QString getSettingSerialPortName(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(QString, serialPortName, v = var.toString(); okInner = true)
+}
+
+int32_t getSettingBaudRate(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(int32_t, baudRate, v = static_cast<int32_t>(var.toInt(&okInner)))
+}
+
+int8_t getSettingDataBits(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(int8_t, dataBits, v = static_cast<int8_t>(var.toInt(&okInner)))
+}
+
+Parity getSettingParity(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(Modbus::Parity, parity, v = Modbus::toParity(var, &okInner))
+}
+
+StopBits getSettingStopBits(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(Modbus::StopBits, stopBits, v = Modbus::toStopBits(var, &okInner))
+}
+
+FlowControl getSettingFlowControl(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(Modbus::FlowControl, flowControl, v = Modbus::toFlowControl(var, &okInner))
+}
+
+uint32_t getSettingTimeoutFirstByte(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(uint32_t, timeoutFirstByte, v = static_cast<uint32_t>(var.toUInt(&okInner)))
+}
+
+uint32_t getSettingTimeoutInterByte(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(uint32_t, timeoutInterByte, v = static_cast<uint32_t>(var.toUInt(&okInner)))
+}
+
+void setSettingUnit(Settings &s, uint8_t v)
+{
+    s[Modbus::Strings::instance().unit] = v;
+}
+
+void setSettingType(Settings &s, ProtocolType v)
+{
+    s[Modbus::Strings::instance().type] = Modbus::toString(v);
+}
+
+void setSettingHost(Settings &s, const QString &v)
+{
+    s[Modbus::Strings::instance().host] = v;
+}
+
+void setSettingPort(Settings &s, uint16_t v)
+{
+    s[Modbus::Strings::instance().port] = v;
+}
+
+void setSettingTimeout(Settings &s, uint32_t v)
+{
+    s[Modbus::Strings::instance().timeout] = v;
+}
+
+void setSettingSerialPortName(Settings &s, const QString& v)
+{
+    s[Modbus::Strings::instance().serialPortName] = v;
+}
+
+void setSettingBaudRate(Settings &s, int32_t v)
+{
+    s[Modbus::Strings::instance().baudRate] = v;
+}
+
+void setSettingDataBits(Settings &s, int8_t v)
+{
+    s[Modbus::Strings::instance().dataBits] = v;
+}
+
+void setSettingParity(Settings &s, Parity v)
+{
+    s[Modbus::Strings::instance().parity] = Modbus::toString(v);
+}
+
+void setSettingStopBits(Settings &s, StopBits v)
+{
+    s[Modbus::Strings::instance().stopBits] = Modbus::toString(v);
+}
+
+void setSettingFlowControl(Settings &s, FlowControl v)
+{
+    s[Modbus::Strings::instance().flowControl] = Modbus::toString(v);
+}
+
+void setSettingTimeoutFirstByte(Settings &s, uint32_t v)
+{
+    s[Modbus::Strings::instance().timeoutFirstByte] = v;
+}
+
+void setSettingTimeoutInterByte(Settings &s, uint32_t v)
+{
+    s[Modbus::Strings::instance().timeoutInterByte] = v;
+}
+
+
 Address::Address()
 {
     m_type = Memory_Unknown;

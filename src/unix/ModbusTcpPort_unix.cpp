@@ -5,13 +5,23 @@
 #include <string.h>
 
 ModbusTcpPort::ModbusTcpPort(ModbusTcpSocket *socket, bool blocking) :
-    ModbusPort(new ModbusTcpPortPrivateWin(socket, blocking))
+    ModbusPort(new ModbusTcpPortPrivateUnix(socket, blocking))
 {
 }
 
 ModbusTcpPort::ModbusTcpPort(bool blocking) :
     ModbusTcpPort(nullptr, blocking)
 {
+}
+
+ModbusTcpPort::~ModbusTcpPort()
+{
+    ModbusTcpPortPrivateUnix *d = d_unix(d_ptr);
+    if (!d->socket->isInvalid())
+    {
+        d->socket->shutdown();
+        d->socket->close();
+    }
 }
 
 Handle ModbusTcpPort::handle() const
@@ -21,7 +31,7 @@ Handle ModbusTcpPort::handle() const
 
 Modbus::StatusCode ModbusTcpPort::open()
 {
-    ModbusTcpPortPrivateWin *d = d_unix(d_ptr);
+    ModbusTcpPortPrivateUnix *d = d_unix(d_ptr);
     bool fRepeatAgain;
     do
     {
@@ -58,7 +68,7 @@ Modbus::StatusCode ModbusTcpPort::open()
             }
             d->socket->setBlocking(isBlocking());
             if (isBlocking())
-                d->socket->setTimeout(d->settings.timeout);
+                d->socket->setTimeout(d->settingsBase.timeout);
             reinterpret_cast<sockaddr_in*>(d->addr->ai_addr)->sin_port = htons(d->settings.port);
             d->timestamp = timer();
             d->state = STATE_WAIT_FOR_OPEN;
@@ -72,7 +82,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                 d->state = STATE_BEGIN;
                 return Status_Good;
             }
-            else if (isNonBlocking() && (timer() - d->timestamp >= d->settings.timeout))
+            else if (isNonBlocking() && (timer() - d->timestamp >= d->settingsBase.timeout))
             {
                 d->socket->close();
                 d->state = STATE_CLOSED;
@@ -102,7 +112,7 @@ Modbus::StatusCode ModbusTcpPort::open()
 
 StatusCode ModbusTcpPort::close()
 {
-    ModbusTcpPortPrivateWin *d = d_unix(d_ptr);
+    ModbusTcpPortPrivateUnix *d = d_unix(d_ptr);
     if (!d->socket->isInvalid())
     {
         d->socket->shutdown();
@@ -114,7 +124,7 @@ StatusCode ModbusTcpPort::close()
 
 bool ModbusTcpPort::isOpen() const
 {
-    ModbusTcpPortPrivateWin *d = d_unix(d_ptr);
+    ModbusTcpPortPrivateUnix *d = d_unix(d_ptr);
     if (d->socket->isInvalid())
         return false;
     int error = 0;
@@ -127,7 +137,7 @@ bool ModbusTcpPort::isOpen() const
 
 StatusCode ModbusTcpPort::write()
 {
-    ModbusTcpPortPrivateWin *d = d_unix(d_ptr);
+    ModbusTcpPortPrivateUnix *d = d_unix(d_ptr);
     switch (d->state)
     {
     case STATE_BEGIN:
@@ -156,7 +166,7 @@ StatusCode ModbusTcpPort::write()
 
 StatusCode ModbusTcpPort::read()
 {
-    ModbusTcpPortPrivateWin *d = d_unix(d_ptr);
+    ModbusTcpPortPrivateUnix *d = d_unix(d_ptr);
     const uint16_t size = MBCLIENTTCP_BUFF_SZ;
     switch (d->state)
     {
@@ -181,7 +191,7 @@ StatusCode ModbusTcpPort::read()
             return Status_Uncertain;
             //return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading - remote connection closed"));
         }
-        else if (isNonBlocking() && (timer() - d->timestamp >= d->settings.timeout)) // waiting timeout read first byte elapsed
+        else if (isNonBlocking() && (timer() - d->timestamp >= d->settingsBase.timeout)) // waiting timeout read first byte elapsed
         {
             close();
             return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading - timeout"));

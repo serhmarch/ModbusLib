@@ -23,7 +23,7 @@ public:
     inline bool serialPortIsInvalid() const { return serialPort == -1; }
     inline bool serialPortIsValid() const { return serialPort != -1; }
     inline bool serialPortIsOpen() const { return serialPortIsValid(); }
-    inline void serialPortClose() { close(serialPort); }
+    inline void serialPortClose() { close(serialPort); serialPort = -1; }
     inline void timestampRefresh() { timestamp = timer(); }
 
 public:

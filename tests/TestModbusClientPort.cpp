@@ -18,6 +18,9 @@ void testAlgorithmRead(ModbusClientPort *cp, ReadMethodPtr method,
     //    .Times(1)
     //    .WillOnce(Return(true));
 
+    EXPECT_CALL(port, isOpen())
+        .WillRepeatedly(Return(true));
+
     EXPECT_CALL(port, writeBuffer(unit,func,_,_))
         .Times(1)
         .WillOnce(Return(Status_Good));
@@ -192,6 +195,9 @@ TEST(ModbusClientPort, testAlgorithmBlocking)
     const uint8_t  unit   = 1;
     const uint16_t offset = 0;
     const uint16_t count  = 16;
+
+    EXPECT_CALL(*port, isOpen())
+        .WillRepeatedly(Return(true));
 
     //EXPECT_CALL(*port, open())
     //    .Times(1)

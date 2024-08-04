@@ -44,21 +44,6 @@ void ModbusTcpPort::setPort(uint16_t port)
     }
 }
 
-uint32_t ModbusTcpPort::timeout() const
-{
-    return d_ModbusTcpPort(d_ptr)->settings.timeout;
-}
-
-void ModbusTcpPort::setTimeout(uint32_t timeout)
-{
-    ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
-    if (d->settings.timeout != timeout)
-    {
-        d->settings.timeout = timeout;
-        d->setChanged(true);
-    }
-}
-
 void ModbusTcpPort::setNextRequestRepeated(bool v)
 {
     d_ModbusTcpPort(d_ptr)->autoIncrement = !v;

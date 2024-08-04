@@ -16,7 +16,7 @@ public:
 
         settings.host    = d.host   ;
         settings.port    = d.port   ;
-        settings.timeout = d.timeout;
+        settingsBase.timeout = d.timeout;
 
         autoIncrement = true;
         transaction = 0;
@@ -28,7 +28,6 @@ public:
     {
         String   host   ;
         uint16_t port   ;
-        uint32_t timeout;
     } settings;
 
     bool autoIncrement;

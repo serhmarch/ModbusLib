@@ -26,6 +26,8 @@
 #include "ModbusTcpPort.h"
 #include "ModbusServerResource.h"
 
+#define MODBUS_TCPSERVER_OPEN_TIMOUT_ms 1000
+
 ModbusTcpServer::Defaults::Defaults() :
     port   (STANDARD_TCP_PORT),
     timeout(3000)
@@ -48,12 +50,12 @@ void ModbusTcpServer::setPort(uint16_t port)
     d_ModbusTcpServer(d_ptr)->tcpPort = port;
 }
 
-int ModbusTcpServer::timeout() const
+uint32_t ModbusTcpServer::timeout() const
 {
     return d_ModbusTcpServer(d_ptr)->timeout;
 }
 
-void ModbusTcpServer::setTimeout(int timeout)
+void ModbusTcpServer::setTimeout(uint32_t timeout)
 {
     d_ModbusTcpServer(d_ptr)->timeout = timeout;
 }
@@ -78,8 +80,12 @@ StatusCode ModbusTcpServer::process()
         switch (d->state)
         {
         case STATE_CLOSED:
-            //if (d->cmdClose)
-            //    break;
+            if (d->cmdClose)
+                break;
+            d->state = STATE_BEGIN_OPEN;
+            // no need break
+        case STATE_BEGIN_OPEN:
+            d->timestampRefresh();
             d->state = STATE_WAIT_FOR_OPEN;
             // no need break
         case STATE_WAIT_FOR_OPEN:
@@ -95,7 +101,7 @@ StatusCode ModbusTcpServer::process()
             if (StatusIsBad(r))  // an error occured
             {
                 signalError(d->getName(), r, d->lastErrorText());
-                d->state = STATE_CLOSED;
+                d->state = STATE_TIMEOUT;
                 return r;
             }
             d->state = STATE_OPENED;
@@ -152,6 +158,12 @@ StatusCode ModbusTcpServer::process()
                 it++;
             }
         }
+            break;
+        case STATE_TIMEOUT:
+            if (timer() - d->timestamp < timeout())
+                return Status_Processing;
+            d->state = STATE_CLOSED;
+            fRepeatAgain = true;
             break;
         default:
             if (d->cmdClose && isOpen())

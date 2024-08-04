@@ -21,7 +21,7 @@ public:
         settings.stopBits         = d.stopBits;
         settings.parity           = d.parity  ;
         settings.flowControl      = d.flowControl;
-        settings.timeoutFirstByte = d.timeoutFirstByte;
+        settingsBase.timeout      = d.timeoutFirstByte;
         settings.timeoutInterByte = d.timeoutInterByte;
     }
 
@@ -34,7 +34,6 @@ public:
         Parity parity;
         StopBits stopBits;
         FlowControl flowControl;
-        uint32_t timeoutFirstByte;
         uint32_t timeoutInterByte;
     } settings;
 

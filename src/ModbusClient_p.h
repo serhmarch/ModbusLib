@@ -18,6 +18,7 @@ public:
     Modbus::StatusCode lastStatus;
     Modbus::StatusCode lastErrorStatus;
     Modbus::String lastErrorText;
+    Timer timestamp;
 };
 
 inline ModbusClientPrivate *d_ModbusClient(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusClientPrivate*>(d_ptr); }

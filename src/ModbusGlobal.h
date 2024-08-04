@@ -223,7 +223,8 @@ typedef enum _StatusCode
     Status_BadSerialOpen            = Status_Bad | 0x201, ///< Error. Serial port cannot be opened
     Status_BadSerialWrite           ,                     ///< Error. Cannot send a parcel to the serial port
     Status_BadSerialRead            ,                     ///< Error. Reading the serial port (timeout)
-    //---_ Modbus serial specified errors end ---         
+    Status_BadSerialReadTimeout     ,                     ///< Error. Reading the serial port (timeout)
+    //---_ Modbus serial specified errors end ---
                                                           
     //---- Modbus ASC specified errors begin ----         
     Status_BadAscMissColon          = Status_Bad | 0x301, ///< Error (ASC). Missing packet start character ':'

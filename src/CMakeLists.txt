@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5) # 2.2 - case insensitive syntax
 
-project(ModbusLib VERSION 0.1.1 LANGUAGES C CXX)
+project(ModbusLib VERSION 0.2.0 LANGUAGES C CXX)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h)
 
@@ -112,7 +112,7 @@ set_target_properties(
     )
         
 if (WIN32)
-    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm)
+    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm setupapi)
 endif()
 
 if (MB_QT_ENABLED)

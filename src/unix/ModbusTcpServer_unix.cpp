@@ -25,13 +25,13 @@
 #include "ModbusTcpServer_p_unix.h"
 
 ModbusTcpServer::ModbusTcpServer(ModbusInterface *device) :
-    ModbusServerPort(new ModbusTcpServerPrivateWin(device))
+    ModbusServerPort(new ModbusTcpServerPrivateUnix(device))
 {
 }
 
 StatusCode ModbusTcpServer::open()
 {
-    ModbusTcpServerPrivateWin *d = d_unix(d_ptr);
+    ModbusTcpServerPrivateUnix *d = d_unix(d_ptr);
     bool fRepeatAgain;
     do
     {
@@ -93,7 +93,7 @@ StatusCode ModbusTcpServer::open()
 
 StatusCode ModbusTcpServer::close()
 {
-    ModbusTcpServerPrivateWin *d = d_unix(d_ptr);
+    ModbusTcpServerPrivateUnix *d = d_unix(d_ptr);
     if (isOpen())
         d->socket->close();
     d->cmdClose = true;
@@ -122,7 +122,7 @@ bool ModbusTcpServer::isOpen() const
 
 ModbusTcpSocket *ModbusTcpServer::nextPendingConnection()
 {
-    ModbusTcpServerPrivateWin *d = d_unix(d_ptr);
+    ModbusTcpServerPrivateUnix *d = d_unix(d_ptr);
     // Accept the incoming connection
     sockaddr_in clientAddr;
     socklen_t clientAddrSize = sizeof(clientAddr);

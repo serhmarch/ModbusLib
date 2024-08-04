@@ -32,7 +32,7 @@ public:
     const QString serialPortName  ; ///< Setting key for the serial port name
     const QString baudRate        ; ///< Setting key for the serial port's baud rate
     const QString dataBits        ; ///< Setting key for the serial port's data bits
-    const QString parity          ; ///< Setting key for the serial port's patiry
+    const QString parity          ; ///< Setting key for the serial port's parity
     const QString stopBits        ; ///< Setting key for the serial port's stop bits
     const QString flowControl     ; ///< Setting key for the serial port's flow control
     const QString timeoutFirstByte; ///< Setting key for the serial port's timeout waiting first byte of packet
@@ -58,7 +58,7 @@ public:
     const QString      serialPortName  ; ///< Default value for the serial port name
     const int32_t      baudRate        ; ///< Default value for the serial port's baud rate
     const int8_t       dataBits        ; ///< Default value for the serial port's data bits
-    const Parity       parity          ; ///< Default value for the serial port's patiry
+    const Parity       parity          ; ///< Default value for the serial port's parity
     const StopBits     stopBits        ; ///< Default value for the serial port's stop bits
     const FlowControl  flowControl     ; ///< Default value for the serial port's flow control
     const uint32_t     timeoutFirstByte; ///< Default value for the serial port's timeout waiting first byte of packet
@@ -70,6 +70,97 @@ public:
     /// \details Returns a reference to the global `Modbus::Defaults` object.
     static const Defaults &instance();
 };
+
+/// \details Get settings value for the unit number of remote device.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT uint8_t getSettingUnit(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the type of Modbus protocol.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT ProtocolType getSettingType(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the IP address or DNS name of the remote device.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT QString getSettingHost(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the TCP port of the remote device.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT uint16_t getSettingPort(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for connection timeout (milliseconds).
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT uint32_t getSettingTimeout(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the serial port name.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT QString getSettingSerialPortName(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the serial port's baud rate.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT int32_t getSettingBaudRate(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the serial port's data bits.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT int8_t getSettingDataBits(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the serial port's parity.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT Parity getSettingParity(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the serial port's stop bits.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT StopBits getSettingStopBits(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the serial port's flow control.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT FlowControl getSettingFlowControl(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the serial port's timeout waiting first byte of packet.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT uint32_t getSettingTimeoutFirstByte(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the serial port's timeout waiting next byte of packet.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT uint32_t getSettingTimeoutInterByte(const Settings &s, bool *ok = nullptr);
+
+/// \details Set settings value for the unit number of remote device.
+MODBUS_EXPORT void setSettingUnit(Settings &s, uint8_t v);
+
+/// \details Set settings value the type of Modbus protocol.
+MODBUS_EXPORT void setSettingType(Settings &s, ProtocolType v);
+
+/// \details Set settings value for the IP address or DNS name of the remote device.
+MODBUS_EXPORT void setSettingHost(Settings &s, const QString &v);
+
+/// \details Set settings value for the TCP port number of the remote device.
+MODBUS_EXPORT void setSettingPort(Settings &s, uint16_t v);
+
+/// \details Set settings value for connection timeout (milliseconds).
+MODBUS_EXPORT void setSettingTimeout(Settings &s, uint32_t v);
+
+/// \details Set settings value for the serial port name.
+MODBUS_EXPORT void setSettingSerialPortName(Settings &s, const QString&v);
+
+/// \details Set settings value for the serial port's baud rate.
+MODBUS_EXPORT void setSettingBaudRate(Settings &s, int32_t v);
+
+/// \details Set settings value for the serial port's data bits.
+MODBUS_EXPORT void setSettingDataBits(Settings &s, int8_t v);
+
+/// \details Set settings value for the serial port's parity.
+MODBUS_EXPORT void setSettingParity(Settings &s, Parity v);
+
+/// \details Set settings value for the serial port's stop bits.
+MODBUS_EXPORT void setSettingStopBits(Settings &s, StopBits v);
+
+/// \details Set settings value for the serial port's flow control.
+MODBUS_EXPORT void setSettingFlowControl(Settings &s, FlowControl v);
+
+/// \details Set settings value for the serial port's timeout waiting first byte of packet.
+MODBUS_EXPORT void setSettingTimeoutFirstByte(Settings &s, uint32_t v);
+
+/// \details Set settings value for the serial port's timeout waiting next byte of packet.
+MODBUS_EXPORT void setSettingTimeoutInterByte(Settings &s, uint32_t v);
 
 /*! \brief Class for convinient manipulation with Modbus Data Address.
 */

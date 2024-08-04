@@ -47,10 +47,10 @@ public:
     void setPort(uint16_t port);
 
     ///  \details Returns the setting for the read timeout of every single conncetion.
-    int timeout() const;
+    uint32_t timeout() const;
 
     ///  \details Sets the setting for the read timeout of every single conncetion.
-    void setTimeout(int timeout);
+    void setTimeout(uint32_t timeout);
 
 public:
     /// \details Returns the Modbus protocol type. In this case it is `Modbus::TCP`.

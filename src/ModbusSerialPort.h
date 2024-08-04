@@ -41,6 +41,10 @@ public:
     };
 
 public:
+    /// \details Virtual destructor. Closes serial port before destruction.
+    ~ModbusSerialPort();
+
+public:
     /// \details Returns native OS serial port handle, e.g. `HANDLE` value for Windows.
     Modbus::Handle handle() const override;
 
@@ -91,10 +95,10 @@ public: // settings
     void setFlowControl(Modbus::FlowControl flowControl);
 
     /// \details Returns current serial port timeout of waiting first byte of incomming packet (in milliseconds).
-    uint32_t timeoutFirstByte() const;
+    inline uint32_t timeoutFirstByte() const { return timeout(); }
 
     /// \details Set current serial port timeout of waiting first byte of incomming packet (in milliseconds).
-    void setTimeoutFirstByte(uint32_t timeout);
+    inline void setTimeoutFirstByte(uint32_t timeout) { setTimeout(timeout); }
 
     /// \details Returns current serial port timeout of waiting next byte (inter byte waiting tgimeout) of incomming packet (in milliseconds).
     uint32_t timeoutInterByte() const;

@@ -119,24 +119,8 @@ void ModbusSerialPort::setFlowControl(FlowControl flowControl)
     }
 }
 
-uint32_t ModbusSerialPort::timeoutFirstByte() const
-{
-    return d_ModbusSerialPort(d_ptr)->settings.timeoutFirstByte;
-}
-
-void ModbusSerialPort::setTimeoutFirstByte(uint32_t timeout)
-{
-    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
-    if (d->settings.timeoutFirstByte != timeout)
-    {
-        d->settings.timeoutFirstByte = timeout;
-        d->setChanged(true);
-    }
-}
-
 uint32_t ModbusSerialPort::timeoutInterByte() const
-{
-    return d_ModbusSerialPort(d_ptr)->settings.timeoutInterByte;
+{    return d_ModbusSerialPort(d_ptr)->settings.timeoutInterByte;
 }
 
 void ModbusSerialPort::setTimeoutInterByte(uint32_t timeout)

@@ -15,7 +15,8 @@ Timer timer()
     return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }
 
-void msleep(uint32_t msec) {
+void msleep(uint32_t msec)
+{
     struct timespec ts;
     ts.tv_sec = msec / 1000;
     ts.tv_nsec = (msec % 1000) * 1000000;

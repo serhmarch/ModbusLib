@@ -11,6 +11,7 @@ enum State
 {
     STATE_BEGIN                 = 0,
     STATE_UNKNOWN               = STATE_BEGIN,
+    STATE_BEGIN_OPEN            ,
     STATE_WAIT_FOR_OPEN         ,
     STATE_OPENED                ,
     STATE_BEGIN_READ            ,
@@ -19,6 +20,7 @@ enum State
     STATE_WRITE                 ,
     STATE_BEGIN_WRITE           ,
     STATE_WAIT_FOR_CLOSE        ,
+    STATE_TIMEOUT               ,
     STATE_CLOSED                ,
     STATE_END                   = STATE_CLOSED
 };
@@ -35,11 +37,13 @@ public:
         this->device = device;
         this->state = STATE_UNKNOWN;
         this->cmdClose = false;
+        this->timestamp = 0;
     }
 
 public: // state
-    inline bool isStateClosed() const { return state == STATE_CLOSED; }
-    const Char *getName() const { return objectName.data(); }
+    inline void timestampRefresh() { timestamp = timer(); }
+    inline bool isStateClosed() const { return state == STATE_CLOSED || state == STATE_TIMEOUT; }
+    inline const Char *getName() const { return objectName.data(); }
     inline StatusCode lastErrorStatus() const { return errorStatus; }
     inline const Char *lastErrorText() const { return errorText.data(); }
     inline StatusCode setErrorBase(StatusCode status, const Char *text)
@@ -56,6 +60,7 @@ public:
     bool cmdClose;
     StatusCode errorStatus;
     String errorText;
+    Timer timestamp;
 };
 
 inline ModbusServerPortPrivate *d_ModbusServerPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerPortPrivate*>(d_ptr); }

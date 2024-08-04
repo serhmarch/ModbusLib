@@ -700,6 +700,12 @@ StatusCode ModbusClientPort::process()
         {
         case STATE_BEGIN:
         case STATE_CLOSED:
+            d->state = STATE_BEGIN_OPEN;
+            // no need break
+        case STATE_BEGIN_OPEN:
+            d->timestampRefresh();
+            d->state = STATE_WAIT_FOR_OPEN;
+            // no need break
         case STATE_WAIT_FOR_OPEN:
             r = d->port->open();
             if (StatusIsProcessing(r))
@@ -708,6 +714,7 @@ StatusCode ModbusClientPort::process()
             if (StatusIsBad(r)) // an error occured
             {
                 signalError(d->getName(), r, d->port->lastErrorText());
+                d->state = STATE_TIMEOUT;
                 return r;
             }
             d->state = STATE_OPENED;
@@ -773,12 +780,27 @@ StatusCode ModbusClientPort::process()
                 if (!d->port->isOpen())
                 {
                     d->state = STATE_CLOSED;
+                    signalClosed(this->objectName());
                     return Status_Uncertain;
                 }
                 signalRx(d->getName(), d->port->readBufferData(), d->port->readBufferSize());
             }
             d->state = STATE_BEGIN_WRITE;
             return r;
+        case STATE_TIMEOUT:
+        {
+            uint32_t t = timer() - d->timestamp;
+            if (t < d->port->timeout())
+            {
+                if (d->port->isBlocking())
+                    msleep(d->port->timeout() - t);
+                else
+                    return Status_Processing;
+            }
+            d->state = STATE_CLOSED;
+            fRepeatAgain = true;
+        }
+            break;
         default:
             if (d->port->isOpen())
                 d->state = STATE_OPENED;

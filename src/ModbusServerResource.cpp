@@ -41,13 +41,15 @@ ProtocolType ModbusServerResource::type() const
 
 StatusCode ModbusServerResource::open()
 {
-    d_ModbusServerResource(d_ptr)->cmdClose = false;
+    ModbusServerResourcePrivate *d = d_ModbusServerResource(d_ptr);
+    d->cmdClose = false;
     return Status_Good;
 }
 
 StatusCode ModbusServerResource::close()
 {
-    d_ModbusServerResource(d_ptr)->cmdClose = true;
+    ModbusServerResourcePrivate *d = d_ModbusServerResource(d_ptr);
+    d->cmdClose = true;
     return Status_Good;
 }
 
@@ -73,6 +75,10 @@ StatusCode ModbusServerResource::process()
         case STATE_CLOSED:
             if (d->cmdClose)
                 break;
+            d->state = STATE_BEGIN_OPEN;
+            // no need break
+        case STATE_BEGIN_OPEN:
+            d->timestampRefresh();
             d->state = STATE_WAIT_FOR_OPEN;
             // no need break
         case STATE_WAIT_FOR_OPEN:
@@ -89,7 +95,7 @@ StatusCode ModbusServerResource::process()
             {
                 d->setPortError(r);
                 signalError(d->getName(), r, d->lastPortErrorText());
-                d->state = STATE_CLOSED;
+                d->state = STATE_TIMEOUT;
                 return r;
             }
             d->state = STATE_OPENED;
@@ -104,8 +110,9 @@ StatusCode ModbusServerResource::process()
                 d->setPortError(r);
                 signalError(d->getName(), r, d->lastPortErrorText());
             }
+            signalClosed(this->objectName());
             d->state = STATE_CLOSED;
-            break;
+            return r;
         case STATE_OPENED:
             d->state = STATE_BEGIN_READ;
             // no need break
@@ -129,6 +136,7 @@ StatusCode ModbusServerResource::process()
             if (!d->port->isOpen())
             {
                 d->state = STATE_CLOSED;
+                signalClosed(this->objectName());
                 return Status_Uncertain;
             }
             d->state = STATE_READ;
@@ -198,6 +206,12 @@ StatusCode ModbusServerResource::process()
                 signalTx(d->getName(), d->port->writeBufferData(), d->port->writeBufferSize());
             d->state = STATE_BEGIN_READ;
             return r;
+        case STATE_TIMEOUT:
+            if (timer() - d->timestamp < d->port->timeout())
+                return Status_Processing;
+            d->state = STATE_CLOSED;
+            fRepeatAgain = true;
+            break;
         default:
             if (d->cmdClose && isOpen())
                 d->state = STATE_WAIT_FOR_CLOSE;

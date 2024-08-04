@@ -12,6 +12,16 @@ ModbusTcpPort::ModbusTcpPort(bool blocking) :
 {
 }
 
+ModbusTcpPort::~ModbusTcpPort()
+{
+    ModbusTcpPortPrivateWin *d = d_win(d_ptr);
+    if (!d->socket->isInvalid())
+    {
+        d->socket->shutdown();
+        d->socket->close();
+    }
+}
+
 Handle ModbusTcpPort::handle() const
 {
     return reinterpret_cast<Handle>(d_win(d_ptr)->socket->socket());
@@ -56,7 +66,7 @@ Modbus::StatusCode ModbusTcpPort::open()
             }
             d->socket->setBlocking(isBlocking());
             if (isBlocking())
-                d->socket->setTimeout(d->settings.timeout);
+                d->socket->setTimeout(this->timeout());
             reinterpret_cast<sockaddr_in*>(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addr)->sin_port = htons(d->settings.port);
             d->timestamp = GetTickCount();
             d->state = STATE_WAIT_FOR_OPEN;
@@ -70,7 +80,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                 d->state = STATE_BEGIN;
                 return Status_Good;
             }
-            else if (isNonBlocking() && (GetTickCount() - d->timestamp >= d->settings.timeout))
+            else if (isNonBlocking() && (GetTickCount() - d->timestamp >= this->timeout()))
             {
                 d->socket->close();
                 d->state = STATE_CLOSED;
@@ -179,7 +189,7 @@ StatusCode ModbusTcpPort::read()
             return Status_Uncertain;
             //return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading - remote connection closed"));
         }
-        else if (isNonBlocking() && (GetTickCount() - d->timestamp >= d->settings.timeout)) // waiting timeout read first byte elapsed
+        else if (isNonBlocking() && (GetTickCount() - d->timestamp >= this->timeout())) // waiting timeout read first byte elapsed
         {
             close();
             return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading - timeout"));

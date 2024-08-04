@@ -42,6 +42,13 @@ ModbusSerialPortPrivate *ModbusSerialPortPrivate::create(bool blocking)
     return new ModbusSerialPortPrivateWin(blocking);
 }
 
+ModbusSerialPort::~ModbusSerialPort()
+{
+    ModbusSerialPortPrivateWin *d = d_win(d_ptr);
+    if (d->serialPortIsOpen())
+        d->serialPortClose();
+}
+
 Handle ModbusSerialPort::handle() const
 {
     return reinterpret_cast<Handle>(d_win(d_ptr)->serialPort);
@@ -68,7 +75,7 @@ StatusCode ModbusSerialPort::open()
             }
 
             d->serialPort = CreateFileA(
-                d->settings.portName.c_str(),  // Port name
+                d->settings.portName.c_str(), // Port name
                 GENERIC_READ | GENERIC_WRITE, // Read and write access
                 0,                            // No sharing
                 NULL,                         // No security attributes
@@ -107,7 +114,7 @@ StatusCode ModbusSerialPort::open()
             COMMTIMEOUTS timeouts = { 0 };
             if (isBlocking())
             {
-                timeouts.ReadTotalTimeoutConstant = static_cast<DWORD>(d->settings.timeoutFirstByte);  // Total timeout for first byte (in milliseconds)
+                timeouts.ReadTotalTimeoutConstant = static_cast<DWORD>(this->timeoutFirstByte());  // Total timeout for first byte (in milliseconds)
                 timeouts.ReadIntervalTimeout = static_cast<DWORD>(d->settings.timeoutInterByte);  // Timeout for inter-byte (in milliseconds)
             }
             else
@@ -244,7 +251,7 @@ StatusCode ModbusSerialPort::read()
             else if (GetTickCount() - d->timestamp >= timeoutFirstByte()) // waiting timeout read first byte elapsed
             {
                 d->state = STATE_BEGIN;
-                return d->setError(Status_BadSerialRead, StringLiteral("Error while reading serial port "));
+                return d->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading serial port "));
             }
             else
             {

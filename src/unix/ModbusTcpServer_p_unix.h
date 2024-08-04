@@ -14,16 +14,16 @@ typedef std::list<ModbusServerPort*> Connections_t;
 
 using namespace ModbusTcpServerPrivateNS;
 
-class ModbusTcpServerPrivateWin : public ModbusTcpServerPrivate
+class ModbusTcpServerPrivateUnix : public ModbusTcpServerPrivate
 {
 public:
-    ModbusTcpServerPrivateWin(ModbusInterface *device) :
+    ModbusTcpServerPrivateUnix(ModbusInterface *device) :
         ModbusTcpServerPrivate(device)
     {
         this->socket = new ModbusTcpSocket;
     }
 
-    ~ModbusTcpServerPrivateWin()
+    ~ModbusTcpServerPrivateUnix()
     {
         delete this->socket;
     }
@@ -32,7 +32,7 @@ public:
     ModbusTcpSocket *socket;
 };
 
-inline ModbusTcpServerPrivateWin *d_unix(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpServerPrivateWin*>(d_ptr); }
+inline ModbusTcpServerPrivateUnix *d_unix(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpServerPrivateUnix*>(d_ptr); }
 
 } // namespace Modbus
 

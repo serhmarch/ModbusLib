@@ -10,16 +10,18 @@ namespace ModbusClientPortPrivateNS {
 
 enum State
 {
-    STATE_BEGIN = 0,
-    STATE_UNKNOWN, // = STATE_BEGIN,
-    STATE_WAIT_FOR_OPEN,
-    STATE_OPENED,
-    STATE_BEGIN_WRITE,
-    STATE_WRITE,
-    STATE_BEGIN_READ,
-    STATE_READ,
-    STATE_WAIT_FOR_CLOSE,
-    STATE_CLOSED,
+    STATE_BEGIN                 = 0,
+    STATE_UNKNOWN               , // = STATE_BEGIN,
+    STATE_BEGIN_OPEN            ,
+    STATE_WAIT_FOR_OPEN         ,
+    STATE_OPENED                ,
+    STATE_BEGIN_WRITE           ,
+    STATE_WRITE                 ,
+    STATE_BEGIN_READ            ,
+    STATE_READ                  ,
+    STATE_WAIT_FOR_CLOSE        ,
+    STATE_TIMEOUT               ,
+    STATE_CLOSED                ,
     STATE_END = STATE_CLOSED
 };
 
@@ -43,6 +45,7 @@ public:
         this->lastStatus = Modbus::Status_Uncertain;
         this->lastErrorStatus = Modbus::Status_Uncertain;
         this->isLastPortError = true;
+        this->timestamp = 0;
 
         port->setServerMode(false);
     }
@@ -53,12 +56,11 @@ public:
     }
 
 public:
+    inline void timestampRefresh() { timestamp = timer(); }
+    inline bool isStateClosed() const { return state == STATE_CLOSED || state == STATE_TIMEOUT; }
     inline bool isWriteBufferBlocked() const  { return block; }
-
     inline void blockWriteBuffer() { block = true; }
-
     inline void freeWriteBuffer() { block = false; }
-
     inline const Char *getName() const { return currentClient->objectName(); }
 
     inline StatusCode setPortError(StatusCode status)
@@ -114,6 +116,7 @@ public:
     StatusCode lastErrorStatus;
     String lastErrorText;
     bool isLastPortError;
+    Timer timestamp;
 
     struct
     {

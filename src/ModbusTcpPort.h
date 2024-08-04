@@ -43,6 +43,9 @@ public:
     /// \details Constructor of the class.
     ModbusTcpPort(bool blocking = false);
 
+    /// \details Destructor of the class. Close socket if it was not closed previously
+    ~ModbusTcpPort();
+
 public:
     /// \details Returns the Modbus protocol type. In this case it is `Modbus::TCP`.
     Modbus::ProtocolType type() const override { return Modbus::TCP; }
@@ -67,12 +70,7 @@ public:
     ///  \details Sets the settings for the TCP port number of the remote device.
     void setPort(uint16_t port);
 
-    ///  \details Returns the setting for the connection timeout of the remote device.
-    uint32_t timeout() const;
-
-    ///  \details Sets the setting for the connection timeout of the remote device.
-    void setTimeout(uint32_t timeout);
-
+    ///  \details Repeat next request parameters (for Modbus TCP transaction Id).
     void setNextRequestRepeated(bool v) override;
 
     /// \details Returns `true' if the identifier of each subsequent parcel is automatically incremented by 1, `false' otherwise.

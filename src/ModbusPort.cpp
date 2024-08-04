@@ -40,6 +40,20 @@ bool ModbusPort::isNonBlocking() const
     return !d_ptr->modeSynch;
 }
 
+uint32_t ModbusPort::timeout() const
+{
+    return d_ptr->settingsBase.timeout;
+}
+
+void ModbusPort::setTimeout(uint32_t timeout)
+{
+    if (d_ptr->settingsBase.timeout != timeout)
+    {
+        d_ptr->settingsBase.timeout = timeout;
+        d_ptr->setChanged(true);
+    }
+}
+
 StatusCode ModbusPort::lastErrorStatus() const
 {
     return d_ptr->lastErrorStatus();

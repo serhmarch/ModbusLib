@@ -61,6 +61,11 @@ public:
     bool modeSynch;
     StatusCode errorStatus;
     String errorText;
+    struct
+    {
+        uint32_t timeout;
+    } settingsBase;
+
 };
 
 #endif // MODBUSPORT_P_H

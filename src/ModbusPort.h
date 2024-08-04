@@ -63,6 +63,12 @@ public:
     /// \details Returns `true` if the port works in asynch (nonblocking) mode, `false` otherwise.
     bool isNonBlocking() const;
 
+    ///  \details Returns the setting for the connection timeout of the remote device.
+    uint32_t timeout() const;
+
+    ///  \details Sets the setting for the connection timeout of the remote device.
+    void setTimeout(uint32_t timeout);
+
 public: // errors
     /// \details Returns the status of the last error of the performed operation.
     Modbus::StatusCode lastErrorStatus() const;

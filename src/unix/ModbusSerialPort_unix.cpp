@@ -20,6 +20,13 @@ ModbusSerialPortPrivate *ModbusSerialPortPrivate::create(bool blocking)
     return new ModbusSerialPortPrivateUnix(blocking);
 }
 
+ModbusSerialPort::~ModbusSerialPort()
+{
+    ModbusSerialPortPrivateUnix *d = d_unix(d_ptr);
+    if (d->serialPortIsOpen())
+        d->serialPortClose();
+}
+
 Handle ModbusSerialPort::handle() const
 {
     return reinterpret_cast<Handle>(d_unix(d_ptr)->serialPort);
@@ -131,7 +138,7 @@ StatusCode ModbusSerialPort::open()
             if (isBlocking())
             {
                 options.c_cc[VMIN]  = 0;
-                options.c_cc[VTIME] = d->settings.timeoutFirstByte / 100;
+                options.c_cc[VTIME] = d->settingsBase.timeout / 100;
             }
             else
             {
@@ -263,7 +270,7 @@ StatusCode ModbusSerialPort::read()
             else if (timer() - d->timestamp >= timeoutFirstByte()) // waiting timeout read first byte elapsed
             {
                 d->state = STATE_BEGIN;
-                return d->setError(Status_BadSerialRead, StringLiteral("Error while reading serial port "));
+                return d->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading serial port "));
             }
             else
             {
