@@ -474,6 +474,71 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
     }
 }
 
+StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    const uint16_t szBuff = 300;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, i, outOffset, fcBytes, fcRegs;
+
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        if ((readCount > MB_MAX_REGISTERS) || (writeCount > MB_MAX_REGISTERS))
+        {
+            const size_t len = 200;
+            Char buff[len];
+            snprintf(buff, len, StringLiteral("ModbusClientPort::readWriteMultipleRegisters(): Requested count of registers is too large"));
+            d->lastErrorText = buff;
+            this->cancelRequest(client);
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct request"));
+        }
+        buff[0] = reinterpret_cast<uint8_t*>(&readOffset)[1];   // read starting offset - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&readOffset)[0];   // read starting offset - LS BYTE
+        buff[2] = reinterpret_cast<uint8_t*>(&readCount)[1];    // quantity to read - MS BYTE
+        buff[3] = reinterpret_cast<uint8_t*>(&readCount)[0];    // quantity to read - LS BYTE
+        buff[4] = reinterpret_cast<uint8_t*>(&writeOffset)[1];  // write starting offset - MS BYTE
+        buff[5] = reinterpret_cast<uint8_t*>(&writeOffset)[0];  // write starting offset - LS BYTE
+        buff[6] = reinterpret_cast<uint8_t*>(&writeCount)[1];   // quantity to write - MS BYTE
+        buff[7] = reinterpret_cast<uint8_t*>(&writeCount)[0];   // quantity to write - LS BYTE
+        buff[8] = static_cast<uint8_t>(writeCount * 2);         // quantity of next bytes
+
+        for (i = 0; i < readCount; i++)
+        {
+            buff[ 9 + i * 2] = reinterpret_cast<const uint8_t*>(&writeValues[i])[1];
+            buff[10 + i * 2] = reinterpret_cast<const uint8_t*>(&writeValues[i])[0];
+        }
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,                             // unit ID
+                          MBF_READ_WRITE_MULTIPLE_REGISTERS,// modbus function number
+                          buff,                             // in-out buffer
+                          9 + buff[8],                      // count of input data bytes
+                          szBuff,                           // maximum size of buffer
+                          &szOutBuff);                      // count of output data bytes
+        if (r != Status_Good)
+            return r;
+        if (!szOutBuff)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        fcBytes = buff[0];  // count of bytes received
+        if (fcBytes != szOutBuff - 1)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        fcRegs = fcBytes / sizeof(uint16_t); // count values received
+        if (fcRegs != readCount)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        for (i = 0; i < fcRegs; i++)
+            readValues[i] = (buff[i * 2 + 1] << 8) | buff[i * 2 + 2];
+        return d->setGoodStatus();
+    default:
+        return Status_Processing;
+    }
+}
+
 Modbus::StatusCode ModbusClientPort::readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values)
 {
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
@@ -561,6 +626,11 @@ StatusCode ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, u
 StatusCode ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
 {
     return writeMultipleRegisters(this, unit, offset, count, values);
+}
+
+StatusCode ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
+{
+    return readWriteMultipleRegisters(this, unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
 }
 
 ModbusPort *ModbusClientPort::port() const

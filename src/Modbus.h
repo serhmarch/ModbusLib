@@ -34,6 +34,7 @@ class ModbusServerPort;
     * 7  (0x07) - `READ_EXCEPTION_STATUS`
     * 15 (0x0F) - `WRITE_MULTIPLE_COILS`
     * 16 (0x10) - `WRITE_MULTIPLE_REGISTERS`
+    * 23 (0x17) - `READ_WRITE_MULTIPLE_REGISTERS`
 
     Default implementation of every Modbus function returns `Modbus::Status_BadIllegalFunction`.
  */
@@ -107,6 +108,14 @@ public:
     /// \param[out] values  Pointer to the input buffer which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+
+    /// \details Function for write holding (output) 16-bit registers (4x regs).
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of registers.
+    /// \param[out] values  Pointer to the input buffer which values must be written.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 };
 
 // --------------------------------------------------------------------------------------------------------
