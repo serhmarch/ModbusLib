@@ -231,17 +231,23 @@ inline QString enumKey(EnumType value, const QString &byDef = QString())
 
 /// \details Convert key to value for enumeration by QString key
 template <class EnumType>
-inline EnumType enumValue(const QString& key, bool* ok = nullptr)
+inline EnumType enumValue(const QString& key, bool* ok = nullptr, EnumType defaultValue = static_cast<EnumType>(-1))
 {
+    bool okInner;
     const QMetaEnum me = QMetaEnum::fromType<EnumType>();
-    return static_cast<EnumType>(me.keyToValue(key.toLatin1().constData(), ok));
-
+    EnumType v = static_cast<EnumType>(me.keyToValue(key.toLatin1().constData(), &okInner));
+    if (ok)
+        *ok = okInner;
+    if (okInner)
+        return v;
+    return defaultValue;
 }
 
 /// \details Convert `QVariant` value to enumeration value (int - value, string - key).
-/// Stores result of convertion in output parameter `ok`
+/// Stores result of convertion in output parameter `ok`.
+/// If `value` can't be converted, `defaultValue` is returned.
 template <class EnumType>
-inline EnumType enumValue(const QVariant& value, bool *ok)
+inline EnumType enumValue(const QVariant& value, bool *ok = nullptr, EnumType defaultValue = static_cast<EnumType>(-1))
 {
     bool okInner;
     int v = value.toInt(&okInner);
@@ -256,9 +262,9 @@ inline EnumType enumValue(const QVariant& value, bool *ok)
         }
         if (ok)
             *ok = false;
-        return static_cast<EnumType>(-1);
+        return defaultValue;
     }
-    return enumValue<EnumType>(value.toString(), ok);
+    return enumValue<EnumType>(value.toString(), ok, defaultValue);
 }
 
 /// \details Convert `QVariant` value to enumeration value (int - value, string - key).
@@ -266,11 +272,7 @@ inline EnumType enumValue(const QVariant& value, bool *ok)
 template <class EnumType>
 inline EnumType enumValue(const QVariant& value, EnumType defaultValue)
 {
-    bool okInner;
-    EnumType v = enumValue<EnumType>(value, &okInner);
-    if (okInner)
-        return v;
-    return defaultValue;
+    return enumValue<EnumType>(value, nullptr, defaultValue);
 }
 
 /// \details Convert `QVariant` value to enumeration value (int - value, string - key).
@@ -287,6 +289,14 @@ MODBUS_EXPORT ProtocolType toProtocolType(const QString &s, bool *ok = nullptr);
 /// \details Converts QVariant value to `ProtocolType` enum value.
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
 MODBUS_EXPORT ProtocolType toProtocolType(const QVariant &v, bool *ok = nullptr);
+
+/// \details Converts string representation to `BaudRate` value.
+/// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
+MODBUS_EXPORT int32_t toBaudRate(const QString &s, bool *ok = nullptr);
+
+/// \details Converts QVariant value to `DataBits` value.
+/// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
+MODBUS_EXPORT int32_t toBaudRate(const QVariant &v, bool *ok = nullptr);
 
 /// \details Converts string representation to `DataBits` value.
 /// If ok is not nullptr, failure is reported by setting *ok to false, and success by setting *ok to true.
@@ -339,7 +349,7 @@ MODBUS_EXPORT QString toString(FlowControl v);
 inline QString bytesToString(const QByteArray &v) { return bytesToString(reinterpret_cast<const uint8_t*>(v.constData()), v.size()).data(); }
 
 /// \details Make string representation of ASCII array and separate bytes by space
-inline QString asciiToString(const QByteArray &v) { return bytesToString(reinterpret_cast<const uint8_t*>(v.constData()), v.size()).data(); }
+inline QString asciiToString(const QByteArray &v) { return asciiToString(reinterpret_cast<const uint8_t*>(v.constData()), v.size()).data(); }
 
 /// \details Returns list of string that represent names of serial ports
 MODBUS_EXPORT QStringList availableSerialPortList();

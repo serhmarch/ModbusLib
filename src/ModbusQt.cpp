@@ -264,10 +264,32 @@ ProtocolType toProtocolType(const QVariant &v, bool *ok)
     return enumValue<ProtocolType>(v, ok);
 }
 
+int32_t toBaudRate(const QString &s, bool *ok)
+{
+    bool okInner;
+    int32_t r = static_cast<int8_t>(s.toInt(&okInner));
+    if (ok)
+        *ok = okInner;
+    if (okInner)
+        return r;
+    return Defaults::instance().baudRate;
+}
+
+int32_t toBaudRate(const QVariant &v, bool *ok)
+{
+    bool okInner;
+    int32_t r = static_cast<int32_t>(v.toInt(&okInner));
+    if (ok)
+        *ok = okInner;
+    if (okInner)
+        return r;
+    return Defaults::instance().baudRate;
+}
+
 int8_t toDataBits(const QString &s, bool *ok)
 {
     bool okInner;
-    int8_t r = static_cast<int8_t>(s.toInt(&okInner));
+    int8_t r = static_cast<int32_t>(s.toInt(&okInner));
     if (!okInner)
     {
         okInner = true;
@@ -280,7 +302,10 @@ int8_t toDataBits(const QString &s, bool *ok)
         else if (s == QStringLiteral("Data5"))
             r = 5;
         else
+        {
+            r = Defaults::instance().dataBits;
             okInner = false;
+        }
     }
     if (ok)
         *ok = okInner;
@@ -300,32 +325,32 @@ int8_t toDataBits(const QVariant &v, bool *ok)
 
 Parity toParity(const QString &v, bool *ok)
 {
-    return enumValue<Parity>(v, ok);
+    return enumValue<Parity>(v, ok, Defaults::instance().parity);
 }
 
 Parity toParity(const QVariant &v, bool *ok)
 {
-    return enumValue<Parity>(v, ok);
+    return enumValue<Parity>(v, ok, Defaults::instance().parity);
 }
 
 StopBits toStopBits(const QString &v, bool *ok)
 {
-    return enumValue<StopBits>(v, ok);
+    return enumValue<StopBits>(v, ok, Defaults::instance().stopBits);
 }
 
 StopBits toStopBits(const QVariant &v, bool *ok)
 {
-    return enumValue<StopBits>(v, ok);
+    return enumValue<StopBits>(v, ok, Defaults::instance().stopBits);
 }
 
 FlowControl toFlowControl(const QString &v, bool *ok)
 {
-    return enumValue<FlowControl>(v, ok);
+    return enumValue<FlowControl>(v, ok, Defaults::instance().flowControl);
 }
 
 FlowControl toFlowControl(const QVariant &v, bool *ok)
 {
-    return enumValue<FlowControl>(v, ok);
+    return enumValue<FlowControl>(v, ok, Defaults::instance().flowControl);
 }
 
 QString toString(StatusCode v)
@@ -397,11 +422,11 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
                 QByteArray portName = settings.value(s.serialPortName, d.portName).toString().toLatin1();
                 Modbus::SerialSettings sl;
                 sl.portName = portName.data();
-                sl.baudRate = settings.value(s.baudRate, d.baudRate).toInt();
-                sl.dataBits = settings.value(s.dataBits, d.dataBits).toInt();
-                sl.parity   = toParity(settings.value(s.parity, d.parity));
-                sl.stopBits = toStopBits(settings.value(s.stopBits, d.stopBits));
-                sl.flowControl = toFlowControl(settings.value(s.flowControl, d.flowControl));
+                sl.baudRate = toBaudRate(settings.value(s.baudRate));
+                sl.dataBits = toDataBits(settings.value(s.dataBits));
+                sl.parity   = toParity(settings.value(s.parity));
+                sl.stopBits = toStopBits(settings.value(s.stopBits));
+                sl.flowControl = toFlowControl(settings.value(s.flowControl));
                 sl.timeoutFirstByte = settings.value(s.timeoutFirstByte, d.timeoutFirstByte).toUInt();
                 sl.timeoutInterByte = settings.value(s.timeoutInterByte, d.timeoutInterByte).toUInt();
                 return Modbus::createPort(type, &sl, blocking);
