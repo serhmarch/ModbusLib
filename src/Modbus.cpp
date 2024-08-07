@@ -463,3 +463,8 @@ Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t /*unit*/, uin
 {
     return Modbus::Status_BadIllegalFunction;
 }
+
+Modbus::StatusCode ModbusInterface::readWriteMultipleRegisters(uint8_t /*unit*/, uint16_t /*readOffset*/, uint16_t /*readCount*/, uint16_t */*readValues*/, uint16_t /*writeOffset*/, uint16_t /*writeCount*/, const uint16_t */*writeValues*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}

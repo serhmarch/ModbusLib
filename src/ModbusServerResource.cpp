@@ -299,6 +299,25 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             d->valueBuff[i*2+1] = buff[5+i*2];
         }
         break;
+    case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
+        if (sz < 9) // not correct request from client - don't respond
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        if (sz != buff[8]+9) // don't match readed bytes and number of data bytes to follow
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        d->offset      = buff[1] | (buff[0]<<8);
+        d->count       = buff[3] | (buff[2]<<8);
+        d->writeOffset = buff[5] | (buff[4]<<8);
+        d->writeCount  = buff[7] | (buff[6]<<8);
+        if (d->writeCount*2 != buff[8]) // don't match count values and bytes
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        if ((d->count > MB_MAX_REGISTERS) || (d->writeCount > MB_MAX_REGISTERS)) // prevent valueBuff overflow
+            return d->setError(Status_BadIllegalDataValue, StringLiteral("Not correct data value"));
+        for (uint16_t i = 0; i < d->count; i++)
+        {
+            d->valueBuff[i*2]   = buff[10+i*2];
+            d->valueBuff[i*2+1] = buff[ 9+i*2];
+        }
+        break;
     default:
         return d->setError(Status_BadIllegalFunction, StringLiteral("Unsupported function"));
     }
@@ -328,6 +347,8 @@ StatusCode ModbusServerResource::processDevice()
         return d->device->writeMultipleCoils(d->unit, d->offset, d->count, d->valueBuff);
     case MBF_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
         return d->device->writeMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+    case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
+        return d->device->readWriteMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff), d->writeOffset, d->writeCount, reinterpret_cast<uint16_t*>(d->valueBuff));
     default:
         return d->setError(Status_BadIllegalFunction, StringLiteral("Unsupported function"));
     }
@@ -340,6 +361,7 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
     {
     case MBF_READ_COILS: // Read Coil Status
     case MBF_READ_DISCRETE_INPUTS: // Read Input Status
+    case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Read/Write multiple registers
         buff[0] = static_cast<uint8_t>((d->count+7)/8);
         memcpy(&buff[1], d->valueBuff, buff[0]);
         sz = buff[0] + 1;

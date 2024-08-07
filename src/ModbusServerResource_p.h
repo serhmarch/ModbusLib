@@ -51,6 +51,8 @@ public:
     uint8_t func;
     uint16_t offset;
     uint16_t count;
+    uint16_t writeOffset;
+    uint16_t writeCount;
     uint8_t valueBuff[MBSERVER_SZ_VALUE_BUFF];
     bool isErrorPort;
 

@@ -110,6 +110,12 @@ StatusCode ModbusClient::writeMultipleCoilsAsBoolArray(uint16_t offset, uint16_t
     return d->port->writeMultipleCoilsAsBoolArray(this, d->unit, offset, count, values);
 }
 
+StatusCode ModbusClient::readWriteMultipleRegisters(uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
+{
+    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
+    return d->port->readWriteMultipleRegisters(this, d->unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+}
+
 StatusCode ModbusClient::lastPortStatus() const
 {
     return d_ModbusClient(d_ptr)->port->lastStatus();

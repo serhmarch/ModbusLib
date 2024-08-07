@@ -102,18 +102,20 @@ public:
     virtual Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values);
 
     /// \details Function for write holding (output) 16-bit registers (4x regs).
-    /// \param[in]  unit    Address of the remote Modbus device.
-    /// \param[in]  offset  Starting offset (0-based).
-    /// \param[in]  count   Count of registers.
-    /// \param[out] values  Pointer to the input buffer which values must be written.
+    /// \param[in]  unit        Address of the remote Modbus device.
+    /// \param[in]  readOffset  Starting offset (0-based).
+    /// \param[in]  readCount   Count of registers.
+    /// \param[out] values      Pointer to the input buffer which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 
     /// \details Function for write holding (output) 16-bit registers (4x regs).
-    /// \param[in]  unit    Address of the remote Modbus device.
-    /// \param[in]  offset  Starting offset (0-based).
-    /// \param[in]  count   Count of registers.
-    /// \param[out] values  Pointer to the input buffer which values must be written.
+    /// \param[in]  unit        Address of the remote Modbus device.
+    /// \param[in]  readOffset  Starting offset for read(0-based).
+    /// \param[in]  readCount   Count of registers to read.
+    /// \param[in]  writeOffset Starting offset for write(0-based).
+    /// \param[in]  writeCount  Count of registers to write.
+    /// \param[out] values      Pointer to the input/output buffer which values must be read/written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 };

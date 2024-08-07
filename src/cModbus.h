@@ -77,6 +77,9 @@ typedef StatusCode (*pfWriteMultipleCoils)(cModbusDevice dev, uint8_t unit, uint
 /// \details Pointer to C function for write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeMultipleRegisters`
 typedef StatusCode (*pfWriteMultipleRegisters)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 
+/// \details Pointer to C function for write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeMultipleRegisters`
+typedef StatusCode (*pfReadWriteMultipleRegisters)(cModbusDevice dev, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
+
 /// \details Pointer to C callback function. `dev` - pointer to any struct that can hold memory data. \sa `ModbusClientPort::signalOpened` and `ModbusServerPort::signalOpened`
 typedef void (*pfSlotOpened)(const Char *source);
 
@@ -109,16 +112,17 @@ typedef void (*pfSlotCloseConnection)(const Char *source);
 /// readExceptionStatus,
 /// writeMultipleCoils - pointers to corresponding Modbus functions to process data.
 /// Any pointer can have `NULL` value. In this case server will return `Status_BadIllegalFunction`.
-MODBUS_EXPORT cModbusInterface cCreateModbusDevice(cModbusDevice            device                , 
-                                                   pfReadCoils              readCoils             ,
-                                                   pfReadDiscreteInputs     readDiscreteInputs    ,
-                                                   pfReadHoldingRegisters   readHoldingRegisters  ,
-                                                   pfReadInputRegisters     readInputRegisters    ,
-                                                   pfWriteSingleCoil        writeSingleCoil       ,
-                                                   pfWriteSingleRegister    writeSingleRegister   ,
-                                                   pfReadExceptionStatus    readExceptionStatus   ,
-                                                   pfWriteMultipleCoils     writeMultipleCoils    ,
-                                                   pfWriteMultipleRegisters writeMultipleRegisters);
+MODBUS_EXPORT cModbusInterface cCreateModbusDevice(cModbusDevice                device                ,
+                                                   pfReadCoils                  readCoils             ,
+                                                   pfReadDiscreteInputs         readDiscreteInputs    ,
+                                                   pfReadHoldingRegisters       readHoldingRegisters  ,
+                                                   pfReadInputRegisters         readInputRegisters    ,
+                                                   pfWriteSingleCoil            writeSingleCoil       ,
+                                                   pfWriteSingleRegister        writeSingleRegister   ,
+                                                   pfReadExceptionStatus        readExceptionStatus   ,
+                                                   pfWriteMultipleCoils         writeMultipleCoils    ,
+                                                   pfWriteMultipleRegisters     writeMultipleRegisters,
+                                                   pfReadWriteMultipleRegisters readWriteMultipleRegisters);
 
 
 /// \details Deletes previously created `ModbusInterface` object represented by `dev` handle
@@ -195,6 +199,9 @@ MODBUS_EXPORT StatusCode cCpoWriteMultipleCoils(cModbusClientPort clientPort, ui
 
 /// \details Wrapper for `ModbusClientPort::writeMultipleRegisters`
 MODBUS_EXPORT StatusCode cCpoWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+
+/// \details Wrapper for `ModbusClientPort::readWriteMultipleRegisters`
+MODBUS_EXPORT StatusCode cCpoReadWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 
 /// \details Wrapper for `ModbusClientPort::readCoilsAsBoolArray`
 MODBUS_EXPORT StatusCode cCpoReadCoilsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
@@ -293,6 +300,9 @@ MODBUS_EXPORT StatusCode cWriteMultipleCoils(cModbusClient client, uint16_t offs
 
 /// \details Wrapper for `ModbusClient::writeMultipleRegisters`
 MODBUS_EXPORT StatusCode cWriteMultipleRegisters(cModbusClient client, uint16_t offset, uint16_t count, const uint16_t *values);
+
+/// \details Wrapper for `ModbusClient::readWriteMultipleRegisters`
+MODBUS_EXPORT StatusCode cReadWriteMultipleRegisters(cModbusClient client, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 
 /// \details Wrapper for `ModbusClient::readCoilsAsBoolArray`
 MODBUS_EXPORT StatusCode cReadCoilsAsBoolArray(cModbusClient client, uint16_t offset, uint16_t count, bool *values);
