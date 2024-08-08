@@ -76,14 +76,14 @@ public:
     /// \details Function for write one separate discrete output (0x coil).
     /// \param[in]  unit    Address of the remote Modbus device.
     /// \param[in]  offset  Starting offset (0-based).
-    /// \param[out] value   Boolean value to be set.
+    /// \param[in]  value   Boolean value to be set.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value);
 
     /// \details Function for write one separate 16-bit holding register (4x).
     /// \param[in]  unit    Address of the remote Modbus device.
     /// \param[in]  offset  Starting offset (0-based).
-    /// \param[out] value   16-bit unsigned integer value to be set.
+    /// \param[in]  value   16-bit unsigned integer value to be set.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value);
 
@@ -93,11 +93,12 @@ public:
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *status);
 
-    /// \details Function for write discrete outputs (coils, 0x bits).
+    /// \details Function is used to modify the contents of a specified holding register using a
+    /// combination of an AND mask, an OR mask, and the register's current contents.
     /// \param[in]  unit    Address of the remote Modbus device.
     /// \param[in]  offset  Starting offset (0-based).
     /// \param[in]  count   Count of coils.
-    /// \param[out] values  Pointer to the input buffer (bit array) which values must be written.
+    /// \param[in]  values  Pointer to the input buffer (bit array) which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values);
 
@@ -105,17 +106,28 @@ public:
     /// \param[in]  unit        Address of the remote Modbus device.
     /// \param[in]  readOffset  Starting offset (0-based).
     /// \param[in]  readCount   Count of registers.
-    /// \param[out] values      Pointer to the input buffer which values must be written.
+    /// \param[in]  values      Pointer to the input buffer which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 
-    /// \details Function for write holding (output) 16-bit registers (4x regs).
+    /// \details Function is used to modify the contents of a specified holding register using a
+    /// combination of an AND mask, an OR mask, and the register's current contents.
+    /// The function’s algorithm is:
+    /// `Result = (Current Contents AND And_Mask) OR (Or_Mask AND (NOT And_Mask))`
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  andMask 16-bit unsigned integer value to be set.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
+
+    /// \details This function code performs a combination of one read operation and one write operation in a single MODBUS transaction.
     /// \param[in]  unit        Address of the remote Modbus device.
     /// \param[in]  readOffset  Starting offset for read(0-based).
     /// \param[in]  readCount   Count of registers to read.
+    /// \param[out] readValues  Pointer to the output buffer which values must be read.
     /// \param[in]  writeOffset Starting offset for write(0-based).
     /// \param[in]  writeCount  Count of registers to write.
-    /// \param[out] values      Pointer to the input/output buffer which values must be read/written.
+    /// \param[in]  writeValues Pointer to the input buffer which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 };

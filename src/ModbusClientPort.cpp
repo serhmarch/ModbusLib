@@ -474,6 +474,51 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
     }
 }
 
+StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    const uint16_t szBuff = 6;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outOffset, outAndMask, outOrMask;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        buff[0] = reinterpret_cast<uint8_t*>(&offset)[1];    // Register offset - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&offset)[0];    // Register offset - LS BYTE
+        buff[2] = reinterpret_cast<uint8_t*>(&andMask)[1];   // AndMask - MS BYTE
+        buff[3] = reinterpret_cast<uint8_t*>(&andMask)[0];   // AndMask - LS BYTE
+        buff[4] = reinterpret_cast<uint8_t*>(&orMask)[1];    // OrMask - MS BYTE
+        buff[5] = reinterpret_cast<uint8_t*>(&orMask)[0];    // OrMask - LS BYTE
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,                           // unit ID
+                          MBF_MASK_WRITE_REGISTER,        // modbus function number
+                          buff,                           // in-out buffer
+                          6,                              // count of input data bytes
+                          szBuff,                         // maximum size of buffer
+                          &szOutBuff);                    // count of output data bytes
+        if (r != Status_Good)
+            return r;
+
+        if (szOutBuff != 6)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+
+        outOffset  = buff[1] | (buff[0] << 8);
+        outAndMask = buff[3] | (buff[2] << 8);
+        outOrMask  = buff[5] | (buff[4] << 8);
+        if ((outOffset != offset) || (outAndMask == andMask) || (outOrMask == orMask))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        return d->setGoodStatus();
+    default:
+        return Status_Processing;
+    }
+}
+
 StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
 {
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
@@ -626,6 +671,11 @@ StatusCode ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, u
 StatusCode ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
 {
     return writeMultipleRegisters(this, unit, offset, count, values);
+}
+
+StatusCode ModbusClientPort::maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
+{
+    return maskWriteRegister(this, unit, offset, andMask, orMask);
 }
 
 StatusCode ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)

@@ -92,6 +92,12 @@ StatusCode ModbusClient::writeMultipleRegisters(uint16_t offset, uint16_t count,
     return d->port->writeMultipleRegisters(this, d->unit, offset, count, values);
 }
 
+StatusCode ModbusClient::maskWriteRegister(uint16_t offset, uint16_t andMask, uint16_t orMask)
+{
+    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
+    return d->port->maskWriteRegister(this, d->unit, offset, andMask, orMask);
+}
+
 StatusCode ModbusClient::readCoilsAsBoolArray(uint16_t offset, uint16_t count, bool *values)
 {
     ModbusClientPrivate *d = d_ModbusClient(d_ptr);

@@ -77,6 +77,9 @@ typedef StatusCode (*pfWriteMultipleCoils)(cModbusDevice dev, uint8_t unit, uint
 /// \details Pointer to C function for write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeMultipleRegisters`
 typedef StatusCode (*pfWriteMultipleRegisters)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 
+/// \details Pointer to C function for mask write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::maskWriteRegister`
+typedef StatusCode (*pfMaskWriteRegister)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
+
 /// \details Pointer to C function for write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeMultipleRegisters`
 typedef StatusCode (*pfReadWriteMultipleRegisters)(cModbusDevice dev, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 
@@ -122,6 +125,7 @@ MODBUS_EXPORT cModbusInterface cCreateModbusDevice(cModbusDevice                
                                                    pfReadExceptionStatus        readExceptionStatus   ,
                                                    pfWriteMultipleCoils         writeMultipleCoils    ,
                                                    pfWriteMultipleRegisters     writeMultipleRegisters,
+                                                   pfMaskWriteRegister          maskWriteRegister     ,
                                                    pfReadWriteMultipleRegisters readWriteMultipleRegisters);
 
 
@@ -199,6 +203,9 @@ MODBUS_EXPORT StatusCode cCpoWriteMultipleCoils(cModbusClientPort clientPort, ui
 
 /// \details Wrapper for `ModbusClientPort::writeMultipleRegisters`
 MODBUS_EXPORT StatusCode cCpoWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+
+/// \details Wrapper for `ModbusClientPort::maskWriteRegister`
+MODBUS_EXPORT StatusCode cCpoMaskWriteRegister(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
 
 /// \details Wrapper for `ModbusClientPort::readWriteMultipleRegisters`
 MODBUS_EXPORT StatusCode cCpoReadWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
@@ -300,6 +307,9 @@ MODBUS_EXPORT StatusCode cWriteMultipleCoils(cModbusClient client, uint16_t offs
 
 /// \details Wrapper for `ModbusClient::writeMultipleRegisters`
 MODBUS_EXPORT StatusCode cWriteMultipleRegisters(cModbusClient client, uint16_t offset, uint16_t count, const uint16_t *values);
+
+/// \details Wrapper for `ModbusClient::maskWriteRegister`
+MODBUS_EXPORT StatusCode cMaskWriteRegister(cModbusClient client, uint16_t offset, uint16_t andMask, uint16_t orMask);
 
 /// \details Wrapper for `ModbusClient::readWriteMultipleRegisters`
 MODBUS_EXPORT StatusCode cReadWriteMultipleRegisters(cModbusClient client, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);

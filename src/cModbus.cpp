@@ -20,6 +20,7 @@ public:
                          pfReadExceptionStatus        readExceptionStatus       ,
                          pfWriteMultipleCoils         writeMultipleCoils        ,
                          pfWriteMultipleRegisters     writeMultipleRegisters    ,
+                         pfMaskWriteRegister          maskWriteRegister         ,
                          pfReadWriteMultipleRegisters readWriteMultipleRegisters) :
         m_device                    (device                    ),
         m_readCoils                 (readCoils                 ),
@@ -31,6 +32,7 @@ public:
         m_readExceptionStatus       (readExceptionStatus       ),
         m_writeMultipleCoils        (writeMultipleCoils        ),
         m_writeMultipleRegisters    (writeMultipleRegisters    ),
+        m_maskWriteRegister         (maskWriteRegister         ),
         m_readWriteMultipleRegisters(readWriteMultipleRegisters)
     {
     }
@@ -103,6 +105,13 @@ public:
         return Status_BadIllegalFunction;
     }
 
+    StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
+    {
+        if (m_writeSingleRegister)
+            return m_maskWriteRegister(m_device, unit, offset, andMask, orMask);
+        return Status_BadIllegalFunction;
+    }
+
     StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
     {
         if (m_readWriteMultipleRegisters)
@@ -121,21 +130,23 @@ private:
     pfReadExceptionStatus        m_readExceptionStatus       ;
     pfWriteMultipleCoils         m_writeMultipleCoils        ;
     pfWriteMultipleRegisters     m_writeMultipleRegisters    ;
+    pfMaskWriteRegister          m_maskWriteRegister         ;
     pfReadWriteMultipleRegisters m_readWriteMultipleRegisters;
 };
 
-cModbusInterface cCreateModbusDevice(cModbusDevice device, pfReadCoils readCoils, pfReadDiscreteInputs readDiscreteInputs, pfReadHoldingRegisters readHoldingRegisters, pfReadInputRegisters readInputRegisters, pfWriteSingleCoil writeSingleCoil, pfWriteSingleRegister writeSingleRegister, pfReadExceptionStatus readExceptionStatus, pfWriteMultipleCoils writeMultipleCoils, pfWriteMultipleRegisters writeMultipleRegisters, pfReadWriteMultipleRegisters readWriteMultipleRegisters)
+cModbusInterface cCreateModbusDevice(cModbusDevice device, pfReadCoils readCoils, pfReadDiscreteInputs readDiscreteInputs, pfReadHoldingRegisters readHoldingRegisters, pfReadInputRegisters readInputRegisters, pfWriteSingleCoil writeSingleCoil, pfWriteSingleRegister writeSingleRegister, pfReadExceptionStatus readExceptionStatus, pfWriteMultipleCoils writeMultipleCoils, pfWriteMultipleRegisters writeMultipleRegisters, pfMaskWriteRegister maskWriteRegister, pfReadWriteMultipleRegisters readWriteMultipleRegisters)
 {
-    return new cModbusInterfaceImpl(device                ,
-                                    readCoils             ,
-                                    readDiscreteInputs    ,
-                                    readHoldingRegisters  ,
-                                    readInputRegisters    ,
-                                    writeSingleCoil       ,
-                                    writeSingleRegister   ,
-                                    readExceptionStatus   ,
-                                    writeMultipleCoils    ,
-                                    writeMultipleRegisters,
+    return new cModbusInterfaceImpl(device                    ,
+                                    readCoils                 ,
+                                    readDiscreteInputs        ,
+                                    readHoldingRegisters      ,
+                                    readInputRegisters        ,
+                                    writeSingleCoil           ,
+                                    writeSingleRegister       ,
+                                    readExceptionStatus       ,
+                                    writeMultipleCoils        ,
+                                    writeMultipleRegisters    ,
+                                    maskWriteRegister         ,
                                     readWriteMultipleRegisters);
 }
 
@@ -255,6 +266,11 @@ StatusCode cCpoWriteMultipleCoils(cModbusClientPort clientPort, uint8_t unit, ui
 StatusCode cCpoWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
 {
     return clientPort->writeMultipleRegisters(unit, offset, count, values);
+}
+
+StatusCode cCpoMaskWriteRegister(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
+{
+    return clientPort->maskWriteRegister(unit, offset, andMask, orMask);
 }
 
 StatusCode cCpoReadWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
@@ -423,6 +439,11 @@ StatusCode cWriteMultipleCoils(cModbusClient client, uint16_t offset, uint16_t c
 StatusCode cWriteMultipleRegisters(cModbusClient client, uint16_t offset, uint16_t count, const uint16_t *values)
 {
     return client->writeMultipleRegisters(offset, count, values);
+}
+
+StatusCode cMaskWriteRegister(cModbusClient client, uint16_t offset, uint16_t andMask, uint16_t orMask)
+{
+    return client->maskWriteRegister(offset, andMask, orMask);
 }
 
 StatusCode cReadWriteMultipleRegisters(cModbusClient client, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)

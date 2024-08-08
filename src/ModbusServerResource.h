@@ -52,7 +52,6 @@ protected:
     /// \details Transfer input request Modbus function to inner device and returns status of the operation.
     virtual Modbus::StatusCode processDevice();
 
-
     /// \details Process output data `buff` with `size` and returns status of the operation.
     virtual Modbus::StatusCode processOutputData(uint8_t *buff, uint16_t &sz);
 

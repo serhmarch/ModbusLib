@@ -232,8 +232,8 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
     ModbusServerResourcePrivate *d = d_ModbusServerResource(d_ptr);
     switch (d->func)
     {
-    case MBF_READ_COILS:            // Read Coil Status
-    case MBF_READ_DISCRETE_INPUTS:  // Read Input Status
+    case MBF_READ_COILS:
+    case MBF_READ_DISCRETE_INPUTS:
         if (sz != 4) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
         d->offset = buff[1] | (buff[0] << 8);
@@ -241,8 +241,8 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         if (d->count > MB_MAX_DISCRETS) // prevent valueBuff overflow
             return d->setError(Status_BadIllegalDataValue, StringLiteral("Not correct data value"));
         break;
-    case MBF_READ_HOLDING_REGISTERS:    // Read holding registers
-    case MBF_READ_INPUT_REGISTERS:      // Read input registers
+    case MBF_READ_HOLDING_REGISTERS:
+    case MBF_READ_INPUT_REGISTERS:
         if (sz != 4) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
         d->offset = buff[1] | (buff[0]<<8);
@@ -250,7 +250,7 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         if (d->count > MB_MAX_REGISTERS) // prevent valueBuff overflow
             return d->setError(Status_BadIllegalDataValue, StringLiteral("Not correct data value"));
         break;
-    case MBF_WRITE_SINGLE_COIL: // Write single coil
+    case MBF_WRITE_SINGLE_COIL:
         if (sz != 4) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
         if (!(buff[2] == 0x00 || buff[2] == 0xFF) || (buff[3] != 0))  // not correct request from client - don't respond
@@ -258,14 +258,14 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         d->offset = buff[1] | (buff[0]<<8);
         d->valueBuff[0] = buff[2];
         break;
-    case MBF_WRITE_SINGLE_REGISTER: // Write single register
+    case MBF_WRITE_SINGLE_REGISTER:
         if (sz != 4) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
         d->offset = buff[1] | (buff[0]<<8);
         d->valueBuff[0] = buff[3];
         d->valueBuff[1] = buff[2];
         break;
-    case MBF_READ_EXCEPTION_STATUS: // Read exception status
+    case MBF_READ_EXCEPTION_STATUS:
         if (sz > 0) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
         break;
@@ -282,7 +282,7 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             return d->setError(Status_BadIllegalDataValue, StringLiteral("Not correct data value"));
         memcpy(d->valueBuff, &buff[5], (d->count+7)/8);
         break;
-    case MBF_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
+    case MBF_WRITE_MULTIPLE_REGISTERS:
         if (sz < 5) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
         if (sz != buff[4]+5) // don't match readed bytes and number of data bytes to follow
@@ -299,7 +299,14 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             d->valueBuff[i*2+1] = buff[5+i*2];
         }
         break;
-    case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
+    case MBF_MASK_WRITE_REGISTER:
+        if (sz != 6) // not correct request from client - don't respond
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        d->offset  = buff[1] | (buff[0]<<8);
+        d->andMask = buff[3] | (buff[2]<<8);
+        d->orMask  = buff[5] | (buff[4]<<8);
+        break;
+    case MBF_READ_WRITE_MULTIPLE_REGISTERS:
         if (sz < 9) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
         if (sz != buff[8]+9) // don't match readed bytes and number of data bytes to follow
@@ -347,6 +354,8 @@ StatusCode ModbusServerResource::processDevice()
         return d->device->writeMultipleCoils(d->unit, d->offset, d->count, d->valueBuff);
     case MBF_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
         return d->device->writeMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+    case MBF_MASK_WRITE_REGISTER:
+        return d->device->maskWriteRegister(d->unit, d->offset, d->andMask, d->orMask);
     case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
         return d->device->readWriteMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff), d->writeOffset, d->writeCount, reinterpret_cast<uint16_t*>(d->valueBuff));
     default:
@@ -401,6 +410,15 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
         buff[2] = static_cast<uint8_t>(sz >> 8);            // count of written values (Hi-byte)
         buff[3] = static_cast<uint8_t>(sz & 0xFF);          // count of written values (Lo-byte)
         sz = 4;
+        break;
+    case MBF_MASK_WRITE_REGISTER:
+        buff[0] = static_cast<uint8_t>(d->offset >> 8);      // address of register (Hi-byte)
+        buff[1] = static_cast<uint8_t>(d->offset & 0xFF);    // address of register (Lo-byte)
+        buff[2] = static_cast<uint8_t>(d->andMask >> 8);     // And mask (Hi-byte)
+        buff[3] = static_cast<uint8_t>(d->andMask & 0xFF);   // And mask (Lo-byte)
+        buff[4] = static_cast<uint8_t>(d->orMask >> 8);      // Or mask (Hi-byte)
+        buff[4] = static_cast<uint8_t>(d->orMask & 0xFF);    // Or mask (Lo-byte)
+        sz = 6;
         break;
     }
     return Status_Good;

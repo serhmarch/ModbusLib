@@ -73,6 +73,9 @@ public:
     /// \details Same as `ModbusInterface::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
     Modbus::StatusCode writeMultipleRegisters(uint16_t offset, uint16_t count, const uint16_t *values);
 
+    /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode maskWriteRegister(uint16_t offset, uint16_t andMask, uint16_t orMask);
+
     /// \details Same as `ModbusClientPort::readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
     Modbus::StatusCode readCoilsAsBoolArray(uint16_t offset, uint16_t count, bool *values);
 

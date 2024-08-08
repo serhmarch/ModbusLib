@@ -50,6 +50,8 @@ public:
     uint8_t unit;
     uint8_t func;
     uint16_t offset;
+    uint16_t andMask;
+    uint16_t orMask;
     uint16_t count;
     uint16_t writeOffset;
     uint16_t writeCount;
