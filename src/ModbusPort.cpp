@@ -32,12 +32,12 @@ void ModbusPort::setServerMode(bool mode)
 
 bool ModbusPort::isBlocking() const
 {
-    return d_ptr->modeSynch;
+    return d_ptr->modeBlocking;
 }
 
 bool ModbusPort::isNonBlocking() const
 {
-    return !d_ptr->modeSynch;
+    return !d_ptr->modeBlocking;
 }
 
 uint32_t ModbusPort::timeout() const

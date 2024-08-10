@@ -412,7 +412,7 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
                 tc.host = host.data();
                 tc.port = settings.value(s.port, d.port).toUInt();
                 tc.timeout = settings.value(s.timeout, d.timeout).toUInt();
-                return Modbus::createPort(type, &tc, false);
+                return Modbus::createPort(type, &tc, blocking);
             }
             break;
             case Modbus::RTU:

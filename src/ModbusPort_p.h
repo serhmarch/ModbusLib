@@ -36,7 +36,7 @@ public:
     {
         this->state = STATE_UNKNOWN;
         this->modeServer = false;
-        this->modeSynch = blocking;
+        this->modeBlocking = blocking;
         this->clearChanged();
     }
 
@@ -45,7 +45,7 @@ public:
     }
 
 public:
-    inline bool isBlocking() const { return modeSynch; }
+    inline bool isBlocking() const { return modeBlocking; }
     inline bool isStateClosed() const { return state == STATE_CLOSED; }
     inline void setChanged(bool changed) { this->changed = changed; }
     inline void clearChanged() { setChanged(false); }
@@ -58,7 +58,7 @@ public:
     State state;
     bool changed;
     bool modeServer;
-    bool modeSynch;
+    bool modeBlocking;
     StatusCode errorStatus;
     String errorText;
     struct
