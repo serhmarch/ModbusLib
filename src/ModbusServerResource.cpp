@@ -417,7 +417,7 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
         buff[2] = static_cast<uint8_t>(d->andMask >> 8);     // And mask (Hi-byte)
         buff[3] = static_cast<uint8_t>(d->andMask & 0xFF);   // And mask (Lo-byte)
         buff[4] = static_cast<uint8_t>(d->orMask >> 8);      // Or mask (Hi-byte)
-        buff[4] = static_cast<uint8_t>(d->orMask & 0xFF);    // Or mask (Lo-byte)
+        buff[5] = static_cast<uint8_t>(d->orMask & 0xFF);    // Or mask (Lo-byte)
         sz = 6;
         break;
     }

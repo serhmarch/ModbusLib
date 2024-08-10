@@ -511,7 +511,7 @@ StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t uni
         outOffset  = buff[1] | (buff[0] << 8);
         outAndMask = buff[3] | (buff[2] << 8);
         outOrMask  = buff[5] | (buff[4] << 8);
-        if ((outOffset != offset) || (outAndMask == andMask) || (outOrMask == orMask))
+        if ((outOffset != offset) || (outAndMask != andMask) || (outOrMask != orMask))
             return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
         return d->setGoodStatus();
     default:
