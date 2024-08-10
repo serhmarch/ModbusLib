@@ -34,6 +34,7 @@ class ModbusServerPort;
     * 7  (0x07) - `READ_EXCEPTION_STATUS`
     * 15 (0x0F) - `WRITE_MULTIPLE_COILS`
     * 16 (0x10) - `WRITE_MULTIPLE_REGISTERS`
+    * 22 (0x16) - `MASK_WRITE_REGISTER`
     * 23 (0x17) - `READ_WRITE_MULTIPLE_REGISTERS`
 
     Default implementation of every Modbus function returns `Modbus::Status_BadIllegalFunction`.

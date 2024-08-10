@@ -370,13 +370,13 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
     {
     case MBF_READ_COILS: // Read Coil Status
     case MBF_READ_DISCRETE_INPUTS: // Read Input Status
-    case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Read/Write multiple registers
         buff[0] = static_cast<uint8_t>((d->count+7)/8);
         memcpy(&buff[1], d->valueBuff, buff[0]);
         sz = buff[0] + 1;
         break;
     case MBF_READ_HOLDING_REGISTERS: // Read holding registers
     case MBF_READ_INPUT_REGISTERS: // Read input registers
+    case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Read/Write multiple registers
         buff[0] = static_cast<uint8_t>(d->count * 2);
         for (uint16_t i = 0; i < d->count; i++)
         {

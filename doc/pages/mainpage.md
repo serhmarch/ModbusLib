@@ -19,6 +19,7 @@ Library implements such Modbus functions as:
 * 7  (0x07) - `READ_EXCEPTION_STATUS`
 * 15 (0x0F) - `WRITE_MULTIPLE_COILS`
 * 16 (0x10) - `WRITE_MULTIPLE_REGISTERS`
+* 22 (0x16) - `MASK_WRITE_REGISTER`
 * 23 (0x17) - `WRITE_MULTIPLE_REGISTERS`
 
 ## Using Library
