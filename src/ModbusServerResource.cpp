@@ -407,8 +407,8 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
     case MBF_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
         buff[0] = static_cast<uint8_t>(d->offset >> 8);      // offset of written values (Hi-byte)
         buff[1] = static_cast<uint8_t>(d->offset & 0xFF);    // offset of written values (Lo-byte)
-        buff[2] = static_cast<uint8_t>(sz >> 8);            // count of written values (Hi-byte)
-        buff[3] = static_cast<uint8_t>(sz & 0xFF);          // count of written values (Lo-byte)
+        buff[2] = static_cast<uint8_t>(d->count >> 8);       // count of written values (Hi-byte)
+        buff[3] = static_cast<uint8_t>(d->count & 0xFF);     // count of written values (Lo-byte)
         sz = 4;
         break;
     case MBF_MASK_WRITE_REGISTER:
