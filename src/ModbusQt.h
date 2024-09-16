@@ -26,6 +26,7 @@ class MODBUS_EXPORT Strings
 public:
     const QString unit            ; ///< Setting key for the unit number of remote device
     const QString type            ; ///< Setting key for the type of Modbus protocol
+    const QString tries           ; ///< Setting key for the number of tries a Modbus request is repeated if it fails
     const QString host            ; ///< Setting key for the IP address or DNS name of the remote device
     const QString port            ; ///< Setting key for the TCP port number of the remote device
     const QString timeout         ; ///< Setting key for connection timeout (milliseconds)
@@ -52,6 +53,7 @@ class MODBUS_EXPORT Defaults
 public:
     const uint8_t      unit            ; ///< Default value for the unit number of remote device
     const ProtocolType type            ; ///< Default value for the type of Modbus protocol
+    const uint32_t     tries           ; ///< Default value for number of tries a Modbus request is repeated if it fails
     const QString      host            ; ///< Default value for the IP address or DNS name of the remote device
     const uint16_t     port            ; ///< Default value for the TCP port number of the remote device
     const uint32_t     timeout         ; ///< Default value for connection timeout (milliseconds)
@@ -78,6 +80,10 @@ MODBUS_EXPORT uint8_t getSettingUnit(const Settings &s, bool *ok = nullptr);
 /// \details Get settings value for the type of Modbus protocol.
 /// If value can't be retrieved that default value is returned and *ok = false (if provided).
 MODBUS_EXPORT ProtocolType getSettingType(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for number of tries a Modbus request is repeated if it fails.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT uint32_t getSettingTries(const Settings &s, bool *ok = nullptr);
 
 /// \details Get settings value for the IP address or DNS name of the remote device.
 /// If value can't be retrieved that default value is returned and *ok = false (if provided).
@@ -128,6 +134,9 @@ MODBUS_EXPORT void setSettingUnit(Settings &s, uint8_t v);
 
 /// \details Set settings value the type of Modbus protocol.
 MODBUS_EXPORT void setSettingType(Settings &s, ProtocolType v);
+
+/// \details Set settings value for number of tries a Modbus request is repeated if it fails.
+MODBUS_EXPORT void setSettingTries(Settings &s, uint32_t);
 
 /// \details Set settings value for the IP address or DNS name of the remote device.
 MODBUS_EXPORT void setSettingHost(Settings &s, const QString &v);

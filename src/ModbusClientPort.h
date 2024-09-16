@@ -65,14 +65,15 @@ public:
 
 public:
     /// \details Constructor of the class.
-    /// \param[in]  port A pointer to the port object to which this client object belongs.
+    /// \param[in]  port A pointer to the port object which belongs to this client object.
+    /// Lifecycle of the `port` object is managed by this `ModbusClientPort`-object
     ModbusClientPort(ModbusPort *port);
 
 public:
     /// \details Returns type of Modbus protocol.
     Modbus::ProtocolType type() const;
 
-    /// \details Returns a pointer to the port object that uses this algorithm.
+    /// \details Returns a pointer to the port object that is used by this algorithm.
     ModbusPort *port() const;
 
     /// \details Closes connection and returns status of the operation.
@@ -81,11 +82,17 @@ public:
     /// \details Returns `true` if the connection with the remote device is established, `false` otherwise.
     bool isOpen() const;
 
-    /// \details Returns the setting of the number of repetitions of the Modbus request if it fails.
-    uint32_t repeatCount() const;
+    /// \details Returns the setting of the number of tries of the Modbus request if it fails.
+    uint32_t tries() const;
 
-    /// \details Sets the number of times a Modbus request is repeated if it fails.
-    void setRepeatCount(uint32_t v);
+    /// \details Sets the number of tries a Modbus request is repeated if it fails.
+    void setTries(uint32_t v);
+
+    /// \details Same as `tries()`. Used for backward compatibility.
+    inline uint32_t repeatCount() const { return tries(); }
+
+    /// \details Same as `setTries()`. Used for backward compatibility.
+    inline void setRepeatCount(uint32_t v) { setTries(v); }
 
 public: // Main interface
     /// \details Same as `ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.

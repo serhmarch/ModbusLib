@@ -41,7 +41,7 @@ public:
         this->currentClient = nullptr;
         this->port = port;
         this->repeats = 0;
-        this->settings.repeatCount = 1;
+        this->settings.tries = 1;
         this->lastStatus = Modbus::Status_Uncertain;
         this->lastErrorStatus = Modbus::Status_Uncertain;
         this->isLastPortError = true;
@@ -120,7 +120,7 @@ public:
 
     struct
     {
-        uint32_t repeatCount;
+        uint32_t tries;
     } settings;
 
 };

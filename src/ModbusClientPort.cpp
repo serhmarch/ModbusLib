@@ -28,15 +28,15 @@ bool ModbusClientPort::isOpen() const
     return d_ModbusClientPort(d_ptr)->port->isOpen();
 }
 
-uint32_t ModbusClientPort::repeatCount() const
+uint32_t ModbusClientPort::tries() const
 {
-    return d_ModbusClientPort(d_ptr)->settings.repeatCount;
+    return d_ModbusClientPort(d_ptr)->settings.tries;
 }
 
-void ModbusClientPort::setRepeatCount(uint32_t v)
+void ModbusClientPort::setTries(uint32_t v)
 {
     if (v > 0)
-        d_ModbusClientPort(d_ptr)->settings.repeatCount = v;
+        d_ModbusClientPort(d_ptr)->settings.tries = v;
 }
 
 Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values)
@@ -527,7 +527,7 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
 
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
-    uint16_t szOutBuff, i, outOffset, fcBytes, fcRegs;
+    uint16_t szOutBuff, i, fcBytes, fcRegs;
 
 
     ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
@@ -776,7 +776,7 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
     if (StatusIsBad(r))
     {
         d->repeats++;
-        if (d->repeats < d->settings.repeatCount)
+        if (d->repeats < d->settings.tries)
         {
             d->port->setNextRequestRepeated(true);
             return Status_Processing;

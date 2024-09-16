@@ -12,6 +12,7 @@ namespace Modbus {
 Strings::Strings() :
     unit            (QStringLiteral("unit")),
     type            (QStringLiteral("type")),
+    tries           (QStringLiteral("tries")),
     host            (QStringLiteral("host")),
     port            (QStringLiteral("port")),
     timeout         (QStringLiteral("timeout")),
@@ -35,6 +36,7 @@ const Strings &Strings::instance()
 Defaults::Defaults() :
     unit            (1),
     type            (TCP),
+    tries           (1), // TODO: initialize by constant from ModbusClientPort
     host            (ModbusTcpPort   ::Defaults::instance().host            ),
     port            (ModbusTcpPort   ::Defaults::instance().port            ),
     timeout         (ModbusTcpPort   ::Defaults::instance().timeout         ),
@@ -79,6 +81,11 @@ uint8_t getSettingUnit(const Settings &s, bool *ok)
 ProtocolType getSettingType(const Settings &s, bool *ok)
 {
     MB_GET_SETTING_MACRO(Modbus::ProtocolType, type, v = Modbus::toProtocolType(var, &okInner))
+}
+
+uint32_t getSettingTries(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(uint32_t, tries, v = static_cast<uint32_t>(var.toUInt(&okInner)))
 }
 
 QString getSettingHost(const Settings &s, bool *ok)
@@ -144,6 +151,11 @@ void setSettingUnit(Settings &s, uint8_t v)
 void setSettingType(Settings &s, ProtocolType v)
 {
     s[Modbus::Strings::instance().type] = Modbus::toString(v);
+}
+
+void setSettingTries(Settings &s, uint32_t v)
+{
+    s[Modbus::Strings::instance().tries] = v;
 }
 
 void setSettingHost(Settings &s, const QString &v)
@@ -444,7 +456,11 @@ ModbusClientPort *createClientPort(const Settings &settings, bool blocking)
 {
     ModbusPort *port = createPort(settings, blocking);
     if (port)
-        return new ModbusClientPort(port);
+    {
+        ModbusClientPort *cp = new ModbusClientPort(port);
+        cp->setTries(getSettingTries(settings));
+        return cp;
+    }
     return nullptr;
 }
 
