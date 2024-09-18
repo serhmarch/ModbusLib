@@ -84,7 +84,7 @@ public:
         lastStatus      = status;
         lastErrorStatus = status;
         lastErrorText   = text;
-        isLastPortError = true;
+        isLastPortError = false;
         return status;
     }
 
@@ -93,7 +93,7 @@ public:
         lastStatus      = status;
         lastErrorStatus = status;
         lastErrorText   = text;
-        isLastPortError = true;
+        isLastPortError = false;
         return status;
     }
 
