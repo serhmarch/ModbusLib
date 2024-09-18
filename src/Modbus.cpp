@@ -45,28 +45,47 @@ uint8_t lrc(const uint8_t *bytes, uint32_t count)
     return static_cast<uint8_t>(-static_cast<int8_t>(lrc));
 }
 
-StatusCode readMemRegs(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memRegCount)
+StatusCode readMemRegs(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memRegCount, uint32_t *outCount)
 {
     if (static_cast<uint32_t>(offset + count) > memRegCount)
-        return Status_BadIllegalDataAddress;
+    {
+        if (outCount && (offset < memRegCount))
+            count = memRegCount - offset;
+        else
+            return Status_BadIllegalDataAddress;
+    }
     const uint16_t *mem = reinterpret_cast<const uint16_t*>(memBuff);
     memcpy(values, &mem[offset], count * MB_REGE_SZ_BYTES);
+    if (outCount)
+        *outCount = count;
     return Status_Good;
 }
 
-StatusCode writeMemRegs(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memRegCount)
+StatusCode writeMemRegs(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memRegCount, uint32_t *outCount)
 {
     if (static_cast<uint32_t>(offset + count) > memRegCount)
-        return Status_BadIllegalDataAddress;
+    {
+        if (outCount && (offset < memRegCount))
+            count = memRegCount - offset;
+        else
+            return Status_BadIllegalDataAddress;
+    }
     uint16_t *mem = reinterpret_cast<uint16_t*>(memBuff);
     memcpy(&mem[offset], values, count * MB_REGE_SZ_BYTES);
+    if (outCount)
+        *outCount = count;
     return Status_Good;
 }
 
-StatusCode readMemBits(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memBitCount)
+StatusCode readMemBits(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memBitCount, uint32_t *outCount)
 {
     if (static_cast<uint32_t>(offset + count) > memBitCount)
-        return Status_BadIllegalDataAddress;
+    {
+        if (outCount && (offset < memBitCount))
+            count = memBitCount - offset;
+        else
+            return Status_BadIllegalDataAddress;
+    }
     uint16_t byteOffset = offset/MB_BYTE_SZ_BITES;
     uint16_t bytes = count/MB_BYTE_SZ_BITES;
     uint16_t shift = offset%MB_BYTE_SZ_BITES;
@@ -101,13 +120,20 @@ StatusCode readMemBits(uint32_t offset, uint32_t count, void *values, const void
             reinterpret_cast<uint8_t*>(values)[bytes] = mem[byteOffset+bytes] & mask;
         }
     }
+    if (outCount)
+        *outCount = count;
     return Status_Good;
 }
 
-StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memBitCount)
+StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memBitCount, uint32_t *outCount)
 {
     if (static_cast<uint32_t>(offset + count) > memBitCount)
-        return Status_BadIllegalDataAddress;
+    {
+        if (outCount && (offset < memBitCount))
+            count = memBitCount - offset;
+        else
+            return Status_BadIllegalDataAddress;
+    }
     uint16_t byteOffset = offset/MB_BYTE_SZ_BITES;
     uint16_t bytes = count/MB_BYTE_SZ_BITES;
     uint16_t shift = offset%MB_BYTE_SZ_BITES;
@@ -157,6 +183,8 @@ StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, voi
             mem[byteOffset+bytes] |= (reinterpret_cast<const uint8_t*>(values)[bytes] & mask);
         }
     }
+    if (outCount)
+        *outCount = count;
     return Status_Good;
 }
 
