@@ -6,7 +6,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_LIST
 
 set(MB_LIBRARY_NAME modbus)
 
-set(HEADERS 
+set(HEADERS ${HEADERS} 
     Modbus_config.h         
     ModbusPlatform.h        
     ModbusGlobal.h          
@@ -34,7 +34,7 @@ set(HEADERS
     ModbusTcpServer_p.h     
     )
 
-set(SOURCES 
+set(SOURCES ${SOURCES} 
     Modbus.cpp              
     cModbus.cpp             
     ModbusObject.cpp        
@@ -55,8 +55,9 @@ if (MB_QT_ENABLED)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTORCC ON)
-    find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+    find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+
     set(HEADERS ${HEADERS}
         ModbusQt.h         
         ) 

@@ -52,6 +52,9 @@ bin/**/*.smod
 #ignore external
 external/
 
+#ignore cmake presets
+CMakePresets.json
+
 #ignore vscode
 .vscode/
 

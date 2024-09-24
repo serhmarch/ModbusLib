@@ -132,13 +132,13 @@ StatusCode ModbusServerResource::process()
                 signalError(d->getName(), r, d->lastPortErrorText());
                 return r;
             }
-            signalRx(d->getName(), d->port->readBufferData(), d->port->readBufferSize());
             if (!d->port->isOpen())
             {
                 d->state = STATE_CLOSED;
                 signalClosed(this->objectName());
                 return Status_Uncertain;
             }
+            signalRx(d->getName(), d->port->readBufferData(), d->port->readBufferSize());
             d->state = STATE_READ;
             // no need break
         case STATE_READ:
