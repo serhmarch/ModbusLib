@@ -5,4 +5,8 @@
 
 # 0.3.0
 
-* Fix bug when write multiple coils/regs always return 0 count in response.
+* Fix 'Blocking'-mode bug for ModbusTcpPort creation
+* Fix bug when write multiple coils/regs always return 0 count in response
+* Fix ModbusClientPort error text is empty when 'Not correct response'
+* Improve read/write memory registers/bits functions
+* Fix bug when TCP port give 'Not Correct response' while server close connection

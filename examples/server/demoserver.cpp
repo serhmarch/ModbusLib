@@ -142,6 +142,24 @@ public:
     {
         return writeRegs(unit, offset, count, values);
     }
+
+    Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
+    {
+        uint16_t c, r;
+        Modbus::StatusCode s = readRegs(unit, offset, 1, &c);
+        if (Modbus::StatusIsBad(s))
+            return s;
+        r = (c & andMask) | (orMask & ~andMask);
+        return writeRegs(unit, offset, 1, &r);;
+    }
+
+    Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
+    {
+        Modbus::StatusCode status = writeRegs(unit, writeOffset, writeCount, writeValues);
+        if (StatusIsBad(status))
+            return status;
+        return readRegs(unit, readOffset, readCount, readValues);
+    }
 };
 
 struct Options

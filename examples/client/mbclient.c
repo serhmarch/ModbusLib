@@ -32,7 +32,7 @@ typedef struct _Options
 {
     ProtocolType        type  ;
     uint8_t             unit  ;
-    SerialSettings  ser   ;
+    SerialSettings      ser   ;
     TcpSettings         tcp   ; 
     int                 func  ;
     uint16_t            offset;
@@ -253,7 +253,7 @@ void parseOptions(int argc, char **argv)
                 options.func = atoi(argv[i]);
                 continue;
             }
-            printf("'-func' option must have a suppoted func number: 1-7,15,16\n");
+            printf("'-func' option must have a suppoted func number: 1-7,15,16,22,23\n");
             exit(1);
         }
         if (!strcmp(opt, "offset") || !strcmp(opt, "o"))
@@ -398,6 +398,14 @@ void fillValues()
         for (int i = 0; i < MB_VALUE_BUFF_SZ/2; i++)
             regs[i] = options.value;
         break;
+    case MBF_MASK_WRITE_REGISTER:
+        regs[0] = options.value;
+        regs[1] = options.value;
+        break;
+    case MBF_READ_WRITE_MULTIPLE_REGISTERS:
+        for (int i = 0; i < MB_VALUE_BUFF_SZ/2; i++)
+            regs[i] = options.value;
+        break;
     }
 }
 
@@ -508,6 +516,23 @@ int main(int argc, char **argv)
             printRegs(values, options.count);
             status = cWriteMultipleRegisters(client, options.offset, options.count, regs);
             printResult(status, cCliGetLastPortErrorText(client));
+            break;
+        case MBF_MASK_WRITE_REGISTER:
+            fillValues();
+            printf("MASK_WRITE_REGISTER(offset=%hu,andMask=%hu,orMask=%hu)\n", options.offset, regs[0], regs[1]);
+            printRegs(values, options.count);
+            status = cMaskWriteRegister(client, options.offset, regs[0], regs[1]);
+            printResult(status, cCliGetLastPortErrorText(client));
+            break;
+        case MBF_READ_WRITE_MULTIPLE_REGISTERS:
+            fillValues();
+            printf("READ_WRITE_MULTIPLE_REGISTERS(offset=%hu,count=%hu)\n", options.offset, options.count);
+            printRegs(values, options.count);
+            status = cReadWriteMultipleRegisters(client, options.offset, options.count, regs, options.offset, options.count, regs);
+            if (StatusIsGood(status))
+                printRegs(values, options.count);
+            else
+                printResult(status, cCliGetLastPortErrorText(client));
             break;
         default:
             printf("Unknown function: %d", options.func);

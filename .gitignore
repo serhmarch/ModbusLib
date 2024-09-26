@@ -1,12 +1,11 @@
 # Exclude all files in the bin directory and its subdirectories
-#bin/*
+bin/*
 
 # Include .dll and .exe files in bin and its subdirectories
 #!bin/**/*.dll
 #!bin/**/*.exe
 
 # Exclude other files in bin subdirectories (overrides previous includes)
-#bin/**/*.*
 bin/**/CMakeFiles/
 bin/**/CMakeScripts
 bin/**/cmake-build-debug

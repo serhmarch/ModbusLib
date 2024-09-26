@@ -406,7 +406,7 @@ StatusCode device_readCoils(cModbusDevice d, uint8_t unit, uint16_t offset, uint
     StatusCode status = device_checkUnit(dev, unit);
     if (StatusIsBad(status))
         return status;
-    return readMemBits(offset, count, values, dev->mem0x, dev->bit0x);
+    return readMemBits(offset, count, values, dev->mem0x, dev->bit0x, NULL);
 }
 
 StatusCode device_readDiscreteInputs(cModbusDevice d, uint8_t unit, uint16_t offset, uint16_t count, void *values)
@@ -415,7 +415,7 @@ StatusCode device_readDiscreteInputs(cModbusDevice d, uint8_t unit, uint16_t off
     StatusCode status = device_checkUnit(dev, unit);
     if (StatusIsBad(status))
         return status;
-    return readMemBits(offset, count, values, dev->mem1x, dev->bit1x);
+    return readMemBits(offset, count, values, dev->mem1x, dev->bit1x, NULL);
 }
 
 StatusCode device_readHoldingRegisters(cModbusDevice d, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
@@ -424,7 +424,7 @@ StatusCode device_readHoldingRegisters(cModbusDevice d, uint8_t unit, uint16_t o
     StatusCode status = device_checkUnit(dev, unit);
     if (StatusIsBad(status))
         return status;
-    return readMemRegs(offset, count, values, dev->mem4x, dev->reg4x);
+    return readMemRegs(offset, count, values, dev->mem4x, dev->reg4x, NULL);
 }
 
 StatusCode device_readInputRegisters(cModbusDevice d, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
@@ -433,7 +433,7 @@ StatusCode device_readInputRegisters(cModbusDevice d, uint8_t unit, uint16_t off
     StatusCode status = device_checkUnit(dev, unit);
     if (StatusIsBad(status))
         return status;
-    return readMemRegs(offset, count, values, dev->mem3x, dev->reg3x);
+    return readMemRegs(offset, count, values, dev->mem3x, dev->reg3x, NULL);
 }
 
 StatusCode device_writeSingleCoil(cModbusDevice d, uint8_t unit, uint16_t offset, bool value)
@@ -442,7 +442,7 @@ StatusCode device_writeSingleCoil(cModbusDevice d, uint8_t unit, uint16_t offset
     StatusCode status = device_checkUnit(dev, unit);
     if (StatusIsBad(status))
         return status;
-    return writeMemBits(offset, 1, &value, dev->mem0x, dev->bit0x);
+    return writeMemBits(offset, 1, &value, dev->mem0x, dev->bit0x, NULL);
 }
 
 StatusCode device_writeSingleRegister(cModbusDevice d, uint8_t unit, uint16_t offset, uint16_t value)
@@ -451,7 +451,7 @@ StatusCode device_writeSingleRegister(cModbusDevice d, uint8_t unit, uint16_t of
     StatusCode status = device_checkUnit(dev, unit);
     if (StatusIsBad(status))
         return status;
-    return writeMemRegs(offset, 1, &value, dev->mem4x, dev->reg4x);
+    return writeMemRegs(offset, 1, &value, dev->mem4x, dev->reg4x, NULL);
 }
 
 StatusCode device_readExceptionStatus(cModbusDevice d, uint8_t unit, uint8_t *excstatus)
@@ -470,7 +470,7 @@ StatusCode device_writeMultipleCoils(cModbusDevice d, uint8_t unit, uint16_t off
     StatusCode status = device_checkUnit(dev, unit);
     if (StatusIsBad(status))
         return status;
-    return writeMemBits(offset, count, values, dev->mem0x, dev->bit0x);
+    return writeMemBits(offset, count, values, dev->mem0x, dev->bit0x, NULL);
 }
 
 StatusCode device_writeMultipleRegisters(cModbusDevice d, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
@@ -479,8 +479,35 @@ StatusCode device_writeMultipleRegisters(cModbusDevice d, uint8_t unit, uint16_t
     StatusCode status = device_checkUnit(dev, unit);
     if (StatusIsBad(status))
         return status;
-    return writeMemRegs(offset, count, values, dev->mem4x, dev->reg4x);
+    return writeMemRegs(offset, count, values, dev->mem4x, dev->reg4x, NULL);
 }
+
+StatusCode device_maskWriteRegister(cModbusDevice d, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
+{
+    uint16_t c;
+    MemoryDevice *dev = (MemoryDevice*)d;
+    StatusCode status = device_checkUnit(dev, unit);
+    if (StatusIsBad(status))
+        return status;
+    status = readMemRegs(offset, 1, &c, dev->mem4x, dev->reg4x, NULL);;
+    if (StatusIsBad(status))
+        return status;
+    c = (c & andMask) | (orMask & ~andMask);
+    return writeMemRegs(offset, 1, &c, dev->mem4x, dev->reg4x, NULL);
+}
+
+StatusCode device_readWriteMultipleRegisters(cModbusDevice d, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
+{
+    MemoryDevice *dev = (MemoryDevice*)d;
+    StatusCode status = device_checkUnit(dev, unit);
+    if (StatusIsBad(status))
+        return status;
+    status = writeMemRegs(writeOffset, writeCount, writeValues, dev->mem4x, dev->reg4x, NULL);
+    if (StatusIsBad(status))
+        return status;
+    return readMemRegs(readOffset, readCount, readValues, dev->mem4x, dev->reg4x, NULL);
+}
+
 
 int main(int argc, char **argv)
 {
@@ -489,15 +516,17 @@ int main(int argc, char **argv)
     MemoryDevice dev;
     device_init(&dev, options.unit, options.c0, options.c1, options.c3, options.c4);
 
-    pfReadCoils              fReadCoils              = NULL;
-    pfReadDiscreteInputs     fReadDiscreteInputs     = NULL;
-    pfReadHoldingRegisters   fReadHoldingRegisters   = NULL;
-    pfReadInputRegisters     fReadInputRegisters     = NULL;
-    pfWriteSingleCoil        fWriteSingleCoil        = NULL;
-    pfWriteSingleRegister    fWriteSingleRegister    = NULL;
-    pfReadExceptionStatus    fReadExceptionStatus    = NULL;
-    pfWriteMultipleCoils     fWriteMultipleCoils     = NULL;
-    pfWriteMultipleRegisters fWriteMultipleRegisters = NULL;
+    pfReadCoils                  fReadCoils                  = NULL;
+    pfReadDiscreteInputs         fReadDiscreteInputs         = NULL;
+    pfReadHoldingRegisters       fReadHoldingRegisters       = NULL;
+    pfReadInputRegisters         fReadInputRegisters         = NULL;
+    pfWriteSingleCoil            fWriteSingleCoil            = NULL;
+    pfWriteSingleRegister        fWriteSingleRegister        = NULL;
+    pfReadExceptionStatus        fReadExceptionStatus        = NULL;
+    pfWriteMultipleCoils         fWriteMultipleCoils         = NULL;
+    pfWriteMultipleRegisters     fWriteMultipleRegisters     = NULL;
+    pfMaskWriteRegister          fMaskWriteRegister          = NULL;
+    pfReadWriteMultipleRegisters fReadWriteMultipleRegisters = NULL;
 
     if (dev.mem0x)
     {
@@ -519,22 +548,25 @@ int main(int argc, char **argv)
 
     if (dev.mem4x)
     {
-        fReadHoldingRegisters   = device_readHoldingRegisters  ;
-        fWriteSingleRegister    = device_writeSingleRegister   ;
-        fWriteMultipleRegisters = device_writeMultipleRegisters;
+        fReadHoldingRegisters       = device_readHoldingRegisters      ;
+        fWriteSingleRegister        = device_writeSingleRegister       ;
+        fWriteMultipleRegisters     = device_writeMultipleRegisters    ;
+        fMaskWriteRegister          = device_maskWriteRegister         ;        
+        fReadWriteMultipleRegisters = device_readWriteMultipleRegisters;
     }
 
     cModbusInterface cdev = cCreateModbusDevice(&dev,
-                                                fReadCoils             ,
-                                                fReadDiscreteInputs    ,
-                                                fReadHoldingRegisters  ,
-                                                fReadInputRegisters    ,
-                                                fWriteSingleCoil       ,
-                                                fWriteSingleRegister   ,
-                                                fReadExceptionStatus   ,
-                                                fWriteMultipleCoils    ,
-                                                fWriteMultipleRegisters
-                                                );
+                                                fReadCoils                 ,
+                                                fReadDiscreteInputs        ,
+                                                fReadHoldingRegisters      ,
+                                                fReadInputRegisters        ,
+                                                fWriteSingleCoil           ,
+                                                fWriteSingleRegister       ,
+                                                fReadExceptionStatus       ,
+                                                fWriteMultipleCoils        ,
+                                                fWriteMultipleRegisters    ,
+                                                fMaskWriteRegister         ,     
+                                                fReadWriteMultipleRegisters);
 
     const bool blocking = false; // use async/non blocking mode
     cModbusServerPort serv;

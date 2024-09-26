@@ -329,15 +329,17 @@ int main(int argc, char **argv)
     struct RequestParams { uint8_t func; uint16_t offset; uint16_t count; };
 
     std::list<RequestParams> requests {
-                                        { MBF_READ_COILS              , options.offset, options.count},
-                                        { MBF_READ_DISCRETE_INPUTS    , options.offset, options.count},
-                                        { MBF_READ_HOLDING_REGISTERS  , options.offset, options.count},
-                                        { MBF_READ_INPUT_REGISTERS    , options.offset, options.count},
-                                        { MBF_WRITE_SINGLE_COIL       , options.offset, 0 },
-                                        { MBF_WRITE_SINGLE_REGISTER   , options.offset, 0 },
-                                        { MBF_READ_EXCEPTION_STATUS   , options.offset, 0 },
-                                        { MBF_WRITE_MULTIPLE_COILS    , options.offset, options.count},
-                                        { MBF_WRITE_MULTIPLE_REGISTERS, options.offset, options.count},
+                                        { MBF_READ_COILS                   , options.offset, options.count},
+                                        { MBF_READ_DISCRETE_INPUTS         , options.offset, options.count},
+                                        { MBF_READ_HOLDING_REGISTERS       , options.offset, options.count},
+                                        { MBF_READ_INPUT_REGISTERS         , options.offset, options.count},
+                                        { MBF_WRITE_SINGLE_COIL            , options.offset, 0 },
+                                        { MBF_WRITE_SINGLE_REGISTER        , options.offset, 0 },
+                                        { MBF_READ_EXCEPTION_STATUS        , options.offset, 0 },
+                                        { MBF_WRITE_MULTIPLE_COILS         , options.offset, options.count},
+                                        { MBF_WRITE_MULTIPLE_REGISTERS     , options.offset, options.count},
+                                        { MBF_MASK_WRITE_REGISTER          , options.offset, 0},
+                                        { MBF_READ_WRITE_MULTIPLE_REGISTERS, options.offset, options.count},
                                       };
     std::vector<uint16_t> buff;
     ModbusClient client(options.unit, clientPort);
@@ -429,6 +431,25 @@ int main(int argc, char **argv)
             else
                 std::cout << clientPort->lastErrorText() << "\n";
             break;
+        case MBF_MASK_WRITE_REGISTER:
+            printf("MASK_WRITE_REGISTER(offset=%hu)\n", req.offset);
+            printRegs(req.count, buff.data());
+            status = client.maskWriteRegister(req.offset, 0, 0);
+            if (Modbus::StatusIsGood(status))
+                std::cout << "Good\n";
+            else
+                std::cout << clientPort->lastErrorText() << "\n";
+            break;
+        case MBF_READ_WRITE_MULTIPLE_REGISTERS:
+            printf("READ_WRITE_MULTIPLE_REGISTERS(offset=%hu,count=%hu)\n", req.offset, req.count);
+            printRegs(req.count, buff.data());
+            status = client.readWriteMultipleRegisters(req.offset, req.count, reinterpret_cast<uint16_t*>(buff.data()),
+                                                       req.offset, req.count, reinterpret_cast<uint16_t*>(buff.data()));
+            if (Modbus::StatusIsGood(status))
+                std::cout << "Good\n";
+            else
+                std::cout << clientPort->lastErrorText() << "\n";
+            break;      
         }
         Modbus::Timer tmexec = Modbus::timer()-tmr;
         const uint32_t period = 1000;

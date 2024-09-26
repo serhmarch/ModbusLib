@@ -424,9 +424,9 @@ MODBUS_EXPORT uint8_t lrc(const uint8_t *byteArr, uint32_t count);
 /// \param[out] values      Output buffer to store data.
 /// \param[in]  memBuff     Pointer to the memory which holds data.
 /// \param[in]  memRegCount Size of memory buffer `memBuff` in 16-bit registers.
-/// \param[out] outCount    Optional. If specified, then if the requested amount of memory exceeds the limits of this memory,
+/// \param[out] outCount    Optional, can be NULL. If specified, then if the requested amount of memory exceeds the limits of this memory,
 /// the error is not returned, and the amount of memory read is reduced to the memory limits and this new amount is returned in `outCount`
-MODBUS_EXPORT StatusCode readMemRegs(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memRegCount, uint32_t *outCount = nullptr);
+MODBUS_EXPORT StatusCode readMemRegs(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memRegCount, uint32_t *outCount);
 
 /// \details Function for copy (write) values from input buffer `values` to memory `memBuff` for 16 bit registers:
 /// \param[in]  offset      Memory offset to write to `memBuff` in 16-bit registers size.
@@ -434,9 +434,9 @@ MODBUS_EXPORT StatusCode readMemRegs(uint32_t offset, uint32_t count, void *valu
 /// \param[out] values      Input buffer that holds data to write.
 /// \param[in]  memBuff     Pointer to the memory buffer.
 /// \param[in]  memRegCount Size of memory buffer `memBuff` in 16-bit registers.
-/// \param[out] outCount    Optional. If specified, then if the requested amount of memory exceeds the limits of this memory,
+/// \param[out] outCount    Optional, can be NULL. If specified, then if the requested amount of memory exceeds the limits of this memory,
 /// the error is not returned, and the amount of memory write is reduced to the memory limits and this new amount is returned in `outCount`
-MODBUS_EXPORT StatusCode writeMemRegs(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memRegCount, uint32_t *outCount = nullptr);
+MODBUS_EXPORT StatusCode writeMemRegs(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memRegCount, uint32_t *outCount);
 
 /// \details Function for copy (read) values from memory input `memBuff` and put it to the output buffer `values` for discretes (bits):
 /// \param[in]  offset      Memory offset to read from `memBuff` in bit size.
@@ -444,9 +444,9 @@ MODBUS_EXPORT StatusCode writeMemRegs(uint32_t offset, uint32_t count, const voi
 /// \param[out] values      Output buffer to store data.
 /// \param[in]  memBuff     Pointer to the memory which holds data.
 /// \param[in]  memBitCount Size of memory buffer `memBuff` in bits.
-/// \param[out] outCount    Optional. If specified, then if the requested amount of memory exceeds the limits of this memory,
+/// \param[out] outCount    Optional, can be NULL. If specified, then if the requested amount of memory exceeds the limits of this memory,
 /// the error is not returned, and the amount of memory read is reduced to the memory limits and this new amount is returned in `outCount`
-MODBUS_EXPORT StatusCode readMemBits(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memBitCount, uint32_t *outCount = nullptr);
+MODBUS_EXPORT StatusCode readMemBits(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memBitCount, uint32_t *outCount);
 
 /// \details Function for copy (write) values from input buffer `values` to memory `memBuff` for discretes (bits):
 /// \param[in]  offset      Memory offset to write to `memBuff` in bit size.
@@ -454,9 +454,9 @@ MODBUS_EXPORT StatusCode readMemBits(uint32_t offset, uint32_t count, void *valu
 /// \param[out] values      Input buffer that holds data to write.
 /// \param[in]  memBuff     Pointer to the memory buffer.
 /// \param[in]  memBitCount Size of memory buffer `memBuff` in bits.
-/// \param[out] outCount    Optional. If specified, then if the requested amount of memory exceeds the limits of this memory,
+/// \param[out] outCount    Optional, can be NULL. If specified, then if the requested amount of memory exceeds the limits of this memory,
 /// the error is not returned, and the amount of memory write is reduced to the memory limits and this new amount is returned in `outCount`
-MODBUS_EXPORT StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memBitCount, uint32_t *outCount = nullptr);
+MODBUS_EXPORT StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memBitCount, uint32_t *outCount);
 
 /// \details Function converts byte array \c bytesBuff to ASCII repr of byte array.
 /// Every byte of \c bytesBuff are repr as two bytes in \c asciiBuff,

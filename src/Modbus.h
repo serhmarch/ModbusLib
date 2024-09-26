@@ -104,10 +104,10 @@ public:
     virtual Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values);
 
     /// \details Function for write holding (output) 16-bit registers (4x regs).
-    /// \param[in]  unit        Address of the remote Modbus device.
-    /// \param[in]  readOffset  Starting offset (0-based).
-    /// \param[in]  readCount   Count of registers.
-    /// \param[in]  values      Pointer to the input buffer which values must be written.
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of registers.
+    /// \param[in]  values  Pointer to the input buffer which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 
@@ -117,7 +117,8 @@ public:
     /// `Result = (Current Contents AND And_Mask) OR (Or_Mask AND (NOT And_Mask))`
     /// \param[in]  unit    Address of the remote Modbus device.
     /// \param[in]  offset  Starting offset (0-based).
-    /// \param[in]  andMask 16-bit unsigned integer value to be set.
+    /// \param[in]  andMask 16-bit unsigned integer value AND mask.
+    /// \param[in]  orMask  16-bit unsigned integer value OR mask.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
 
@@ -193,6 +194,30 @@ MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *
 /// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking);
+
+/// \details Overloaded function
+inline StatusCode readMemRegs(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memRegCount)
+{
+    return readMemRegs(offset, count , values, memBuff, memRegCount, nullptr);
+}
+
+/// \details Overloaded function
+inline StatusCode writeMemRegs(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memRegCount)
+{
+    return writeMemRegs(offset, count , values, memBuff, memRegCount, nullptr);
+}
+
+/// \details Overloaded function
+inline StatusCode readMemBits(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memBitCount)
+{
+    return readMemBits(offset, count , values, memBuff, memBitCount, nullptr);
+}
+
+/// \details Overloaded function
+inline StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *values, void *memBuff, uint32_t memBitCount)
+{
+    return writeMemBits(offset, count , values, memBuff, memBitCount, nullptr);
+}
 
 } //namespace Modbus
 
