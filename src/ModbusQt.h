@@ -39,6 +39,20 @@ public:
     const QString timeoutFirstByte; ///< Setting key for the serial port's timeout waiting first byte of packet
     const QString timeoutInterByte; ///< Setting key for the serial port's timeout waiting next byte of packet
 
+    const QString NoParity        ;
+    const QString EvenParity      ;
+    const QString OddParity       ;
+    const QString SpaceParity     ;
+    const QString MarkParity      ;
+
+    const QString OneStop         ;
+    const QString OneAndHalfStop  ;
+    const QString TwoStop         ;
+
+    const QString NoFlowControl   ;
+    const QString HardwareControl ;
+    const QString SoftwareControl ;
+
     /// \details Constructor ot the class.
     Strings();
 

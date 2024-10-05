@@ -279,9 +279,9 @@ enum Parity
 typedef enum _Parity
 #endif
 {
-    NoParity   ,    ///< No parity bit it sent. This is the most common parity setting.
-    EvenParity ,  ///< The number of 1 bits in each character, including the parity bit, is always even.
-    OddParity  ,   ///< The number of 1 bits in each character, including the parity bit, is always odd. It ensures that at least one state transition occurs in each character.
+    NoParity   , ///< No parity bit it sent. This is the most common parity setting.
+    EvenParity , ///< The number of 1 bits in each character, including the parity bit, is always even.
+    OddParity  , ///< The number of 1 bits in each character, including the parity bit, is always odd. It ensures that at least one state transition occurs in each character.
     SpaceParity, ///< Space parity. The parity bit is sent in the space signal condition. It does not provide error detection information.
     MarkParity   ///< Mark parity. The parity bit is always set to the mark signal condition (logical 1). It does not provide error detection information.
 }

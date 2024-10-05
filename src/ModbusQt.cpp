@@ -23,7 +23,21 @@ Strings::Strings() :
     stopBits        (QStringLiteral("stopBits")),
     flowControl     (QStringLiteral("flowControl")),
     timeoutFirstByte(QStringLiteral("timeoutFirstByte")),
-    timeoutInterByte(QStringLiteral("timeoutInterByte"))
+    timeoutInterByte(QStringLiteral("timeoutInterByte")),
+
+    NoParity        (QStringLiteral("No")),
+    EvenParity      (QStringLiteral("Even")),
+    OddParity       (QStringLiteral("Odd")),
+    SpaceParity     (QStringLiteral("Space")),
+    MarkParity      (QStringLiteral("Mark")),
+
+    OneStop         (QStringLiteral("1")),
+    OneAndHalfStop  (QStringLiteral("1.5")),
+    TwoStop         (QStringLiteral("2")),
+
+    NoFlowControl   (QStringLiteral("No")),
+    HardwareControl (QStringLiteral("Hard")),
+    SoftwareControl (QStringLiteral("Soft"))
 {
 }
 
@@ -337,31 +351,62 @@ int8_t toDataBits(const QVariant &v, bool *ok)
 
 Parity toParity(const QString &v, bool *ok)
 {
+    const Strings &s = Strings::instance();
+    if (v == s.NoParity)
+        return NoParity;
+    if (v == s.EvenParity)
+        return EvenParity;
+    if (v == s.OddParity)
+        return OddParity;
+    if (v == s.SpaceParity)
+        return SpaceParity;
+    if (v == s.MarkParity)
+        return MarkParity;
     return enumValue<Parity>(v, ok, Defaults::instance().parity);
 }
 
 Parity toParity(const QVariant &v, bool *ok)
 {
+    if (v.type() == QVariant::String)
+        return toParity(v.toString(), ok);
     return enumValue<Parity>(v, ok, Defaults::instance().parity);
 }
 
 StopBits toStopBits(const QString &v, bool *ok)
 {
+    const Strings &s = Strings::instance();
+    if (v == s.OneStop)
+        return OneStop;
+    if (v == s.OneAndHalfStop)
+        return OneAndHalfStop;
+    if (v == s.TwoStop)
+        return TwoStop;
     return enumValue<StopBits>(v, ok, Defaults::instance().stopBits);
 }
 
 StopBits toStopBits(const QVariant &v, bool *ok)
 {
+    if (v.type() == QVariant::String)
+        return toStopBits(v.toString(), ok);
     return enumValue<StopBits>(v, ok, Defaults::instance().stopBits);
 }
 
 FlowControl toFlowControl(const QString &v, bool *ok)
 {
+    const Strings &s = Strings::instance();
+    if (v == s.NoFlowControl)
+        return NoFlowControl;
+    if (v == s.HardwareControl)
+        return HardwareControl;
+    if (v == s.SoftwareControl)
+        return SoftwareControl;
     return enumValue<FlowControl>(v, ok, Defaults::instance().flowControl);
 }
 
 FlowControl toFlowControl(const QVariant &v, bool *ok)
 {
+    if (v.type() == QVariant::String)
+        return toFlowControl(v.toString(), ok);
     return enumValue<FlowControl>(v, ok, Defaults::instance().flowControl);
 }
 
@@ -382,16 +427,39 @@ QString toString(ProtocolType v)
 
 QString toString(Parity v)
 {
+    const Strings &s = Strings::instance();
+    switch (v)
+    {
+    case NoParity   : return s.NoParity   ;
+    case EvenParity : return s.EvenParity ;
+    case OddParity  : return s.OddParity  ;
+    case SpaceParity: return s.SpaceParity;
+    case MarkParity : return s.MarkParity ;
+    }
     return enumKey(v);
 }
 
 QString toString(StopBits v)
 {
+    const Strings &s = Strings::instance();
+    switch (v)
+    {
+    case OneStop       : return s.OneStop       ;
+    case OneAndHalfStop: return s.OneAndHalfStop;
+    case TwoStop       : return s.TwoStop       ;
+    }
     return enumKey(v);
 }
 
 QString toString(FlowControl v)
 {
+    const Strings &s = Strings::instance();
+    switch (v)
+    {
+    case NoFlowControl  : return s.NoFlowControl  ;
+    case HardwareControl: return s.HardwareControl;
+    case SoftwareControl: return s.SoftwareControl;
+    }
     return enumKey(v);
 }
 
