@@ -9,8 +9,13 @@
 * Add 'MASK_WRITE_REGISTER'-function
 * Add 'READ_WRITE_MULTIPLEREGISTER'-function
 * Add 'tries'-setting for ModbusQt
-* Fix bugs
+* Fixed bugs
 
 # 0.3.1
 
 * Improve string repr for Parity, StopBits and FlowControl serial port settings
+
+# 0.3.2
+
+* Fixed a bug
+

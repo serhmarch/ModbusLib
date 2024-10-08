@@ -796,7 +796,7 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
     {
         if (*szOutBuff > 0)
         {
-            StatusCode r = static_cast<StatusCode>(d->buff[0]); // Returned modbus exception
+            r = static_cast<StatusCode>(buff[0]); // Returned modbus exception
             return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
         }
         else
