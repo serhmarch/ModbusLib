@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5) # 2.2 - case insensitive syntax
 
-project(ModbusLib VERSION 0.3.0 LANGUAGES C CXX)
+project(ModbusLib VERSION 0.3.1 LANGUAGES C CXX)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h)
 
@@ -99,9 +99,26 @@ else()
         )
 endif()
 
+set(RESOURCES              
+    )     
+
+if (WIN32)
+    set(MODBUSLIB_WIN_RESOURCE_FILE win_resource.rc)
+    message("${PROJECT_NAME} resource file for Windows: '${MODBUSLIB_WIN_RESOURCE_FILE}'")
+
+    set(MODBUSLIB_WIN_FILE "${MB_LIBRARY_NAME}")
+    set(MODBUSLIB_WIN_OUTFILE "${MODBUSLIB_WIN_FILE}.dll")
+    configure_file(${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE}.in 
+                   ${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE})
+
+    set(RESOURCES ${RESOURCES}
+        ${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE}           
+    )     
+endif()
+
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_library(${MB_LIBRARY_NAME} SHARED ${HEADERS} ${SOURCES})
+add_library(${MB_LIBRARY_NAME} SHARED ${HEADERS} ${SOURCES} ${RESOURCES})
 
 target_compile_definitions(${MB_LIBRARY_NAME} PRIVATE MODBUS_EXPORTS)
 
