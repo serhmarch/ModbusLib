@@ -281,7 +281,7 @@ StatusCode ModbusSerialPort::read()
             // no need break
         case STATE_WAIT_FOR_READ_ALL:
             // next bytes state
-            c = ::read(d->serialPort, d->buff, d->c_buffSz);
+            c = ::read(d->serialPort, d->buff+d->sz, d->c_buffSz);
             if (c < 0)
             {
                 if (errno != EWOULDBLOCK)

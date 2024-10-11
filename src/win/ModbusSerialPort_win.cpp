@@ -263,7 +263,7 @@ StatusCode ModbusSerialPort::read()
         case STATE_WAIT_FOR_READ_ALL:
             // next bytes state
             c = 0;
-            if (!ReadFile(d->serialPort, d->buff, d->c_buffSz, &c, NULL))
+            if (!ReadFile(d->serialPort, d->buff+d->sz, d->c_buffSz, &c, NULL))
             {
                 if (GetLastError() != ERROR_IO_PENDING)
                 {
