@@ -352,16 +352,26 @@ int8_t toDataBits(const QVariant &v, bool *ok)
 Parity toParity(const QString &v, bool *ok)
 {
     const Strings &s = Strings::instance();
+    Parity d;
+    bool okInner = true;
     if (v == s.NoParity)
-        return NoParity;
-    if (v == s.EvenParity)
-        return EvenParity;
-    if (v == s.OddParity)
-        return OddParity;
-    if (v == s.SpaceParity)
-        return SpaceParity;
-    if (v == s.MarkParity)
-        return MarkParity;
+        d = NoParity;
+    else if (v == s.EvenParity)
+        d = EvenParity;
+    else if (v == s.OddParity)
+        d = OddParity;
+    else if (v == s.SpaceParity)
+        d = SpaceParity;
+    else if (v == s.MarkParity)
+        d = MarkParity;
+    else
+        okInner = false;
+    if (okInner)
+    {
+        if (ok)
+            *ok = okInner;
+        return d;
+    }
     return enumValue<Parity>(v, ok, Defaults::instance().parity);
 }
 
@@ -375,12 +385,22 @@ Parity toParity(const QVariant &v, bool *ok)
 StopBits toStopBits(const QString &v, bool *ok)
 {
     const Strings &s = Strings::instance();
+    StopBits d;
+    bool okInner = true;
     if (v == s.OneStop)
-        return OneStop;
-    if (v == s.OneAndHalfStop)
-        return OneAndHalfStop;
-    if (v == s.TwoStop)
-        return TwoStop;
+        d = OneStop;
+    else if (v == s.OneAndHalfStop)
+        d = OneAndHalfStop;
+    else if (v == s.TwoStop)
+        d = TwoStop;
+    else
+        okInner = false;
+    if (okInner)
+    {
+        if (ok)
+            *ok = okInner;
+        return d;
+    }
     return enumValue<StopBits>(v, ok, Defaults::instance().stopBits);
 }
 
@@ -394,12 +414,22 @@ StopBits toStopBits(const QVariant &v, bool *ok)
 FlowControl toFlowControl(const QString &v, bool *ok)
 {
     const Strings &s = Strings::instance();
+    FlowControl d;
+    bool okInner = true;
     if (v == s.NoFlowControl)
-        return NoFlowControl;
-    if (v == s.HardwareControl)
-        return HardwareControl;
-    if (v == s.SoftwareControl)
-        return SoftwareControl;
+        d = NoFlowControl;
+    else if (v == s.HardwareControl)
+        d = HardwareControl;
+    else if (v == s.SoftwareControl)
+        d = SoftwareControl;
+    else
+        okInner = false;
+    if (okInner)
+    {
+        if (ok)
+            *ok = okInner;
+        return d;
+    }
     return enumValue<FlowControl>(v, ok, Defaults::instance().flowControl);
 }
 
