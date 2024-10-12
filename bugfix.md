@@ -15,3 +15,7 @@
 
 * Fixed a bug with an inappropriate Modbus exception code
 
+# 0.3.3
+
+* Fixed bug for serial port reading when  (Wrong CRC)
+* Fixed toParity, toStopBits and toFlowControl conversion functions

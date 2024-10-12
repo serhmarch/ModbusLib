@@ -1,3 +1,5 @@
+> Description of all fixed bug is located in `bugfix.md`
+
 # 0.2.0
 
 * Fixed some bugs
@@ -18,4 +20,8 @@
 # 0.3.2
 
 * Fixed a bug
+
+# 0.3.3
+
+* Fixed bugs
 
