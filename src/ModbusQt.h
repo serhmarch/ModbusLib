@@ -219,7 +219,7 @@ public:
 
     /// \details Converts current Modbus Data Address to `quint32`,
     /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `400001`.
-    inline operator quint32 () const { return number() | (m_type<<16);  }
+    inline operator quint32 () const { return number() + (m_type*100000);  }
 
     /// \details Assigment operator definition.
     Address &operator= (quint32 v);

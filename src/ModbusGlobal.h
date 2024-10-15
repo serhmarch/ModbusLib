@@ -410,6 +410,9 @@ MODBUS_EXPORT uint32_t modbusLibVersion();
 /// \details Returns version of current lib as string constant pointer like "major.minor.patch".
 MODBUS_EXPORT const Char* modbusLibVersionStr();
 
+/// \details Function extract only offset part from Modbus address and returns it.
+inline uint16_t toModbusOffset(uint32_t adr) { return (uint16_t)(adr - 1); }
+
 /// \details CRC16 checksum hash function (for Modbus RTU).
 /// \returns Returns a 16-bit unsigned integer value of the checksum
 MODBUS_EXPORT uint16_t crc16(const uint8_t *byteArr, uint32_t count);

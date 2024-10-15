@@ -25,3 +25,6 @@
 
 * Fixed bugs
 
+# 0.3.4
+
+* Minor changes, fixed bug

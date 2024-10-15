@@ -19,3 +19,7 @@
 
 * Fixed bug for serial port reading when  (Wrong CRC)
 * Fixed toParity, toStopBits and toFlowControl conversion functions
+
+# 0.3.4
+
+* Fixed bug in `Modbus::Address::operator quint32() const` function
