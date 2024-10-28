@@ -1,5 +1,7 @@
 TEMPLATE = lib
 
+include(version.pri)
+
 #CONFIG += c++17
 CONFIG += qt
 

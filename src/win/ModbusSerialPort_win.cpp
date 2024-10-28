@@ -33,7 +33,7 @@ ModbusSerialPort::Defaults::Defaults() :
     stopBits(OneStop),
     flowControl(NoFlowControl),
     timeoutFirstByte(1000),
-    timeoutInterByte(50)
+    timeoutInterByte(5)
 {
 }
 
@@ -86,7 +86,10 @@ StatusCode ModbusSerialPort::open()
 
             if (d->serialPortIsInvalid())
             {
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open serial port. Error code: ") + toModbusString(GetLastError()));
+                DWORD err = GetLastError();
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open serial port '") + d->settings.portName +
+                                                         StringLiteral("'. Error code: ") + toModbusString(err) +
+                                                         StringLiteral(". ") + getLastErrorText());
             }
 
             // Configure the serial port
@@ -95,7 +98,10 @@ StatusCode ModbusSerialPort::open()
             if (!GetCommState(d->serialPort, &dcbSerialParams))
             {
                 d->serialPortClose();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get serial port state. Error code: ") + toModbusString(GetLastError()));
+                DWORD err = GetLastError();
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get serial port '") + d->settings.portName +
+                                                         StringLiteral("'state. Error code: ") + toModbusString(err) +
+                                                         StringLiteral(". ") + getLastErrorText());
             }
 
             dcbSerialParams.BaudRate = static_cast<DWORD>(d->settings.baudRate);
@@ -107,7 +113,9 @@ StatusCode ModbusSerialPort::open()
             if (!SetCommState(d->serialPort, &dcbSerialParams))
             {
                 d->serialPortClose();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set serial port state. Error code: ") + toModbusString(GetLastError()));
+                DWORD err = GetLastError();
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set serial port '") + d->settings.portName +
+                                                         StringLiteral("'state. Error code: ") + toModbusString(err));
             }
 
             // Set timeouts
@@ -125,7 +133,9 @@ StatusCode ModbusSerialPort::open()
             if (!SetCommTimeouts(d->serialPort, &timeouts))
             {
                 d->serialPortClose();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set timeouts. Error code: ") + toModbusString(GetLastError()));
+                DWORD err = GetLastError();
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set timeouts of serial port '") + d->settings.portName +
+                                                         StringLiteral("'. Error code: ") + toModbusString(err));
             }
         }
             return Status_Good;
@@ -160,6 +170,11 @@ bool ModbusSerialPort::isOpen() const
     return d_win(d_ptr)->serialPortIsOpen();
 }
 
+//void dummyOverlappedCompletionRoutine(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)
+//{
+//    // Note: dummy
+//}
+
 StatusCode ModbusSerialPort::write()
 {
     ModbusSerialPortPrivateWin *d = d_win(d_ptr);
@@ -177,9 +192,24 @@ StatusCode ModbusSerialPort::write()
             // no need break
         case STATE_WAIT_FOR_WRITE:
         case STATE_WAIT_FOR_WRITE_ALL:
+        {
             // Note: clean read buffer from garbage before write
             PurgeComm(d->serialPort, PURGE_RXCLEAR);
-            if (WriteFile(d->serialPort, d->buff, d->sz, &c, NULL))
+            //if (d->isBlocking())
+            //    r = WriteFile(d->serialPort, d->buff, d->sz, &c, NULL);
+            //else
+            //{
+            //    OVERLAPPED o;
+            //    o.Internal = 0;
+            //    o.InternalHigh = 0;
+            //    o.Offset = 0xFFFFFFFF;
+            //    o.OffsetHigh = 0xFFFFFFFF;
+            //    o.Pointer = 0;
+            //    o.hEvent = 0;
+            //    r = WriteFileEx(d->serialPort, d->buff, d->sz, &o, &dummyOverlappedCompletionRoutine);
+            //}
+            BOOL r = WriteFile(d->serialPort, d->buff, d->sz, &c, NULL);
+            if (r)
             {
                 d->state = STATE_BEGIN;
                 return Status_Good;
@@ -190,9 +220,12 @@ StatusCode ModbusSerialPort::write()
                 if (err != ERROR_IO_PENDING)
                 {
                     d->state = STATE_BEGIN;
-                    return d->setError(Status_BadSerialWrite, StringLiteral("Error while writing serial port"));
+                    return d->setError(Status_BadSerialWrite, StringLiteral("Error while writing serial port '") + d->settings.portName +
+                                                              StringLiteral("'. Error code: ") + toModbusString(err) +
+                                                              StringLiteral(". ") + getLastErrorText());
                 }
             }
+        }
             break;
         default:
             if (isOpen())
@@ -228,10 +261,13 @@ StatusCode ModbusSerialPort::read()
             c = 0;
             if (!ReadFile(d->serialPort, d->buff, d->c_buffSz, &c, NULL))
             {
-                if (GetLastError() != ERROR_IO_PENDING)
+                DWORD err = GetLastError();
+                if (err != ERROR_IO_PENDING)
                 {
                     d->state = STATE_BEGIN;
-                    return d->setError(Status_BadSerialRead, StringLiteral("Error while reading serial port "));
+                    return d->setError(Status_BadSerialRead, StringLiteral("Error while reading serial port '") + d->settings.portName +
+                                                             StringLiteral("'. Error code: ") + toModbusString(err) +
+                                                             StringLiteral(". ") + getLastErrorText());
                 }
             }
             if (c > 0)
@@ -240,7 +276,8 @@ StatusCode ModbusSerialPort::read()
                 if (d->sz > d->c_buffSz)
                 {
                     d->state = STATE_BEGIN;
-                    return d->setError(Status_BadReadBufferOverflow, StringLiteral("Serial port's '%1' read-buffer overflow"));
+                    return d->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading serial port '") + d->settings.portName +
+                                                                     StringLiteral("'. Read buffer overflow"));
                 }
                 if (isBlocking())
                 {
@@ -251,7 +288,8 @@ StatusCode ModbusSerialPort::read()
             else if (GetTickCount() - d->timestamp >= timeoutFirstByte()) // waiting timeout read first byte elapsed
             {
                 d->state = STATE_BEGIN;
-                return d->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading serial port "));
+                return d->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading serial port '") + d->settings.portName +
+                                                                StringLiteral("'. Timeout"));
             }
             else
             {
@@ -265,10 +303,13 @@ StatusCode ModbusSerialPort::read()
             c = 0;
             if (!ReadFile(d->serialPort, d->buff+d->sz, d->c_buffSz, &c, NULL))
             {
-                if (GetLastError() != ERROR_IO_PENDING)
+                DWORD err = GetLastError();
+                if (err != ERROR_IO_PENDING)
                 {
                     d->state = STATE_BEGIN;
-                    return d->setError(Status_BadSerialRead, StringLiteral("Error while reading serial port "));
+                    return d->setError(Status_BadSerialRead, StringLiteral("Error while reading serial port '") + d->settings.portName +
+                                                             StringLiteral("'. Error code: ") + toModbusString(err) +
+                                                             StringLiteral(". ") + getLastErrorText());
                 }
             }
 
@@ -276,7 +317,8 @@ StatusCode ModbusSerialPort::read()
             {
                 d->sz += static_cast<uint16_t>(c);
                 if (d->sz > d->c_buffSz)
-                    return d->setError(Modbus::Status_BadReadBufferOverflow, StringLiteral("Serial port's read-buffer overflow"));
+                    return d->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading serial port '") + d->settings.portName +
+                                                                     StringLiteral("'. Read buffer overflow"));
                 d->timestampRefresh();
             }
             else if (GetTickCount() - d->timestamp >= timeoutInterByte()) // waiting timeout read next byte elapsed

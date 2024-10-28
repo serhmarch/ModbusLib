@@ -148,6 +148,9 @@ typedef std::string String;
 template <class T>
 using List = std::list<T>;
 
+/// \details Returns string representation of the last error
+MODBUS_EXPORT String getLastErrorText();
+
 /// \details Convert interger value to Modbus::String
 /// \returns Returns new Modbus::String value
 inline String toModbusString(int val) { return std::to_string(val); }

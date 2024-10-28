@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <dirent.h>
+#include <cerrno>   // for errno
 #include <cstring>
 #include <set>
 
@@ -21,6 +22,15 @@ void msleep(uint32_t msec)
     ts.tv_sec = msec / 1000;
     ts.tv_nsec = (msec % 1000) * 1000000;
     nanosleep(&ts, NULL);
+}
+
+String getLastErrorText()
+{
+    String message = std::strerror(errno);  // strerror converts errno to a readable error message
+    message.erase(std::find_if(message.rbegin(), message.rend(), [](Char ch) {
+                      return !std::isspace(ch);
+                  }).base(), message.end());
+    return message;
 }
 
 List<String> availableSerialPorts()

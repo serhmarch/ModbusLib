@@ -51,7 +51,9 @@ StatusCode ModbusTcpServer::open()
             if (d->socket->isInvalid())
             {
                 d->state = STATE_CLOSED;
-                return d->setErrorBase(Status_BadTcpCreate, StringLiteral("TCP socket creation error"));
+                return d->setErrorBase(Status_BadTcpCreate, (StringLiteral("TCP. Socket creation error for port '") + toModbusString(d->tcpPort) +
+                                                             StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                             StringLiteral(". ") + getLastErrorText()).data());
             }
 
             // Bind the socket
@@ -64,7 +66,9 @@ StatusCode ModbusTcpServer::open()
             {
                 d->socket->close();
                 d->state = STATE_CLOSED;
-                return d->setErrorBase(Status_BadTcpBind, StringLiteral("Bind error"));
+                return d->setErrorBase(Status_BadTcpBind, (StringLiteral("TCP. Bind error for port '") + toModbusString(d->tcpPort) +
+                                                           StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                           StringLiteral(". ") + getLastErrorText()).data());
             }
 
             // Listen on the socket
@@ -72,7 +76,9 @@ StatusCode ModbusTcpServer::open()
             {
                 d->socket->close();
                 d->state = STATE_CLOSED;
-                return d->setErrorBase(Status_BadTcpListen, StringLiteral("Listen error"));
+                return d->setErrorBase(Status_BadTcpListen, (StringLiteral("TCP. Listen error for port '") + toModbusString(d->tcpPort) +
+                                                             StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                             StringLiteral(". ") + getLastErrorText()).data());
             }
             d->socket->setBlocking(false);
         }

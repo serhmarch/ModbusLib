@@ -28,3 +28,7 @@
 # 0.3.4
 
 * Minor changes, fixed bug
+
+# 0.3.5
+
+* Extended information messages about error

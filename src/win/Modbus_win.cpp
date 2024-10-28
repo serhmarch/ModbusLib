@@ -39,6 +39,37 @@ void msleep(uint32_t msec)
     */
 }
 
+String getLastErrorText()
+{
+    // Retrieve the error code from the last WinAPI call
+    DWORD errorMessageID = ::GetLastError();
+
+    if (errorMessageID == 0)
+    {
+        // No error, return an empty string
+        return String();
+    }
+
+    LPSTR messageBuffer = nullptr;
+
+    // Format the error message from the error code
+    size_t size = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+    // Copy the error message into a std::string
+    String message(messageBuffer, size);
+
+    // Free the buffer allocated by FormatMessage
+    LocalFree(messageBuffer);
+
+    message.erase(std::find_if(message.rbegin(), message.rend(), [](Char ch) {
+                return !std::isspace(ch);
+            }).base(), message.end());
+
+    return message;
+}
+
 List<String> availableSerialPorts()
 {
     List<String> ports;
