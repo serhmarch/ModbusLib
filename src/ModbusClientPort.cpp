@@ -819,6 +819,14 @@ StatusCode ModbusClientPort::process()
         switch (d->state)
         {
         case STATE_BEGIN:
+            if (d->port->isOpen())
+            {
+                d->state = STATE_OPENED;
+                fRepeatAgain = true;
+                break;
+            }
+            d->state = STATE_CLOSED;
+            // no need break
         case STATE_CLOSED:
             d->state = STATE_BEGIN_OPEN;
             // no need break
@@ -853,20 +861,21 @@ StatusCode ModbusClientPort::process()
             d->state = STATE_CLOSED;
             //fRepeatAgain = true;
             break;
-        case STATE_BEGIN_WRITE:
-            if (!d->port->isOpen())
-            {
-                d->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
-            }
-            d->state = STATE_OPENED;
-            // no need break
         case STATE_OPENED:
-            // send data to server
             if (d->port->isChanged())
             {
                 d->state = STATE_WAIT_FOR_CLOSE;
+                fRepeatAgain = true;
+                break;
+            }
+            // send data to server
+            d->state = STATE_BEGIN_WRITE;
+            // no need break
+        case STATE_BEGIN_WRITE:
+            d->timestampRefresh();
+            if (!d->port->isOpen())
+            {
+                d->state = STATE_CLOSED;
                 fRepeatAgain = true;
                 break;
             }
@@ -880,7 +889,7 @@ StatusCode ModbusClientPort::process()
             if (StatusIsBad(r)) // an error occured
             {
                 signalError(d->getName(), r, d->port->lastErrorText());
-                d->state = STATE_BEGIN_WRITE;
+                d->state = STATE_TIMEOUT;
                 return r;
             }
             else
@@ -888,13 +897,19 @@ StatusCode ModbusClientPort::process()
             d->state = STATE_BEGIN_READ;
             // no need break
         case STATE_BEGIN_READ:
+            d->timestampRefresh();
+            d->state = STATE_READ;
+            // no need break
         case STATE_READ:
             r = d->port->read();
             if (StatusIsProcessing(r))
                 return r;
             d->setPortStatus(r);
             if (StatusIsBad(r))
+            {
                 signalError(d->getName(), r, d->port->lastErrorText());
+                d->state = STATE_TIMEOUT;
+            }
             else
             {
                 if (!d->port->isOpen())
@@ -904,8 +919,8 @@ StatusCode ModbusClientPort::process()
                     return Status_Uncertain;
                 }
                 signalRx(d->getName(), d->port->readBufferData(), d->port->readBufferSize());
+                d->state = STATE_OPENED;
             }
-            d->state = STATE_BEGIN_WRITE;
             return r;
         case STATE_TIMEOUT:
         {
@@ -917,7 +932,7 @@ StatusCode ModbusClientPort::process()
                 else
                     return Status_Processing;
             }
-            d->state = STATE_CLOSED;
+            d->state = STATE_BEGIN;
             fRepeatAgain = true;
         }
             break;

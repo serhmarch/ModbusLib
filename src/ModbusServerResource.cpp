@@ -117,6 +117,10 @@ StatusCode ModbusServerResource::process()
             d->state = STATE_BEGIN_READ;
             // no need break
         case STATE_BEGIN_READ:
+            d->timestampRefresh();
+            d->state = STATE_READ;
+            // no need break
+        case STATE_READ:
             if (d->cmdClose)
             {
                 d->state = STATE_WAIT_FOR_CLOSE;
@@ -130,6 +134,7 @@ StatusCode ModbusServerResource::process()
             {
                 d->setPortError(r);
                 signalError(d->getName(), r, d->lastPortErrorText());
+                d->state = STATE_TIMEOUT;
                 return r;
             }
             if (!d->port->isOpen())
@@ -139,9 +144,6 @@ StatusCode ModbusServerResource::process()
                 return Status_Uncertain;
             }
             signalRx(d->getName(), d->port->readBufferData(), d->port->readBufferSize());
-            d->state = STATE_READ;
-            // no need break
-        case STATE_READ:
             // verify unit id
             r = d->port->readBuffer(d->unit, d->func, buff, szBuff, &outBytes);
             if (StatusIsBad(r))
@@ -153,7 +155,7 @@ StatusCode ModbusServerResource::process()
                 signalError(d->getName(), r, d->getLastErrorText());
                 if (StatusIsStandardError(r)) // return standard error to device
                 {
-                    d->state = STATE_WRITE;
+                    d->state = STATE_BEGIN_WRITE;
                     fRepeatAgain = true;
                     break;
                 }
@@ -174,9 +176,10 @@ StatusCode ModbusServerResource::process()
                 d->state = STATE_BEGIN_READ;
                 return r;
             }
-            d->state = STATE_WRITE;
+            d->state = STATE_BEGIN_WRITE;
             // no need break
-        case STATE_WRITE:
+        case STATE_BEGIN_WRITE:
+            d->timestampRefresh();
             func = d->func;
             if (StatusIsBad(r))
             {
@@ -191,9 +194,9 @@ StatusCode ModbusServerResource::process()
             else
                 processOutputData(buff, outCount);
             d->port->writeBuffer(d->unit, func, buff, outCount);
-            d->state = STATE_BEGIN_WRITE;
+            d->state = STATE_WRITE;
             // no need break
-        case STATE_BEGIN_WRITE:
+        case STATE_WRITE:
             r = d->port->write();
             if (StatusIsProcessing(r))
                 return r;
@@ -201,10 +204,13 @@ StatusCode ModbusServerResource::process()
             {
                 d->setPortError(r);
                 signalError(d->getName(), r, d->lastPortErrorText());
+                d->state = STATE_TIMEOUT;
             }
             else
+            {
                 signalTx(d->getName(), d->port->writeBufferData(), d->port->writeBufferSize());
-            d->state = STATE_BEGIN_READ;
+                d->state = STATE_BEGIN_READ;
+            }
             return r;
         case STATE_TIMEOUT:
             if (timer() - d->timestamp < d->port->timeout())

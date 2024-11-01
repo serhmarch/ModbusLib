@@ -224,6 +224,7 @@ typedef enum _StatusCode
     Status_BadSerialWrite           ,                     ///< Error. Cannot send a parcel to the serial port
     Status_BadSerialRead            ,                     ///< Error. Reading the serial port (timeout)
     Status_BadSerialReadTimeout     ,                     ///< Error. Reading the serial port (timeout)
+    Status_BadSerialWriteTimeout    ,                     ///< Error. Writing the serial port (timeout)
     //---_ Modbus serial specified errors end ---
                                                           
     //---- Modbus ASC specified errors begin ----         

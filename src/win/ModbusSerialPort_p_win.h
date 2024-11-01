@@ -12,7 +12,7 @@ public:
         ModbusSerialPortPrivate(blocking)
     {
         this->serialPort = INVALID_HANDLE_VALUE;
-        this->timestamp = 0;
+        this->timestamp = 0;        
     }
 
 public:
@@ -25,7 +25,9 @@ public:
 public:
     HANDLE serialPort;
     DWORD timestamp;
-
+    OVERLAPPED oWrite;
+    OVERLAPPED oRead;
+    OVERLAPPED oCom;
 };
 
 inline ModbusSerialPortPrivateWin *d_win(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivateWin*>(d_ptr); }
