@@ -126,7 +126,7 @@ StatusCode ModbusSerialPort::open()
             {
                 d->serialPortClose();
                 DWORD err = GetLastError();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get state of'") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get state of '") + d->settings.portName +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(err) +
                                                          StringLiteral(". ") + getLastErrorText());
             }
@@ -152,7 +152,7 @@ StatusCode ModbusSerialPort::open()
             {
                 d->serialPortClose();
                 DWORD err = GetLastError();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set state of'") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set state of '") + d->settings.portName +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(err) +
                                                          StringLiteral(". ") + getLastErrorText());
             }

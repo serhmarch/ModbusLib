@@ -11,7 +11,7 @@ ModbusSerialPort::Defaults::Defaults() :
     stopBits(OneStop),
     flowControl(NoFlowControl),
     timeoutFirstByte(1000),
-    timeoutInterByte(5)
+    timeoutInterByte(50)
 {
 }
 
@@ -67,8 +67,8 @@ StatusCode ModbusSerialPort::open()
 
             if (d->serialPortIsInvalid())
             {
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open serial port '") + d->settings.portName +
-                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open '") + d->settings.portName +
+                                                         StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
             }
 
@@ -78,8 +78,8 @@ StatusCode ModbusSerialPort::open()
             int r;
             r = tcgetattr(d->serialPort, &options);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get attributes for serial port '") + d->settings.portName +
-                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get attributes for '") + d->settings.portName +
+                                                         StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
             switch(d->settings.baudRate)
             {
@@ -96,13 +96,13 @@ StatusCode ModbusSerialPort::open()
 
             r = cfsetispeed(&options, sp);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set input baud rate for serial port '") + d->settings.portName +
-                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set input baud rate for '") + d->settings.portName +
+                                                         StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
             r = cfsetospeed(&options, sp);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set output baud rate for serial port '") + d->settings.portName +
-                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set output baud rate for '") + d->settings.portName +
+                                                         StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
 
             options.c_cflag |= (CLOCAL | CREAD);
@@ -173,8 +173,8 @@ StatusCode ModbusSerialPort::open()
 
             r = tcsetattr(d->serialPort, TCSANOW, &options);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set attributes for serial port '") + d->settings.portName +
-                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set attributes for '") + d->settings.portName +
+                                                         StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
 
         }
@@ -213,146 +213,11 @@ bool ModbusSerialPort::isOpen() const
 StatusCode ModbusSerialPort::write()
 {
     ModbusSerialPortPrivateUnix *d = d_unix(d_ptr);
-    int c;
-    bool fRepeatAgain;
-    do
-    {
-        fRepeatAgain = false;
-        switch (d->state)
-        {
-        case STATE_BEGIN:
-        case STATE_PREPARE_TO_WRITE:
-            d->timestampRefresh();
-            d->state = STATE_WAIT_FOR_WRITE;
-            // no need break
-        case STATE_WAIT_FOR_WRITE:
-        case STATE_WAIT_FOR_WRITE_ALL:
-            // Note: clean read buffer from garbage before write
-            tcflush(d->serialPort, TCIFLUSH);
-            c = ::write(d->serialPort, d->buff, d->sz);
-            if (c >= 0)
-            {
-                d->state = STATE_BEGIN;
-                return Status_Good;
-            }
-            else
-            {
-                if (errno != EWOULDBLOCK)
-                {
-                    d->state = STATE_BEGIN;
-                    return d->setError(Status_BadSerialWrite, StringLiteral("Error while writing serial port '") + d->settings.portName +
-                                                              StringLiteral("'. Error code: ") + toModbusString(errno) +
-                                                              StringLiteral(". ") + getLastErrorText());
-                }
-            }
-            break;
-        default:
-            if (isOpen())
-            {
-                d->state = STATE_BEGIN;
-                fRepeatAgain = true;
-            }
-            break;
-        }
-    }
-    while (fRepeatAgain);
-    return Status_Processing;
+    return (d->*(d->writeMethod))();
 }
 
 StatusCode ModbusSerialPort::read()
 {
     ModbusSerialPortPrivateUnix *d = d_unix(d_ptr);
-    int c;
-    bool fRepeatAgain;
-    do
-    {
-        fRepeatAgain = false;
-        switch(d->state)
-        {
-        case STATE_BEGIN:
-        case STATE_PREPARE_TO_READ:
-            d->timestampRefresh();
-            d->state = STATE_WAIT_FOR_READ;
-            d->sz = 0;
-            // no need break
-        case STATE_WAIT_FOR_READ:
-            // read first byte state
-            c = ::read(d->serialPort, d->buff, d->c_buffSz);
-            if (c < 0)
-            {
-                if (errno != EWOULDBLOCK)
-                {
-                    d->state = STATE_BEGIN;
-                    return d->setError(Status_BadSerialRead, StringLiteral("Error while reading serial port '") + d->settings.portName +
-                                                             StringLiteral("'. Error code: ") + toModbusString(errno) +
-                                                             StringLiteral(". ") + getLastErrorText());
-                }
-            }
-            if (c > 0)
-            {
-                d->sz += static_cast<uint16_t>(c);
-                if (d->sz > d->c_buffSz)
-                {
-                    d->state = STATE_BEGIN;
-                    return d->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading serial port '") + d->settings.portName +
-                                                                     StringLiteral("'. Read buffer overflow"));
-                }
-                if (isBlocking())
-                {
-                    d->state = STATE_BEGIN;
-                    return Status_Good;
-                }
-            }
-            else if (timer() - d->timestamp >= timeoutFirstByte()) // waiting timeout read first byte elapsed
-            {
-                d->state = STATE_BEGIN;
-                return d->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading serial port '") + d->settings.portName +
-                                                                StringLiteral("'. Timeout"));
-            }
-            else
-            {
-                break;
-            }
-            d->timestampRefresh();
-            d->state = STATE_WAIT_FOR_READ_ALL;
-            // no need break
-        case STATE_WAIT_FOR_READ_ALL:
-            // next bytes state
-            c = ::read(d->serialPort, d->buff+d->sz, d->c_buffSz);
-            if (c < 0)
-            {
-                if (errno != EWOULDBLOCK)
-                {
-                    d->state = STATE_BEGIN;
-                    return d->setError(Status_BadSerialRead, StringLiteral("Error while reading serial port '") + d->settings.portName +
-                                                             StringLiteral("'. Error code: ") + toModbusString(errno) +
-                                                             StringLiteral(". ") + getLastErrorText());
-                }
-            }
-
-            if (c > 0)
-            {
-                d->sz += static_cast<uint16_t>(c);
-                if (d->sz > d->c_buffSz)
-                    return d->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading serial port '") + d->settings.portName +
-                                                                     StringLiteral("'. Read buffer overflow"));
-                d->timestampRefresh();
-            }
-            else if (timer() - d->timestamp >= timeoutInterByte()) // waiting timeout read next byte elapsed
-            {
-                d->state = STATE_BEGIN;
-                return Status_Good;
-            }
-            return Status_Processing;
-        default:
-            if (isOpen())
-            {
-                d->state = STATE_BEGIN;
-                fRepeatAgain = true;
-            }
-            break;
-        }
-    }
-    while (fRepeatAgain);
-    return Status_Processing;
+    return (d->*(d->readMethod))();
 }

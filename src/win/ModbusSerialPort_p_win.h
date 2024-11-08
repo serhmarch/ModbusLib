@@ -57,6 +57,39 @@ public:
             CloseHandle(o.hEvent);
         ::ZeroMemory(&o, sizeof(OVERLAPPED));
     }
+    StatusCode ModbusSerialPortPrivateWin::blockingWrite()
+    {
+        BOOL r;
+        this->state = STATE_BEGIN;
+        PurgeComm(this->serialPort, PURGE_TXCLEAR|PURGE_RXCLEAR);
+        r =  WriteFile(this->serialPort, this->buff, this->sz, NULL, NULL);
+        if (!r)
+        {
+            DWORD err = GetLastError();
+            return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->settings.portName +
+                                                             StringLiteral("' serial port. Error code: ") + toModbusString(err) +
+                                                             StringLiteral(". ") + getLastErrorText());
+        }
+        return Status_Good;
+    }
+
+    StatusCode ModbusSerialPortPrivateWin::blockingRead()
+    {
+        BOOL r;
+        DWORD c;
+        this->state = STATE_BEGIN;
+        r = ReadFile(this->serialPort, this->buff, this->c_buffSz, &c, NULL);
+        if (!r)
+        {
+            DWORD err = GetLastError();
+            return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->settings.portName +
+                                                            StringLiteral("' serial port. Error code: ") + toModbusString(err) +
+                                                            StringLiteral(". ") + getLastErrorText());
+        }
+        this->sz = static_cast<uint16_t>(c);
+        return Status_Good;
+    }
+
 
     inline void closeEventHandle(OVERLAPPED &o)
     {
@@ -211,6 +244,11 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
             if (c > 0)
             {
                 this->sz += static_cast<uint16_t>(c);
+                if (this->sz == this->c_buffSz) // input buffer is full. Try to handle it
+                {
+                    this->state = STATE_BEGIN;
+                    return Status_Good;
+                }
                 if (this->sz > this->c_buffSz)
                 {
                     this->state = STATE_BEGIN;
@@ -251,6 +289,11 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
             if (c > 0)
             {
                 this->sz += static_cast<uint16_t>(c);
+                if (this->sz == this->c_buffSz) // input buffer is full. Try to handle it
+                {
+                    this->state = STATE_BEGIN;
+                    return Status_Good;
+                }
                 if (this->sz > this->c_buffSz)
                 {
                     closeEventHandle(this->oRead);

@@ -23,3 +23,7 @@
 # 0.3.4
 
 * Fixed bug in `Modbus::Address::operator quint32() const` function
+
+# 0.3.6
+
+* Fixed crash bug on Linux when working with serial port
