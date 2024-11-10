@@ -33,6 +33,8 @@ String getLastErrorText()
     return message;
 }
 
+#define MB_DEV_ENTRY_IS_EQ(str) (std::strncmp(entry->d_name, str, sizeof(str)-1) == 0)
+
 List<String> availableSerialPorts()
 {
     std::set<String> portSet;
@@ -44,9 +46,18 @@ List<String> availableSerialPorts()
     struct dirent* entry;
     while ((entry = readdir(dir)))
     {
-        if (std::strncmp(entry->d_name, "ttyS", 4) == 0 ||
-            std::strncmp(entry->d_name, "ttyUSB", 6) == 0 ||
-            std::strncmp(entry->d_name, "ttyACM", 6) == 0)
+        if (MB_DEV_ENTRY_IS_EQ("ttyS"  ) || // Standard UART 8250 and etc.
+            MB_DEV_ENTRY_IS_EQ("ttyO"  ) || // OMAP UART 8250 and etc.
+            MB_DEV_ENTRY_IS_EQ("ttyUSB") || // Usb/serial converters PL2303 and etc.
+            MB_DEV_ENTRY_IS_EQ("ttyACM") || // CDC_ACM converters (i.e. Mobile Phones).
+            MB_DEV_ENTRY_IS_EQ("ttyGS" ) || // Gadget serial device (i.e. Mobile Phones with gadget serial driver).
+            MB_DEV_ENTRY_IS_EQ("ttyMI" ) || // MOXA pci/serial converters.
+            MB_DEV_ENTRY_IS_EQ("ttymxc") || // Motorola IMX serial ports (i.e. Freescale i.MX).
+            MB_DEV_ENTRY_IS_EQ("ttyAMA") || // AMBA serial device for embedded platform on ARM (i.e. Raspberry Pi).
+            MB_DEV_ENTRY_IS_EQ("ttyTHS") || // Serial device for embedded platform on ARM (i.e. Tegra Jetson TK1).
+            MB_DEV_ENTRY_IS_EQ("rfcomm") || // Bluetooth serial device.
+            MB_DEV_ENTRY_IS_EQ("ircomm") || // IrDA serial device.
+            MB_DEV_ENTRY_IS_EQ("tnt"   )  ) // Virtual tty0tty serial device.
             portSet.insert("/dev/" + String(entry->d_name));
     }
 

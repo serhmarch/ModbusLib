@@ -36,3 +36,7 @@
 # 0.3.6
 
 * Fixed crash bug on Linux when working with serial port
+
+# 0.3.7
+
+* Extended `Modbus::availableSerialPorts()` function on Linux
