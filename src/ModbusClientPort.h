@@ -2,7 +2,7 @@
  * \file   ModbusClientPort.h
  * \brief  General file of the algorithm of the client part of the Modbus protocol port.
  *
- * \author march
+ * \author serhmarch
  * \date   May 2024
  */
 #ifndef MODBUSCLIENTPORT_H
@@ -162,6 +162,9 @@ public: // Modbus Interface
 public:
     /// \details Returns the status of the last operation performed.
     Modbus::StatusCode lastStatus() const;
+
+    /// \details Returns the timestamp of the last operation performed.
+    Modbus::Timestamp lastStatusTimestamp() const;
 
     /// \details Returns the status of the last error of the performed operation.
     Modbus::StatusCode lastErrorStatus() const;

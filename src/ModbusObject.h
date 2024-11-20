@@ -2,7 +2,7 @@
  * \file   ModbusObject.h
  * \brief  The header file defines the class templates used to create signal/slot-like mechanism
  *
- * \author march
+ * \author serhmarch
  * \date   May 2024
  */
 #ifndef MODBUSOBJECT_H

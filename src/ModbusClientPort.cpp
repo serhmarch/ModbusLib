@@ -693,6 +693,11 @@ StatusCode ModbusClientPort::lastStatus() const
     return d_ModbusClientPort(d_ptr)->lastStatus;
 }
 
+Modbus::Timestamp ModbusClientPort::lastStatusTimestamp() const
+{
+    return d_ModbusClientPort(d_ptr)->lastStatusTimestamp;
+}
+
 Modbus::StatusCode ModbusClientPort::lastErrorStatus() const
 {
     return d_ModbusClientPort(d_ptr)->port->lastErrorStatus();

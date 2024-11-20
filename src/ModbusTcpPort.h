@@ -2,7 +2,7 @@
  * \file   ModbusTcpPort.h
  * \brief  Header file of class `ModbusTcpPort`.
  *
- * \author march
+ * \author serhmarch
  * \date   April 2024
  */
 #ifndef MODBUSTCPPORT_H

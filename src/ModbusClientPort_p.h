@@ -46,6 +46,7 @@ public:
         this->lastErrorStatus = Modbus::Status_Uncertain;
         this->isLastPortError = true;
         this->timestamp = 0;
+        this->lastStatusTimestamp = 0;
 
         port->setServerMode(false);
     }
@@ -68,6 +69,7 @@ public:
         lastStatus = status;
         lastErrorStatus = status;
         isLastPortError = true;
+        lastStatusTimestamp = currentTimestamp();
         return status;
     }
 
@@ -76,6 +78,7 @@ public:
         if (StatusIsBad(status))
             return setPortError(status);
         lastStatus = status;
+        lastStatusTimestamp = currentTimestamp();
         return status;
     }
 
@@ -85,6 +88,7 @@ public:
         lastErrorStatus = status;
         lastErrorText   = text;
         isLastPortError = false;
+        lastStatusTimestamp = currentTimestamp();
         return status;
     }
 
@@ -94,6 +98,7 @@ public:
         lastErrorStatus = status;
         lastErrorText   = text;
         isLastPortError = false;
+        lastStatusTimestamp = currentTimestamp();
         return status;
     }
 
@@ -117,6 +122,7 @@ public:
     String lastErrorText;
     bool isLastPortError;
     Timer timestamp;
+    Timestamp lastStatusTimestamp;
 
     struct
     {

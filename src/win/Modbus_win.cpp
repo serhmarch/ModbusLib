@@ -7,11 +7,22 @@
 #include <devguid.h>
 #include <setupapi.h>
 
+#define NANOSEC100_IN_MILLISEC      10000
+#define SEC_BETWEEN_1601_AND_1970   11644473600LL
+#define MSEC_BETWEEN_1601_AND_1970  ((SEC_BETWEEN_1601_AND_1970)*1000)
+
 namespace Modbus {
 
 Timer timer()
 {
     return GetTickCount();
+}
+
+Timestamp currentTimestamp()
+{
+    Timestamp ft;
+    GetSystemTimeAsFileTime(reinterpret_cast<FILETIME*>(&ft));
+    return ft / NANOSEC100_IN_MILLISEC - MSEC_BETWEEN_1601_AND_1970;
 }
 
 void msleep(uint32_t msec)

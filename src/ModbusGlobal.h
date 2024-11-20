@@ -160,6 +160,9 @@ typedef char Char;
 /// \brief Type for Modbus timer
 typedef uint32_t Timer;
 
+/// \brief Type for Modbus timestamp (in UNIX millisec format)
+typedef int64_t Timestamp;
+
 /// \brief Define list of contants of Modbus protocol.
 enum Constants
 {
@@ -488,6 +491,9 @@ MODBUS_EXPORT Char *sascii(const uint8_t* buff, uint32_t count, Char *str, uint3
 
 /// \details Get timer value in milliseconds.
 MODBUS_EXPORT Timer timer();
+
+/// \details Get current timestamp in UNIX format in milliseconds.
+MODBUS_EXPORT Timestamp currentTimestamp();
 
 /// \details Make current thread sleep with 'msec' milliseconds.
 MODBUS_EXPORT void msleep(uint32_t msec);

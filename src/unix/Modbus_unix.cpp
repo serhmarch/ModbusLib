@@ -16,6 +16,16 @@ Timer timer()
     return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }
 
+Timestamp currentTimestamp()
+{
+    struct timespec ts;
+    // Use CLOCK_REALTIME to get the current wall-clock time
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    // Convert seconds to milliseconds and add nanoseconds converted to milliseconds
+    return static_cast<int64_t>(ts.tv_sec) * 1000 + static_cast<int64_t>(ts.tv_nsec) / 1000000;
+}
+
 void msleep(uint32_t msec)
 {
     struct timespec ts;
