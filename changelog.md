@@ -19,15 +19,15 @@
 
 # 0.3.2
 
-* Fixed a bug
+* Fixed a bug (see bugfix.md)
 
 # 0.3.3
 
-* Fixed bugs
+* Fixed bugs (see bugfix.md)
 
 # 0.3.4
 
-* Minor changes, fixed bug
+* Minor changes, fixed bug (see bugfix.md)
 
 # 0.3.5
 
@@ -35,8 +35,13 @@
 
 # 0.3.6
 
-* Fixed crash bug on Linux when working with serial port
+* Fixed crash bug on Linux when working with serial port (see bugfix.md)
 
 # 0.3.7
 
 * Extended `Modbus::availableSerialPorts()` function on Linux
+
+# 0.3.8
+
+* Add 'Timestamp' data and functions to work with
+* Fixed a bug (see bugfix.md)

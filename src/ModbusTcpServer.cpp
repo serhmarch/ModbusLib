@@ -183,6 +183,7 @@ StatusCode ModbusTcpServer::process()
 ModbusServerPort *ModbusTcpServer::createTcpPort(ModbusTcpSocket *socket)
 {
     ModbusTcpPort *tcp = new ModbusTcpPort(socket);
+    tcp->setTimeout(timeout());
     ModbusServerResource *c = new ModbusServerResource(tcp, device());
     String host, service;
     if (ModbusTcpServerPrivate::getHostService(socket, host, service))
