@@ -101,8 +101,11 @@ StatusCode ModbusSerialPort::open()
             else
                 dwFlags = FILE_FLAG_OVERLAPPED; // For asynchronous I/O
 
+
+            char swincom[MAX_PATH];
+            snprintf(swincom, MAX_PATH-1, "\\\\.\\%s", d->settings.portName.c_str());
             d->serialPort = CreateFileA(
-                d->settings.portName.c_str(), // Port name
+                swincom,                      // Port name
                 GENERIC_READ | GENERIC_WRITE, // Read and write access
                 0,                            // No sharing
                 NULL,                         // No security attributes
