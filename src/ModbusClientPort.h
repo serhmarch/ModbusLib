@@ -76,6 +76,9 @@ public:
     /// \details Returns a pointer to the port object that is used by this algorithm.
     ModbusPort *port() const;
 
+    /// \details Set new port object for current client port control. Previous port object is deleted.
+    void setPort(ModbusPort *port);
+
     /// \details Closes connection and returns status of the operation.
     Modbus::StatusCode close();
 

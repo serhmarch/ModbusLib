@@ -688,6 +688,20 @@ ModbusPort *ModbusClientPort::port() const
     return d_ModbusClientPort(d_ptr)->port;
 }
 
+void ModbusClientPort::setPort(ModbusPort *port)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    if (port != d->port)
+    {
+        ModbusPort *old = d->port;
+        old->close();
+        d->currentClient = nullptr;
+        d->state = STATE_BEGIN;
+        d->port = port;
+        delete old;
+    }
+}
+
 StatusCode ModbusClientPort::lastStatus() const
 {
     return d_ModbusClientPort(d_ptr)->lastStatus;

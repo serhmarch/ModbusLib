@@ -22,8 +22,12 @@ class MODBUS_EXPORT ModbusServerPort : public ModbusObject
 {
 public:
     /// \details Returns pointer to `ModbusInterface` object/device that was previously passed in constructor.
-    /// This device must process every input Modbus function request for this server port
+    /// This device must process every input Modbus function request for this server port.
     ModbusInterface *device() const;
+
+    /// \details Set pointer to `ModbusInterface` object/device to transfer all request ot it.
+    /// This device must process every input Modbus function request for this server port.
+    void setDevice(ModbusInterface *device);
 
 public: // server port interface
     /// \details Returns type of Modbus protocol.
@@ -41,6 +45,12 @@ public: // server port interface
 
     /// \details Returns `true` if inner port is open, `false` otherwise.
     virtual bool isOpen() const = 0;
+
+    /// \details Return context of the port previously set by `setContext` function or `nullptr` by default. 
+    void *context() const;
+
+    /// \details Set context of the port. 
+    void setContext(void *context) const;
 
     /// \details Main function of the class. Must be called in the cycle. 
     /// Return statuc code is not very useful but can indicate that inner server operations are good, bad or in process.

@@ -39,6 +39,9 @@ public:
     ///  \details Constructor of the class. `device` param is object which might process incoming requests for read/write memory.
     ModbusTcpServer(ModbusInterface *device);
 
+    ///  \details Destructor of the class. Clear all unclosed connections.
+    ~ModbusTcpServer();
+
 public:
     ///  \details Returns the setting for the TCP port number of the server.
     uint16_t port() const;
@@ -79,8 +82,13 @@ public:
     Modbus::StatusCode process() override;
     
 public:
-    /// \details Creates `ModbusServerPort` for new incoming connection defined by `ModbusTcpSocket` pointer/
+    /// \details Creates `ModbusServerPort` for new incoming connection defined by `ModbusTcpSocket` pointer
+    /// May be reimplemented in subclasses.
     virtual ModbusServerPort *createTcpPort(ModbusTcpSocket *socket);
+    
+    /// \details Deletes `ModbusServerPort` by default. 
+    /// May be reimplemented in subclasses.
+    virtual void deleteTcpPort(ModbusServerPort *port);
     
 public: // SIGNALS
     /// \details Signal occured when new TCP connection was accepted. `source` - name of the current connection.

@@ -38,6 +38,7 @@ public:
         this->state = STATE_UNKNOWN;
         this->cmdClose = false;
         this->timestamp = 0;
+        this->context = nullptr;
     }
 
 public: // state
@@ -61,6 +62,7 @@ public:
     StatusCode errorStatus;
     String errorText;
     Timer timestamp;
+    void *context;
 };
 
 inline ModbusServerPortPrivate *d_ModbusServerPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerPortPrivate*>(d_ptr); }

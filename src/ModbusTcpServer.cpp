@@ -40,6 +40,11 @@ const ModbusTcpServer::Defaults &ModbusTcpServer::Defaults::instance()
     return d;
 }
 
+ModbusTcpServer::~ModbusTcpServer()
+{
+    clearConnections();
+}
+
 uint16_t ModbusTcpServer::port() const
 {
     return d_ModbusTcpServer(d_ptr)->tcpPort;
@@ -64,9 +69,8 @@ void ModbusTcpServer::clearConnections()
 {
     ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
     for (auto& elem : d->connections)
-        delete elem;
+        deleteTcpPort(elem);
     d->connections.clear();
-
 }
 
 StatusCode ModbusTcpServer::process()
@@ -152,10 +156,10 @@ StatusCode ModbusTcpServer::process()
                 {
                     signalCloseConnection(c->objectName());
                     it = d->connections.erase(it);
-                    delete c;
+                    deleteTcpPort(c);
                     continue;
                 }
-                it++;
+                ++it;
             }
         }
             break;
@@ -192,6 +196,11 @@ ModbusServerPort *ModbusTcpServer::createTcpPort(ModbusTcpSocket *socket)
         c->setObjectName(name.data());
     }
     return c;
+}
+
+void ModbusTcpServer::deleteTcpPort(ModbusServerPort *port)
+{
+    delete port;
 }
 
 void ModbusTcpServer::signalNewConnection(const Modbus::Char *source)

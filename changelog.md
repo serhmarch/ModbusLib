@@ -43,5 +43,9 @@
 
 # 0.3.8
 
-* Add 'Timestamp' data and functions to work with
+* Added 'Timestamp' data and functions to work with
 * Fixed a bug (see bugfix.md)
+
+# 0.3.10
+
+* Added 'ModbusClientPort::setPort' method

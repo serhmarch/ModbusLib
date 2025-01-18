@@ -28,9 +28,24 @@ ModbusInterface *ModbusServerPort::device() const
     return d_ModbusServerPort(d_ptr)->device;
 }
 
+void ModbusServerPort::setDevice(ModbusInterface *device)
+{
+    d_ModbusServerPort(d_ptr)->device = device;
+}
+
 bool ModbusServerPort::isTcpServer() const
 {
     return false;
+}
+
+void *ModbusServerPort::context() const
+{
+    return d_ModbusServerPort(d_ptr)->context;
+}
+
+void ModbusServerPort::setContext(void *context) const
+{
+    d_ModbusServerPort(d_ptr)->context = context;
 }
 
 bool ModbusServerPort::isStateClosed() const
