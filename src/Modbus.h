@@ -94,6 +94,34 @@ public:
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *status);
 
+    /// \details Function provides a series of tests for checking the communication system between a client device and a server,
+    /// or for checking various internal error conditions within a server.
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  subfunc Address of the remote Modbus device.
+    /// \param[in]  insize  Size of the input buffer (in bytes).
+    /// \param[in]  indata  Pointer to the buffer where the input (request) data is stored.
+    /// \param[out] outsize Size of the buffer (in bytes) where the output data is stored.
+    /// \param[out] outdata Pointer to the buffer where the output data is stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+
+    /// \details Function is used to get a status word and an event count from the remote device's communication event counter.
+    /// \param[in]  unit        Address of the remote Modbus device.
+    /// \param[out] status      Returned status word.
+    /// \param[out] eventCount  Returned event counter.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount);
+
+    /// \details Function is used to get a status word and an event count from the remote device's communication event counter.
+    /// \param[in]  unit          Address of the remote Modbus device.
+    /// \param[out] status        Returned status word.
+    /// \param[out] eventCount    Returned event counter.
+    /// \param[out] messageCount  Returned message counter.
+    /// \param[out] eventBuffSize Size of the buffer where the output events (bytes) is stored.
+    /// \param[out] eventBuff     Pointer to the buffer where the output events (bytes) is stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+
     /// \details Function is used to modify the contents of a specified holding register using a
     /// combination of an AND mask, an OR mask, and the register's current contents.
     /// \param[in]  unit    Address of the remote Modbus device.
@@ -110,6 +138,13 @@ public:
     /// \param[in]  values  Pointer to the input buffer which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+
+    /// \details Function to read the description of the type, the current status, and other information specific to a remote device.
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  count   Count of bytes returned.
+    /// \param[in]  data    Pointer to the output buffer where the read data are stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data);
 
     /// \details Function is used to modify the contents of a specified holding register using a
     /// combination of an AND mask, an OR mask, and the register's current contents.
@@ -132,6 +167,15 @@ public:
     /// \param[in]  writeValues Pointer to the input buffer which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
+
+    /// \details Function for read the contents of a First-In-First-Out (FIFO) queue of register in a remote device.
+    /// \param[in]  unit    Address of the remote Modbus device.
+    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  count   Count of registers.
+    /// \param[out] values  Pointer to the output buffer (bit array) where the read values are stored.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
+
 };
 
 // --------------------------------------------------------------------------------------------------------

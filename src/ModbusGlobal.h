@@ -141,6 +141,12 @@
 /// \brief 6 bytes(tcp-prefix)+1 byte(unit)+261 (max func data size: WriteMultipleCoils)
 #define MB_TCP_IO_BUFF_SZ 268
 
+/// \brief Maximum events for `GetCommEventLog` function
+#define GET_COMM_EVENT_LOG_MAX 64
+
+/// \brief Maximum events for `GetCommEventLog` function
+#define READ_FIFO_QUEUE_MAX 31
+
 #ifdef __cplusplus
 
 namespace Modbus {

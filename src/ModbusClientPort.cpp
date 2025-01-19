@@ -364,6 +364,128 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
     }
 }
 
+Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    const uint16_t szBuff = 300;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        buff[0] = reinterpret_cast<uint8_t*>(&subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&subfunc)[0]; // Sub function - LS BYTE
+        memcpy(&buff[2], indata, insize);
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in-out buffer
+                          insize+2,         // count of input data bytes
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (r != Status_Good)
+            return r;
+
+        if (szOutBuff < 2)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != subfunc)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Responded subfunction doesn't match with requested"));
+        *outsize = static_cast<uint8_t>(szOutBuff-2);
+        memcpy(outdata, &buff[2], *outsize);
+        return d->setGoodStatus();
+    default:
+        return Status_Processing;
+    }
+}
+
+Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff;
+
+    ModbusClientPort::RequestStatus rstatus = this->getRequestStatus(client);
+    switch (rstatus)
+    {
+    case ModbusClientPort::Enable:
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,                       // unit ID
+                          MBF_GET_COMM_EVENT_COUNTER, // modbus function number
+                          buff,                       // in-out buffer
+                          0,                          // count of input data bytes
+                          szBuff,                     // maximum size of buffer
+                          &szOutBuff);                // count of output data bytes
+        if (r != Status_Good)
+            return r;
+
+        if (szOutBuff != 4)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Incorrect output buffer size"));
+        *status = buff[1] | (buff[0] << 8);
+        *eventCount = buff[3] | (buff[2] << 8);
+        return d->setGoodStatus();
+    default:
+        return Status_Processing;
+    }
+}
+
+Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    const uint16_t szBuff = 300;
+
+    uint8_t buff[szBuff], byteCount;
+    Modbus::StatusCode r;
+    uint16_t szOutBuff;
+
+    ModbusClientPort::RequestStatus rstatus = this->getRequestStatus(client);
+    switch (rstatus)
+    {
+    case ModbusClientPort::Enable:
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,                   // unit ID
+                          MBF_GET_COMM_EVENT_LOG, // modbus function number
+                          buff,                   // in-out buffer
+                          0,                      // count of input data bytes
+                          szBuff,                 // maximum size of buffer
+                          &szOutBuff);            // count of output data bytes
+        if (r != Status_Good)
+            return r;
+
+        if (szOutBuff < 7)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Incorrect output buffer size"));
+        byteCount = buff[0];
+        if (szOutBuff != (byteCount+1))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. 'ByteCount' doesn't match with received data size"));
+        *status       = buff[2] | (buff[1] << 8);
+        *eventCount   = buff[4] | (buff[3] << 8);
+        *messageCount = buff[6] | (buff[5] << 8);
+
+        byteCount = byteCount-6;
+        if (byteCount > GET_COMM_EVENT_LOG_MAX)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Event count is more than 64"));
+        *eventBuffSize = byteCount;
+        memcpy(eventBuff, &buff[7], byteCount);
+        return d->setGoodStatus();
+    default:
+        return Status_Processing;
+    }
+}
+
 Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const void *values)
 {
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
@@ -397,12 +519,12 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
         memcpy(&buff[5], values, fcBytes);
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
-                          MBF_WRITE_MULTIPLE_COILS,       // modbus function number
-                          buff,                           // in-out buffer
-                          5 + buff[4],                    // count of input data bytes
-                          szBuff,                         // maximum size of buffer
-                          &szOutBuff);                    // count of output data bytes
+        r = this->request(unit,                     // unit ID
+                          MBF_WRITE_MULTIPLE_COILS, // modbus function number
+                          buff,                     // in-out buffer
+                          5 + buff[4],              // count of input data bytes
+                          szBuff,                   // maximum size of buffer
+                          &szOutBuff);              // count of output data bytes
         if (r != Status_Good)
             return r;
         if (szOutBuff != 4)
@@ -468,6 +590,41 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
         if (outOffset != offset)
             return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
         fcRegs = (buff[2] << 8) | buff[3];
+        return d->setGoodStatus();
+    default:
+        return Status_Processing;
+    }
+}
+
+Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_t unit, uint8_t *count, uint8_t *data)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    const uint16_t szBuff = 300;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff;
+
+    ModbusClientPort::RequestStatus rstatus = this->getRequestStatus(client);
+    switch (rstatus)
+    {
+    case ModbusClientPort::Enable:
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,                 // unit ID
+                          MBF_REPORT_SERVER_ID, // modbus function number
+                          buff,                 // in-out buffer
+                          0,                    // count of input data bytes
+                          szBuff,               // maximum size of buffer
+                          &szOutBuff);          // count of output data bytes
+        if (r != Status_Good)
+            return r;
+
+        if (szOutBuff == 0)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Incorrect output buffer size"));
+        *count = buff[0];
+        memcpy(data, &buff[1], *count);
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -584,6 +741,50 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
     }
 }
 
+Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    const uint16_t szBuff = 300;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, bytesCount, FIFOCount, i;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        buff[0] = reinterpret_cast<uint8_t*>(&fifoadr)[1]; // Start register offset - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&fifoadr)[0]; // Start register offset - LS BYTE
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,                // unit ID
+                          MBF_READ_FIFO_QUEUE, // modbus function number
+                          buff,                // in-out buffer
+                          2,                   // count of input data bytes
+                          szBuff,              // maximum size of buffer
+                          &szOutBuff);         // count of output data bytes
+        if (r != Status_Good) // processing
+            return r;
+        if (szOutBuff < 4)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Incorrect output buffer size"));
+        bytesCount = buff[1] | (buff[0] << 8);
+        if (bytesCount != (szOutBuff - 2))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. 'ByteCount' doesn't match with received data size"));
+        FIFOCount  = buff[3] | (buff[2] << 8);
+        if (bytesCount != (FIFOCount + 1) * 2)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. 'ByteCount' doesn't match with 'FIFOCount'"));
+        if (FIFOCount > READ_FIFO_QUEUE_MAX)
+            return d->setError(Status_BadIllegalDataValue, StringLiteral("Not correct response. 'FIFOCount' more than 31"));
+        for (i = 0; i < FIFOCount; i++)
+            values[i] = buff[i*2+5] | (buff[i*2+4] << 8);
+        return d->setGoodStatus();
+    default:
+        return Status_Processing;
+    }
+}
+
 Modbus::StatusCode ModbusClientPort::readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values)
 {
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
@@ -663,6 +864,21 @@ StatusCode ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *value)
     return readExceptionStatus(this, unit, value);
 }
 
+Modbus::StatusCode ModbusClientPort::diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+{
+    return diagnostics(this, unit, subfunc, insize, indata, outsize, outdata);
+}
+
+Modbus::StatusCode ModbusClientPort::getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount)
+{
+    return getCommEventCounter(this, unit, status, eventCount);
+}
+
+Modbus::StatusCode ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
+{
+    return getCommEventLog(this, unit, status, eventCount, messageCount,eventBuffSize, eventBuff);
+}
+
 StatusCode ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)
 {
     return writeMultipleCoils(this, unit, offset, count, values);
@@ -673,6 +889,11 @@ StatusCode ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offse
     return writeMultipleRegisters(this, unit, offset, count, values);
 }
 
+Modbus::StatusCode ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)
+{
+    return reportServerID(this, unit, count, data);
+}
+
 StatusCode ModbusClientPort::maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
 {
     return maskWriteRegister(this, unit, offset, andMask, orMask);
@@ -681,6 +902,11 @@ StatusCode ModbusClientPort::maskWriteRegister(uint8_t unit, uint16_t offset, ui
 StatusCode ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
 {
     return readWriteMultipleRegisters(this, unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+}
+
+Modbus::StatusCode ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)
+{
+    return readFIFOQueue(this, unit, fifoadr, count, values);
 }
 
 ModbusPort *ModbusClientPort::port() const

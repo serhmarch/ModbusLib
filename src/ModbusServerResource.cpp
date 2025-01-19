@@ -275,6 +275,21 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         if (sz > 0) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
         break;
+    case MBF_DIAGNOSTICS:
+        if (sz < 2) // not correct request from client - don't respond
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        d->subfunc = buff[1] | (buff[0]<<8);
+        d->count = sz - 2;
+        memcpy(d->valueBuff, &buff[2], d->count);
+        break;
+    case MBF_GET_COMM_EVENT_COUNTER:
+        if (sz > 0) // not correct request from client - don't respond
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        break;
+    case MBF_GET_COMM_EVENT_LOG:
+        if (sz > 0) // not correct request from client - don't respond
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        break;
     case MBF_WRITE_MULTIPLE_COILS: // Write multiple coils
         if (sz < 5) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
@@ -305,6 +320,10 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             d->valueBuff[i*2+1] = buff[5+i*2];
         }
         break;
+    case MBF_REPORT_SERVER_ID:
+        if (sz > 0) // not correct request from client - don't respond
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        break;
     case MBF_MASK_WRITE_REGISTER:
         if (sz != 6) // not correct request from client - don't respond
             return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
@@ -331,6 +350,12 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             d->valueBuff[i*2+1] = buff[ 9+i*2];
         }
         break;
+    case MBF_READ_FIFO_QUEUE:
+        if (sz < 2) // not correct request from client - don't respond
+            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct data size"));
+        d->offset  = buff[1] | (buff[0]<<8);
+        break;
+
     default:
         return d->setError(Status_BadIllegalFunction, StringLiteral("Unsupported function"));
     }
@@ -342,28 +367,38 @@ StatusCode ModbusServerResource::processDevice()
     ModbusServerResourcePrivate *d = d_ModbusServerResource(d_ptr);
     switch (d->func)
     {
-    case MBF_READ_COILS: // Read Coil Status
+    case MBF_READ_COILS:
         return d->device->readCoils(d->unit, d->offset, d->count, d->valueBuff);
-    case MBF_READ_DISCRETE_INPUTS: // Read Input Status
+    case MBF_READ_DISCRETE_INPUTS:
         return d->device->readDiscreteInputs(d->unit, d->offset, d->count, d->valueBuff);
-    case MBF_READ_HOLDING_REGISTERS: // Read holding registers
+    case MBF_READ_HOLDING_REGISTERS:
         return d->device->readHoldingRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
-    case MBF_READ_INPUT_REGISTERS: // Read input registers
+    case MBF_READ_INPUT_REGISTERS:
         return d->device->readInputRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
-    case MBF_WRITE_SINGLE_COIL: // Write single coil
+    case MBF_WRITE_SINGLE_COIL:
         return d->device->writeSingleCoil(d->unit, d->offset, d->valueBuff[0]);
-    case MBF_WRITE_SINGLE_REGISTER: // Write single register
+    case MBF_WRITE_SINGLE_REGISTER:
         return d->device->writeSingleRegister(d->unit, d->offset, reinterpret_cast<uint16_t*>(d->valueBuff)[0]);
-    case MBF_READ_EXCEPTION_STATUS: // Write single register
+    case MBF_READ_EXCEPTION_STATUS:
         return d->device->readExceptionStatus(d->unit, d->valueBuff);
-    case MBF_WRITE_MULTIPLE_COILS: // Write multiple coils
+    case MBF_DIAGNOSTICS:
+        return d->device->diagnostics(d->unit, d->subfunc, d->byteCount, d->valueBuff, &d->outByteCount, d->valueBuff);
+    case MBF_GET_COMM_EVENT_COUNTER:
+        return d->device->getCommEventCounter(d->unit, &d->status, &d->count);
+    case MBF_GET_COMM_EVENT_LOG:
+        return d->device->getCommEventLog(d->unit, &d->status, &d->count, &d->messageCount, &d->outByteCount, d->valueBuff);
+    case MBF_WRITE_MULTIPLE_COILS:
         return d->device->writeMultipleCoils(d->unit, d->offset, d->count, d->valueBuff);
-    case MBF_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
+    case MBF_WRITE_MULTIPLE_REGISTERS:
         return d->device->writeMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+    case MBF_REPORT_SERVER_ID:
+        return d->device->reportServerID(d->unit, &d->outByteCount, d->valueBuff);
     case MBF_MASK_WRITE_REGISTER:
         return d->device->maskWriteRegister(d->unit, d->offset, d->andMask, d->orMask);
-    case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
+    case MBF_READ_WRITE_MULTIPLE_REGISTERS: 
         return d->device->readWriteMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff), d->writeOffset, d->writeCount, reinterpret_cast<uint16_t*>(d->valueBuff));
+    case MBF_READ_FIFO_QUEUE:
+        return d->device->readFIFOQueue(d->unit, d->offset, &d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
     default:
         return d->setError(Status_BadIllegalFunction, StringLiteral("Unsupported function"));
     }
@@ -374,14 +409,14 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
     ModbusServerResourcePrivate *d = d_ModbusServerResource(d_ptr);
     switch (d->func)
     {
-    case MBF_READ_COILS: // Read Coil Status
-    case MBF_READ_DISCRETE_INPUTS: // Read Input Status
+    case MBF_READ_COILS:
+    case MBF_READ_DISCRETE_INPUTS:
         buff[0] = static_cast<uint8_t>((d->count+7)/8);
         memcpy(&buff[1], d->valueBuff, buff[0]);
         sz = buff[0] + 1;
         break;
-    case MBF_READ_HOLDING_REGISTERS: // Read holding registers
-    case MBF_READ_INPUT_REGISTERS: // Read input registers
+    case MBF_READ_HOLDING_REGISTERS:
+    case MBF_READ_INPUT_REGISTERS:
     case MBF_READ_WRITE_MULTIPLE_REGISTERS: // Read/Write multiple registers
         buff[0] = static_cast<uint8_t>(d->count * 2);
         for (uint16_t i = 0; i < d->count; i++)
@@ -391,31 +426,60 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
         }
         sz = buff[0] + 1;
         break;
-    case MBF_WRITE_SINGLE_COIL: // Write single coil
+    case MBF_WRITE_SINGLE_COIL:
         buff[0] = static_cast<uint8_t>(d->offset >> 8);      // address of coil (Hi-byte)
         buff[1] = static_cast<uint8_t>(d->offset & 0xFF);    // address of coil (Lo-byte)
         buff[2] = d->valueBuff[0] ? 0xFF : 0x00;             // value (Hi-byte)
         buff[3] = 0;                                         // value (Lo-byte)
         sz = 4;
         break;
-    case MBF_WRITE_SINGLE_REGISTER: // Write single register
+    case MBF_WRITE_SINGLE_REGISTER:
         buff[0] = static_cast<uint8_t>(d->offset >> 8);      // address of register (Hi-byte)
         buff[1] = static_cast<uint8_t>(d->offset & 0xFF);    // address of register (Lo-byte)
         buff[2] = d->valueBuff[1];                           // value (Hi-byte)
         buff[3] = d->valueBuff[0];                           // value (Lo-byte)
         sz = 4;
         break;
-    case MBF_READ_EXCEPTION_STATUS: // Read Exception Status
+    case MBF_READ_EXCEPTION_STATUS:
         buff[0] = d->valueBuff[0];
         sz = 1;
         break;
-    case MBF_WRITE_MULTIPLE_COILS: // Write multiple coils
-    case MBF_WRITE_MULTIPLE_REGISTERS: // Write multiple registers
+    case MBF_DIAGNOSTICS:
+        buff[0] = static_cast<uint8_t>(d->subfunc >> 8);      // address of register (Hi-byte)
+        buff[1] = static_cast<uint8_t>(d->subfunc & 0xFF);    // address of register (Lo-byte)
+        memcpy(&buff[2], d->valueBuff, d->outByteCount);
+        sz = d->outByteCount+2;
+        break;
+    case MBF_GET_COMM_EVENT_COUNTER:
+        buff[0] = static_cast<uint8_t>(d->status >> 8);      // status of counter (Hi-byte)
+        buff[1] = static_cast<uint8_t>(d->status & 0xFF);    // status of counter (Lo-byte)
+        buff[2] = static_cast<uint8_t>(d->count >> 8);       // event counter value (Hi-byte)
+        buff[3] = static_cast<uint8_t>(d->count & 0xFF);     // event counter value (Lo-byte)
+        sz = 4;
+        break;
+    case MBF_GET_COMM_EVENT_LOG:
+        buff[0] = d->outByteCount+6;                           // output bytes count
+        buff[1] = static_cast<uint8_t>(d->status >> 8);        // status of counter (Hi-byte)
+        buff[2] = static_cast<uint8_t>(d->status & 0xFF);      // status of counter (Lo-byte)
+        buff[3] = static_cast<uint8_t>(d->count >> 8);         // event counter value (Hi-byte)
+        buff[4] = static_cast<uint8_t>(d->count & 0xFF);       // event counter value (Lo-byte)
+        buff[5] = static_cast<uint8_t>(d->messageCount >> 8);  // message counter value (Hi-byte)
+        buff[6] = static_cast<uint8_t>(d->messageCount & 0xFF);// message counter value (Lo-byte)
+        memcpy(&buff[7], d->valueBuff, d->outByteCount);
+        sz = d->outByteCount+7;
+        break;
+    case MBF_WRITE_MULTIPLE_COILS:
+    case MBF_WRITE_MULTIPLE_REGISTERS: 
         buff[0] = static_cast<uint8_t>(d->offset >> 8);      // offset of written values (Hi-byte)
         buff[1] = static_cast<uint8_t>(d->offset & 0xFF);    // offset of written values (Lo-byte)
         buff[2] = static_cast<uint8_t>(d->count >> 8);       // count of written values (Hi-byte)
         buff[3] = static_cast<uint8_t>(d->count & 0xFF);     // count of written values (Lo-byte)
         sz = 4;
+        break;
+    case MBF_REPORT_SERVER_ID:
+        buff[0] = d->outByteCount;                           // output bytes count
+        memcpy(&buff[1], d->valueBuff, d->outByteCount);
+        sz = d->outByteCount+1;
         break;
     case MBF_MASK_WRITE_REGISTER:
         buff[0] = static_cast<uint8_t>(d->offset >> 8);      // address of register (Hi-byte)
@@ -425,6 +489,21 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
         buff[4] = static_cast<uint8_t>(d->orMask >> 8);      // Or mask (Hi-byte)
         buff[5] = static_cast<uint8_t>(d->orMask & 0xFF);    // Or mask (Lo-byte)
         sz = 6;
+        break;
+    case MBF_READ_FIFO_QUEUE:
+    {
+        uint16_t byteCount = (d->count * 2) + 2;
+        buff[0] = static_cast<uint8_t>(byteCount >> 8);      // status of counter (Hi-byte)
+        buff[1] = static_cast<uint8_t>(byteCount & 0xFF);    // status of counter (Lo-byte)
+        buff[2] = static_cast<uint8_t>(d->count >> 8);       // event counter value (Hi-byte)
+        buff[3] = static_cast<uint8_t>(d->count & 0xFF);     // event counter value (Lo-byte)
+        for (uint16_t i = 0; i < d->count; i++)
+        {
+            buff[5+i*2] = d->valueBuff[i*2];
+            buff[4+i*2] = d->valueBuff[i*2+1];
+        }
+        sz = (d->count * 2) + 4;
+    }
         break;
     }
     return Status_Good;

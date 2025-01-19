@@ -49,12 +49,30 @@ public:
     ModbusPort *port;
     uint8_t unit;
     uint8_t func;
+
+    union {
     uint16_t offset;
-    uint16_t andMask;
-    uint16_t orMask;
+    uint16_t subfunc;
+    uint16_t status;
+    };
+
+    union {
     uint16_t count;
+    uint8_t byteCount;
+    };
+
+    union  {
+    uint16_t messageCount;
+    uint16_t andMask;
     uint16_t writeOffset;
+    };
+    
+    union  {
+    uint16_t orMask;
     uint16_t writeCount;
+    uint8_t outByteCount;
+    };
+
     uint8_t valueBuff[MBSERVER_SZ_VALUE_BUFF];
     bool isErrorPort;
 

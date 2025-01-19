@@ -477,17 +477,37 @@ Modbus::StatusCode ModbusInterface::writeSingleRegister(uint8_t /*unit*/, uint16
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t /*unit*/, uint8_t */*status*/)
+Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t /*unit*/, uint8_t * /*status*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::writeMultipleCoils(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const void */*values*/)
+Modbus::StatusCode ModbusInterface::diagnostics(uint8_t /*unit*/, uint16_t /*subfunc*/, uint8_t /*insize*/, const uint8_t * /*indata*/, uint8_t * /*outsize*/, uint8_t * /*outdata*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 
-Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const uint16_t */*values*/)
+Modbus::StatusCode ModbusInterface::getCommEventCounter(uint8_t /*unit*/, uint16_t * /*status*/, uint16_t * /*eventCount*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::getCommEventLog(uint8_t /*unit*/, uint16_t * /*status*/, uint16_t * /*eventCount*/, uint16_t * /*messageCount*/, uint8_t * /*eventBuffSize*/, uint8_t * /*eventBuff*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::writeMultipleCoils(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const void * /*values*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const uint16_t * /*values*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::reportServerID(uint8_t /*unit*/, uint8_t * /*count*/, uint8_t * /*data*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
@@ -498,6 +518,11 @@ Modbus::StatusCode ModbusInterface::maskWriteRegister(uint8_t /*unit*/, uint16_t
 }
 
 Modbus::StatusCode ModbusInterface::readWriteMultipleRegisters(uint8_t /*unit*/, uint16_t /*readOffset*/, uint16_t /*readCount*/, uint16_t */*readValues*/, uint16_t /*writeOffset*/, uint16_t /*writeCount*/, const uint16_t */*writeValues*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+
+Modbus::StatusCode ModbusInterface::readFIFOQueue(uint8_t /*unit*/, uint16_t /*fifoadr*/, uint16_t */*count*/, uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }

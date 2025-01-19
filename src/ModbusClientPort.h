@@ -119,17 +119,32 @@ public: // Main interface
     /// \details Same as `ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *status)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readExceptionStatus(ModbusObject *client, uint8_t unit, uint8_t *value);
 
+    /// \details Same as `ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnostics(ModbusObject *client, uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+
+    /// \details Same as `ModbusClientPort::getCommEventCounter(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode getCommEventCounter(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount);
+
+    /// \details Same as `ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *events)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode getCommEventLog(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+
     /// \details Same as `ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeMultipleCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const void *values);
 
     /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 
+    /// \details Same as `ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode reportServerID(ModbusObject *client, uint8_t unit, uint8_t *count, uint8_t *data);
+
     /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode maskWriteRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
 
     /// \details Same as `ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t offset, readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readWriteMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
+
+    /// \details Same as `ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode readFIFOQueue(ModbusObject *client, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
 
     /// \details Same as `ModbusClientPort::readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
@@ -148,10 +163,15 @@ public: // Modbus Interface
     Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value) override;
     Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value) override;
     Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *value) override;
+    Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata) override;
+    Modbus::StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount) override;
+    Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff) override;
     Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values) override;
     Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) override;
+    Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data) override;
     Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask) override;
     Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues) override;
+    Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values) override;
 
     /// \details Same as `ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
     inline Modbus::StatusCode readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readCoilsAsBoolArray(this, unit, offset, count, values); }
