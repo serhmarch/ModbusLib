@@ -779,6 +779,7 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
             return d->setError(Status_BadIllegalDataValue, StringLiteral("Not correct response. 'FIFOCount' more than 31"));
         for (i = 0; i < FIFOCount; i++)
             values[i] = buff[i*2+5] | (buff[i*2+4] << 8);
+        *count = FIFOCount;
         return d->setGoodStatus();
     default:
         return Status_Processing;

@@ -80,6 +80,24 @@ StatusCode ModbusClient::readExceptionStatus(uint8_t *value)
     return d->port->readExceptionStatus(this, d->unit, value);
 }
 
+StatusCode ModbusClient::diagnostics(uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+{
+    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
+    return d->port->diagnostics(this, d->unit, subfunc, insize, indata, outsize, outdata);
+}
+
+StatusCode ModbusClient::getCommEventCounter(uint16_t *status, uint16_t *eventCount)
+{
+    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
+    return d->port->getCommEventCounter(this, d->unit, status, eventCount);
+}
+
+StatusCode ModbusClient::getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
+{
+    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
+    return d->port->getCommEventLog(this, d->unit, status, eventCount, messageCount, eventBuffSize, eventBuff);
+}
+
 StatusCode ModbusClient::writeMultipleCoils(uint16_t offset, uint16_t count, const void *values)
 {
     ModbusClientPrivate *d = d_ModbusClient(d_ptr);
@@ -92,10 +110,28 @@ StatusCode ModbusClient::writeMultipleRegisters(uint16_t offset, uint16_t count,
     return d->port->writeMultipleRegisters(this, d->unit, offset, count, values);
 }
 
+StatusCode ModbusClient::reportServerID(uint8_t *count, uint8_t *data)
+{
+    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
+    return d->port->reportServerID(this, d->unit, count, data);
+}
+
 StatusCode ModbusClient::maskWriteRegister(uint16_t offset, uint16_t andMask, uint16_t orMask)
 {
     ModbusClientPrivate *d = d_ModbusClient(d_ptr);
     return d->port->maskWriteRegister(this, d->unit, offset, andMask, orMask);
+}
+
+StatusCode ModbusClient::readWriteMultipleRegisters(uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
+{
+    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
+    return d->port->readWriteMultipleRegisters(this, d->unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+}
+
+StatusCode ModbusClient::readFIFOQueue(uint16_t fifoadr, uint16_t *count, uint16_t *values)
+{
+    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
+    return d->port->readFIFOQueue(this, d->unit, fifoadr, count, values);
 }
 
 StatusCode ModbusClient::readCoilsAsBoolArray(uint16_t offset, uint16_t count, bool *values)
@@ -114,12 +150,6 @@ StatusCode ModbusClient::writeMultipleCoilsAsBoolArray(uint16_t offset, uint16_t
 {
     ModbusClientPrivate *d = d_ModbusClient(d_ptr);
     return d->port->writeMultipleCoilsAsBoolArray(this, d->unit, offset, count, values);
-}
-
-StatusCode ModbusClient::readWriteMultipleRegisters(uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
-{
-    ModbusClientPrivate *d = d_ModbusClient(d_ptr);
-    return d->port->readWriteMultipleRegisters(this, d->unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
 }
 
 StatusCode ModbusClient::lastPortStatus() const

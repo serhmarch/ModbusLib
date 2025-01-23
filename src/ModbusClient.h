@@ -46,47 +46,62 @@ public:
     ModbusClientPort *port() const;
 
 public:
-    /// \details Same as `ModbusInterface::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the address of the remote Modbus device is missing. It is preset in the constructor.
+    /// \details Same as `ModbusInterface::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode readCoils(uint16_t offset, uint16_t count, void *values);
 
-    /// \details Same as `ModbusInterface::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the address of the remote Modbus device is missing. It is preset in the constructor.
+    /// \details Same as `ModbusInterface::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode readDiscreteInputs(uint16_t offset, uint16_t count, void *values);
 
-    /// \details Same as `ModbusInterface::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
+    /// \details Same as `ModbusInterface::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode readHoldingRegisters(uint16_t offset, uint16_t count, uint16_t *values);
 
-    /// \details Same as `ModbusInterface::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
+    /// \details Same as `ModbusInterface::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode readInputRegisters(uint16_t offset, uint16_t count, uint16_t *values);
 
-    /// \details Same as `ModbusInterface::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
+    /// \details Same as `ModbusInterface::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode writeSingleCoil(uint16_t offset, bool value);
 
-    /// \details Same as `ModbusInterface::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
+    /// \details Same as `ModbusInterface::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode writeSingleRegister(uint16_t offset, uint16_t value);
 
-    /// \details Same as `ModbusInterface::readExceptionStatus(uint8_t unit, uint8_t *status)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
+    /// \details Same as `ModbusInterface::readExceptionStatus(uint8_t unit, uint8_t *status)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode readExceptionStatus(uint8_t *value);
 
-    /// \details Same as `ModbusInterface::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the address of the remote Modbus device is missing. It is preset in the constructor.
+    /// \details Same as `ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode diagnostics(uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+
+    /// \details Same as `ModbusClientPort::getCommEventCounter(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode getCommEventCounter(uint16_t *status, uint16_t *eventCount);
+
+    /// \details Same as `ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *events)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+
+    /// \details Same as `ModbusInterface::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode writeMultipleCoils(uint16_t offset, uint16_t count, const void *values);
 
-    /// \details Same as `ModbusInterface::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
+    /// \details Same as `ModbusInterface::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode writeMultipleRegisters(uint16_t offset, uint16_t count, const uint16_t *values);
 
-    /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    /// \details Same as `ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode reportServerID(uint8_t *count, uint8_t *data);
+
+    /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode maskWriteRegister(uint16_t offset, uint16_t andMask, uint16_t orMask);
 
-    /// \details Same as `ModbusClientPort::readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)`, but the address of the remote Modbus device is missing. It is pre-set in the constructor.
+    /// \details Same as `ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode readWriteMultipleRegisters(uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
+
+    /// \details Same as `ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode readFIFOQueue(uint16_t fifoadr, uint16_t *count, uint16_t *values);
+
+    /// \details Same as `ModbusClientPort::readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode readCoilsAsBoolArray(uint16_t offset, uint16_t count, bool *values);
 
-    /// \details Same as `ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t offset, readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    /// \details Same as `ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t offset, readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode readDiscreteInputsAsBoolArray(uint16_t offset, uint16_t count, bool *values);
 
-    /// \details Same as `ModbusClientPort::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values)`, but the address of the remote Modbus device is missing. It is preset in the constructor.
+    /// \details Same as `ModbusClientPort::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode writeMultipleCoilsAsBoolArray(uint16_t offset, uint16_t count, const bool *values);
-
-    /// \details Same as `ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode readWriteMultipleRegisters(uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 
 public:
     /// \details Returns the status of the last operation performed.

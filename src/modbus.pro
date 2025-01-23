@@ -7,7 +7,7 @@ CONFIG += qt
 
 DEFINES += MODBUS_EXPORTS
 
-DESTDIR = ../bin
+DESTDIR = ../../bin
 
 unix:QMAKE_RPATHDIR += .
 
