@@ -30,7 +30,11 @@
 /// \brief ModbusLib version value that defines as MODBUSLIB_VERSION_STR "major.minor.patch"
 #define MODBUSLIB_VERSION_STR MODBUSLIB_VERSION_STR_MAKE(MODBUSLIB_VERSION_MAJOR,MODBUSLIB_VERSION_MINOR,MODBUSLIB_VERSION_PATCH)
 
+
+
 /// \brief MODBUS_EXPORT defines macro for import/export functions and classes.
+#ifdef MB_DYNAMIC_LINKING
+
 #if defined(MODBUS_EXPORTS) && defined(MB_DECL_EXPORT)
 #define MODBUS_EXPORT MB_DECL_EXPORT
 #elif defined(MB_DECL_IMPORT)
@@ -38,6 +42,14 @@
 #else
 #define MODBUS_EXPORT
 #endif
+
+#else
+
+#define MODBUS_EXPORT
+
+#endif // MB_DYNAMIC_LINKING
+
+
 
 /// \brief Macro for creating string literal, must be used like: `StringLiteral("Some string")`
 #define StringLiteral(cstr) cstr
