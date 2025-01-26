@@ -50,38 +50,85 @@ typedef ModbusInterface* cModbusInterface;
 /// \brief Handle (pointer) of `ModbusDevice` for C interface
 typedef void* cModbusDevice;
 
+#ifndef MBF_READ_COILS_DISABLE
 /// \details Pointer to C function for read coils (0x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readCoils`
 typedef StatusCode (*pfReadCoils)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+#endif // MBF_READ_COILS_DISABLE
 
+#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
 /// \details Pointer to C function for read discrete inputs (1x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readDiscreteInputs`
 typedef StatusCode (*pfReadDiscreteInputs)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
 
+#ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
 /// \details Pointer to C function for read holding registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readHoldingRegisters`
 typedef StatusCode (*pfReadHoldingRegisters)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+#endif // MBF_READ_HOLDING_REGISTERS_DISABLE
 
+#ifndef MBF_READ_INPUT_REGISTERS_DISABLE
 /// \details Pointer to C function for read input registers (3x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readInputRegisters`
 typedef StatusCode (*pfReadInputRegisters)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+#endif // MBF_READ_INPUT_REGISTERS_DISABLE
 
+#ifndef MBF_WRITE_SINGLE_COIL_DISABLE
 /// \details Pointer to C function for write single coil (0x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeSingleCoil`
 typedef StatusCode (*pfWriteSingleCoil)(cModbusDevice dev, uint8_t unit, uint16_t offset, bool value);
+#endif // MBF_WRITE_SINGLE_COIL_DISABLE
 
+#ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
 /// \details Pointer to C function for write single register (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeSingleRegister`
 typedef StatusCode (*pfWriteSingleRegister)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t value);
+#endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
 
+#ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
 /// \details Pointer to C function for read exception status bits. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readExceptionStatus`
 typedef StatusCode (*pfReadExceptionStatus)(cModbusDevice dev, uint8_t unit, uint8_t *status);
+#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
+#ifndef MBF_DIAGNOSTICS_DISABLE
+/// \details Pointer to C function for diagnostics. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnostics`
+typedef StatusCode (*pfDiagnostics)(cModbusDevice dev, uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+#endif // MBF_DIAGNOSTICS_DISABLE
+
+#ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
+/// \details Pointer to C function for get communication event counter. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::getCommEventCounter`
+typedef StatusCode (*pfGetCommEventCounter)(cModbusDevice dev, uint8_t unit, uint16_t *status, uint16_t *eventCount);
+#endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
+
+#ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
+/// \details Pointer to C function for get communication event logs. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::getCommEventLog`
+typedef StatusCode (*pfGetCommEventLog)(cModbusDevice dev, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+#endif // MBF_GET_COMM_EVENT_LOG_DISABLE
+
+#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
 /// \details Pointer to C function for write coils (0x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeMultipleCoils`
 typedef StatusCode (*pfWriteMultipleCoils)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t count, const void *values);
+#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
+#ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 /// \details Pointer to C function for write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeMultipleRegisters`
 typedef StatusCode (*pfWriteMultipleRegisters)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+#endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
+#ifndef MBF_REPORT_SERVER_ID_DISABLE
+/// \details Pointer to C function for report server id. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::reportServerID`
+typedef StatusCode (*pfReportServerID)(cModbusDevice dev, uint8_t unit, uint8_t *count, uint8_t *data);
+#endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 /// \details Pointer to C function for mask write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::maskWriteRegister`
 typedef StatusCode (*pfMaskWriteRegister)(cModbusDevice dev, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
+#endif // MBF_MASK_WRITE_REGISTER_DISABLE
 
+#ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 /// \details Pointer to C function for write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeMultipleRegisters`
 typedef StatusCode (*pfReadWriteMultipleRegisters)(cModbusDevice dev, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
+#endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
+
+#ifndef MBF_READ_FIFO_QUEUE_DISABLE
+/// \details Pointer to C function for read FIFO queue. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readFIFOQueue`
+typedef StatusCode (*pfReadFIFOQueue)(cModbusDevice dev, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
+#endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 /// \details Pointer to C callback function. `dev` - pointer to any struct that can hold memory data. \sa `ModbusClientPort::signalOpened` and `ModbusServerPort::signalOpened`
 typedef void (*pfSlotOpened)(const Char *source);
@@ -113,20 +160,66 @@ typedef void (*pfSlotCloseConnection)(const Char *source);
 /// writeSingleCoil,
 /// writeSingleRegister,
 /// readExceptionStatus,
-/// writeMultipleCoils - pointers to corresponding Modbus functions to process data.
+/// diagnostics,
+/// getCommEventCounter,
+/// getCommEventLog,
+/// writeMultipleCoils
+/// writeMultipleRegisters 
+/// reportServerID,
+/// maskWriteRegister,
+/// readWriteMultipleRegisters,
+/// readFIFOQueue - pointers to corresponding Modbus functions to process data.
 /// Any pointer can have `NULL` value. In this case server will return `Status_BadIllegalFunction`.
-MODBUS_EXPORT cModbusInterface cCreateModbusDevice(cModbusDevice                device                ,
-                                                   pfReadCoils                  readCoils             ,
-                                                   pfReadDiscreteInputs         readDiscreteInputs    ,
-                                                   pfReadHoldingRegisters       readHoldingRegisters  ,
-                                                   pfReadInputRegisters         readInputRegisters    ,
-                                                   pfWriteSingleCoil            writeSingleCoil       ,
-                                                   pfWriteSingleRegister        writeSingleRegister   ,
-                                                   pfReadExceptionStatus        readExceptionStatus   ,
-                                                   pfWriteMultipleCoils         writeMultipleCoils    ,
-                                                   pfWriteMultipleRegisters     writeMultipleRegisters,
-                                                   pfMaskWriteRegister          maskWriteRegister     ,
-                                                   pfReadWriteMultipleRegisters readWriteMultipleRegisters);
+MODBUS_EXPORT cModbusInterface cCreateModbusDevice(cModbusDevice                device                
+#ifndef MBF_READ_COILS_DISABLE
+                                                 , pfReadCoils                  readCoils             
+#endif // MBF_READ_COILS_DISABLE
+#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
+                                                 , pfReadDiscreteInputs         readDiscreteInputs    
+#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
+#ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
+                                                 , pfReadHoldingRegisters       readHoldingRegisters  
+#endif // MBF_READ_HOLDING_REGISTERS_DISABLE
+#ifndef MBF_READ_INPUT_REGISTERS_DISABLE
+                                                 , pfReadInputRegisters         readInputRegisters    
+#endif // MBF_READ_INPUT_REGISTERS_DISABLE
+#ifndef MBF_WRITE_SINGLE_COIL_DISABLE
+                                                 , pfWriteSingleCoil            writeSingleCoil       
+#endif // MBF_WRITE_SINGLE_COIL_DISABLE
+#ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
+                                                 , pfWriteSingleRegister        writeSingleRegister   
+#endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
+#ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
+                                                 , pfReadExceptionStatus        readExceptionStatus   
+#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
+#ifndef MBF_DIAGNOSTICS_DISABLE
+                                                 , pfDiagnostics                diagnostics    
+#endif // MBF_DIAGNOSTICS_DISABLE
+#ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
+                                                 , pfGetCommEventCounter        getCommEventCounter
+#endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
+#ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
+                                                 , pfGetCommEventLog            getCommEventLog     
+#endif // MBF_GET_COMM_EVENT_LOG_DISABLE
+#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
+                                                 , pfWriteMultipleCoils         writeMultipleCoils
+#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
+#ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
+                                                 , pfWriteMultipleRegisters     writeMultipleRegisters
+#endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
+#ifndef MBF_REPORT_SERVER_ID_DISABLE
+                                                 , pfReportServerID             reportServerID
+#endif // MBF_REPORT_SERVER_ID_DISABLE
+#ifndef MBF_MASK_WRITE_REGISTER_DISABLE
+                                                 , pfMaskWriteRegister          maskWriteRegister
+#endif // MBF_MASK_WRITE_REGISTER_DISABLE
+#ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
+                                                 , pfReadWriteMultipleRegisters readWriteMultipleRegisters
+#endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
+#ifndef MBF_READ_FIFO_QUEUE_DISABLE
+                                                 , pfReadFIFOQueue              readFIFOQueue
+#endif // MBF_READ_FIFO_QUEUE_DISABLE
+                                                 );
 
 
 /// \details Deletes previously created `ModbusInterface` object represented by `dev` handle
@@ -174,50 +267,103 @@ MODBUS_EXPORT bool cCpoClose(cModbusClientPort clientPort);
 /// \details Wrapper for `ModbusClientPort::repeatCount`
 MODBUS_EXPORT uint32_t cCpoGetRepeatCount(cModbusClientPort clientPort);
 
-/// \details Wrapper for `ModbusClientPort::repeatCount`
+/// \details Wrapper for `ModbusClientPort::setRepeatCount`
 MODBUS_EXPORT void cCpoSetRepeatCount(cModbusClientPort clientPort, uint32_t count);
 
+#ifndef MBF_READ_COILS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readCoils`
 MODBUS_EXPORT StatusCode cCpoReadCoils(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+#endif // MBF_READ_COILS_DISABLE
 
+#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readDiscreteInputs`
 MODBUS_EXPORT StatusCode cCpoReadDiscreteInputs(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
 
+#ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readHoldingRegisters`
 MODBUS_EXPORT StatusCode cCpoReadHoldingRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+#endif // MBF_READ_HOLDING_REGISTERS_DISABLE
 
+#ifndef MBF_READ_INPUT_REGISTERS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readInputRegisters`
 MODBUS_EXPORT StatusCode cCpoReadInputRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
+#endif // MBF_READ_INPUT_REGISTERS_DISABLE
 
+#ifndef MBF_WRITE_SINGLE_COIL_DISABLE
 /// \details Wrapper for `ModbusClientPort::writeSingleCoil`
 MODBUS_EXPORT StatusCode cCpoWriteSingleCoil(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, bool value);
+#endif // MBF_WRITE_SINGLE_COIL_DISABLE
 
+#ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
 /// \details Wrapper for `ModbusClientPort::writeSingleRegister`
 MODBUS_EXPORT StatusCode cCpoWriteSingleRegister(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t value);
+#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
+#ifndef MBF_DIAGNOSTICS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readExceptionStatus`
 MODBUS_EXPORT StatusCode cCpoReadExceptionStatus(cModbusClientPort clientPort, uint8_t unit, uint8_t *value);
+#endif // MBF_DIAGNOSTICS_DISABLE
 
+#ifndef MBF_DIAGNOSTICS_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnostics`
+MODBUS_EXPORT StatusCode cCpoDiagnostics(cModbusClientPort clientPort, uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+#endif // MBF_DIAGNOSTICS_DISABLE
+
+#ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
+/// \details Wrapper for `ModbusClientPort::getCommEventCounter`
+MODBUS_EXPORT StatusCode cCpoGetCommEventCounter(cModbusClientPort clientPort, uint8_t unit, uint16_t *status, uint16_t *eventCount);
+#endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
+
+#ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
+/// \details Wrapper for `ModbusClientPort::getCommEventLog`
+MODBUS_EXPORT StatusCode cCpoGetCommEventLog(cModbusClientPort clientPort, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+#endif // MBF_GET_COMM_EVENT_LOG_DISABLE
+
+#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
 /// \details Wrapper for `ModbusClientPort::writeMultipleCoils`
 MODBUS_EXPORT StatusCode cCpoWriteMultipleCoils(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const void *values);
+#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
+#ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 /// \details Wrapper for `ModbusClientPort::writeMultipleRegisters`
 MODBUS_EXPORT StatusCode cCpoWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
+#endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
+#ifndef MBF_REPORT_SERVER_ID_DISABLE
+/// \details Wrapper for `ModbusClientPort::reportServerID`
+MODBUS_EXPORT StatusCode cCpoReportServerID(cModbusClientPort clientPort, uint8_t unit, uint8_t *count, uint8_t *data);
+#endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 /// \details Wrapper for `ModbusClientPort::maskWriteRegister`
 MODBUS_EXPORT StatusCode cCpoMaskWriteRegister(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
+#endif // MBF_MASK_WRITE_REGISTER_DISABLE
 
+#ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readWriteMultipleRegisters`
 MODBUS_EXPORT StatusCode cCpoReadWriteMultipleRegisters(cModbusClientPort clientPort, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
+#endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
+#ifndef MBF_READ_FIFO_QUEUE_DISABLE
+/// \details Wrapper for `ModbusClientPort::readFIFOQueue`
+MODBUS_EXPORT StatusCode cCpoReadFIFOQueue(cModbusClientPort clientPort, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
+#endif // MBF_READ_FIFO_QUEUE_DISABLE
+
+#ifndef MBF_READ_COILS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readCoilsAsBoolArray`
 MODBUS_EXPORT StatusCode cCpoReadCoilsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
+#endif // MBF_READ_COILS_DISABLE
 
+#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readDiscreteInputsAsBoolArray`
 MODBUS_EXPORT StatusCode cCpoReadDiscreteInputsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
+#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
 
+#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
 /// \details Wrapper for `ModbusClientPort::writeMultipleCoilsAsBoolArray`
 MODBUS_EXPORT StatusCode cCpoWriteMultipleCoilsAsBoolArray(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t count, const bool *values);
+#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
 /// \details Wrapper for `ModbusClientPort::getLastStatus`
 MODBUS_EXPORT StatusCode cCpoGetLastStatus(cModbusClientPort clientPort);

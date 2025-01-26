@@ -447,82 +447,114 @@ List<FlowControl> availableFlowControl()
 
 } //namespace Modbus
 
+#ifndef MBF_READ_COILS_DISABLE
 Modbus::StatusCode ModbusInterface::readCoils(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, void */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
 Modbus::StatusCode ModbusInterface::readDiscreteInputs(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, void */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
 Modbus::StatusCode ModbusInterface::readHoldingRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_READ_INPUT_REGISTERS_DISABLE
 Modbus::StatusCode ModbusInterface::readInputRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_WRITE_SINGLE_COIL_DISABLE
 Modbus::StatusCode ModbusInterface::writeSingleCoil(uint8_t /*unit*/, uint16_t /*offset*/, bool /*value*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
 Modbus::StatusCode ModbusInterface::writeSingleRegister(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*value*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
 Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t /*unit*/, uint8_t * /*status*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_DIAGNOSTICS_DISABLE
 Modbus::StatusCode ModbusInterface::diagnostics(uint8_t /*unit*/, uint16_t /*subfunc*/, uint8_t /*insize*/, const uint8_t * /*indata*/, uint8_t * /*outsize*/, uint8_t * /*outdata*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
 Modbus::StatusCode ModbusInterface::getCommEventCounter(uint8_t /*unit*/, uint16_t * /*status*/, uint16_t * /*eventCount*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
 Modbus::StatusCode ModbusInterface::getCommEventLog(uint8_t /*unit*/, uint16_t * /*status*/, uint16_t * /*eventCount*/, uint16_t * /*messageCount*/, uint8_t * /*eventBuffSize*/, uint8_t * /*eventBuff*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
 Modbus::StatusCode ModbusInterface::writeMultipleCoils(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const void * /*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const uint16_t * /*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_REPORT_SERVER_ID_DISABLE
 Modbus::StatusCode ModbusInterface::reportServerID(uint8_t /*unit*/, uint8_t * /*count*/, uint8_t * /*data*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 Modbus::StatusCode ModbusInterface::maskWriteRegister(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*andMask*/, uint16_t /*orMask*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 Modbus::StatusCode ModbusInterface::readWriteMultipleRegisters(uint8_t /*unit*/, uint16_t /*readOffset*/, uint16_t /*readCount*/, uint16_t */*readValues*/, uint16_t /*writeOffset*/, uint16_t /*writeCount*/, const uint16_t */*writeValues*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
 
+#ifndef MBF_READ_FIFO_QUEUE_DISABLE
 Modbus::StatusCode ModbusInterface::readFIFOQueue(uint8_t /*unit*/, uint16_t /*fifoadr*/, uint16_t */*count*/, uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
+#endif
