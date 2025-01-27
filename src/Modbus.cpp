@@ -3,9 +3,15 @@
 #include "ModbusAscPort.h"
 #include "ModbusRtuPort.h"
 #include "ModbusTcpPort.h"
+
+#ifndef MB_CLIENT_DISABLE
 #include "ModbusClientPort.h"
+#endif // MB_CLIENT_DISABLE
+
+#ifndef MB_SERVER_DISABLE
 #include "ModbusTcpServer.h"
 #include "ModbusServerResource.h"
+#endif // MB_SERVER_DISABLE
 
 namespace Modbus {
 
@@ -360,13 +366,16 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
     return port;
 }
 
+#ifndef MB_CLIENT_DISABLE
 ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking)
 {
     ModbusPort *port = createPort(type, settings, blocking);
     ModbusClientPort *clientPort = new ModbusClientPort(port);
     return clientPort;
 }
+#endif // MB_CLIENT_DISABLE
 
+#ifndef MB_SERVER_DISABLE
 ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking)
 {
     ModbusServerPort *serv = nullptr;
@@ -391,6 +400,7 @@ ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, c
     }
     return serv;
 }
+#endif // MB_SERVER_DISABLE
 
 List<int32_t> availableBaudRate()
 {

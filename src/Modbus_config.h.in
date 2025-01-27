@@ -7,7 +7,9 @@
 
 #cmakedefine MB_DYNAMIC_LINKING
 
-#cmakedefine MBFFFF_READ_COILS_DISABLE  
+#cmakedefine MB_CLIENT_DISABLE
+#cmakedefine MB_SERVER_DISABLE
+#cmakedefine MB_C_SUPPORT_DISABLE
 
 #cmakedefine MBF_READ_COILS_DISABLE                   
 #cmakedefine MBF_READ_DISCRETE_INPUTS_DISABLE         

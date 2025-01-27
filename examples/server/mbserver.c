@@ -563,10 +563,15 @@ int main(int argc, char **argv)
                                                 fWriteSingleCoil           ,
                                                 fWriteSingleRegister       ,
                                                 fReadExceptionStatus       ,
+                                                NULL                       ,   
+                                                NULL                       ,   
+                                                NULL                       ,   
                                                 fWriteMultipleCoils        ,
                                                 fWriteMultipleRegisters    ,
+                                                NULL                       ,   
                                                 fMaskWriteRegister         ,     
-                                                fReadWriteMultipleRegisters);
+                                                fReadWriteMultipleRegisters,
+                                                NULL                       );   
 
     const bool blocking = false; // use async/non blocking mode
     cModbusServerPort serv;

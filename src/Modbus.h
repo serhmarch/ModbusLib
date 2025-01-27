@@ -267,18 +267,22 @@ MODBUS_EXPORT List<FlowControl> availableFlowControl();
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking);
 
+#ifndef MB_CLIENT_DISABLE
 /// \details Function for creation `ModbusClientPort` with defined parameters:
 /// \param[in]  type        Protocol type: TCP, RTU, ASC.
 /// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking);
+#endif // MB_CLIENT_DISABLE
 
+#ifndef MB_SERVER_DISABLE
 /// \details Function for creation `ModbusServerPort` with defined parameters:
 /// \param[in]  device      Pointer to the `ModbusInterface` implementation to which all requests for Modbus functions are forwarded.
 /// \param[in]  type        Protocol type: TCP, RTU, ASC.
 /// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking);
+#endif // MB_SERVER_DISABLE
 
 /// \details Overloaded function
 inline StatusCode readMemRegs(uint32_t offset, uint32_t count, void *values, const void *memBuff, uint32_t memRegCount)

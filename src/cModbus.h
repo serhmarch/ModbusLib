@@ -18,19 +18,18 @@ extern "C" {
 
 #ifdef __cplusplus
 class ModbusPort      ;
+class ModbusInterface ;
 class ModbusClientPort;
 class ModbusClient    ;
 class ModbusServerPort;
-class ModbusInterface ;
 
 #else
 typedef struct ModbusPort       ModbusPort      ;
+typedef struct ModbusInterface  ModbusInterface ;
 typedef struct ModbusClientPort ModbusClientPort;
 typedef struct ModbusClient     ModbusClient    ;
 typedef struct ModbusServerPort ModbusServerPort;
-typedef struct ModbusInterface  ModbusInterface ;
 #endif
-
 
 /// \brief Handle (pointer) of `ModbusPort` for C interface
 typedef ModbusPort* cModbusPort;
@@ -239,6 +238,7 @@ MODBUS_EXPORT void cPortDelete(cModbusPort port);
 // --------------------------------------------------------------------------------------------------------
 // ------------------------------------------- ModbusClientPort -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
+#ifndef MB_CLIENT_DISABLE
 
 /// \details Creates `ModbusClientPort` object and returns handle to it. \sa `Modbus::createClientPort`
 MODBUS_EXPORT cModbusClientPort cCpoCreate(ProtocolType type, const void *settings, bool blocking);
@@ -478,10 +478,13 @@ MODBUS_EXPORT StatusCode cCliGetLastPortErrorStatus(cModbusClient client);
 /// \details Wrapper for `ModbusClient::lastPortErrorText`
 MODBUS_EXPORT const Char *cCliGetLastPortErrorText(cModbusClient client);
 
+#endif // MB_CLIENT_DISABLE
 
 // --------------------------------------------------------------------------------------------------------
 // ------------------------------------------- ModbusServerPort -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
+
+#ifndef MB_SERVER_DISABLE
 
 /// \details Creates `ModbusServerPort` object and returns handle to it. \sa `Modbus::createServerPort`
 MODBUS_EXPORT cModbusServerPort cSpoCreate(cModbusInterface device, ProtocolType type, const void *settings, bool blocking);
@@ -540,6 +543,7 @@ MODBUS_EXPORT void cSpoConnectCloseConnection(cModbusServerPort serverPort, pfSl
 /// \details Disconnects `funcPtr`-function from `ModbusServerPort`
 MODBUS_EXPORT void cSpoDisconnectFunc(cModbusServerPort serverPort, void *funcPtr);
 
+#endif // MB_SERVER_DISABLE
 
 #ifdef __cplusplus
 } // extern "C"

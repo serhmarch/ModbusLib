@@ -2,10 +2,16 @@
 
 #include "Modbus.h"
 #include "ModbusPort.h"
+
+#ifndef MB_CLIENT_DISABLE
 #include "ModbusClientPort.h"
 #include "ModbusClient.h"
+#endif // MB_CLIENT_DISABLE
+
+#ifndef MB_SERVER_DISABLE
 #include "ModbusServerPort.h"
 #include "ModbusTcpServer.h"
+#endif // MB_SERVER_DISABLE
 
 class cModbusInterfaceImpl : public ModbusInterface
 {
@@ -439,6 +445,8 @@ void cPortDelete(cModbusPort port)
 // --------------------------------------------------------------------------------------------------------
 // ------------------------------------------- ModbusClientPort -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
+
+#ifndef MB_CLIENT_DISABLE
 
 cModbusClientPort cCpoCreate(ProtocolType type, const void *settings, bool blocking)
 {
@@ -874,10 +882,14 @@ const Char *cCliGetLastPortErrorText(cModbusClient client)
     return client->lastPortErrorText();
 }
 
+#endif // MB_CLIENT_DISABLE
+
 
 // --------------------------------------------------------------------------------------------------------
 // ------------------------------------------- ModbusServerPort -------------------------------------------
 // --------------------------------------------------------------------------------------------------------
+
+#ifndef MB_SERVER_DISABLE
 
 cModbusServerPort cSpoCreate(cModbusInterface device, ProtocolType type, const void *settings, bool blocking)
 {
@@ -975,3 +987,5 @@ void cSpoDisconnectFunc(cModbusServerPort serverPort, void *funcPtr)
 {
     serverPort->disconnectFunc(funcPtr);
 }
+
+#endif // MB_SERVER_DISABLE
