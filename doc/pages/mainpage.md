@@ -10,17 +10,22 @@ Also it has optional wrapper to use with Qt (implements in ModbusQt.h header fil
 Library can work in both blocking and non-blocking mode.
 
 Library implements such Modbus functions as:
-* 1  (0x01) - `READ_COILS`
-* 2  (0x02) - `READ_DISCRETE_INPUTS`
-* 3  (0x03) - `READ_HOLDING_REGISTERS`
-* 4  (0x04) - `READ_INPUT_REGISTERS`
-* 5  (0x05) - `WRITE_SINGLE_COIL`
-* 6  (0x06) - `WRITE_SINGLE_REGISTER`
-* 7  (0x07) - `READ_EXCEPTION_STATUS`
-* 15 (0x0F) - `WRITE_MULTIPLE_COILS`
-* 16 (0x10) - `WRITE_MULTIPLE_REGISTERS`
-* 22 (0x16) - `MASK_WRITE_REGISTER`
-* 23 (0x17) - `WRITE_MULTIPLE_REGISTERS`
+* `1`  (`0x01`) - `READ_COILS`
+* `2`  (`0x02`) - `READ_DISCRETE_INPUTS`
+* `3`  (`0x03`) - `READ_HOLDING_REGISTERS`
+* `4`  (`0x04`) - `READ_INPUT_REGISTERS`
+* `5`  (`0x05`) - `WRITE_SINGLE_COIL`
+* `6`  (`0x06`) - `WRITE_SINGLE_REGISTER`
+* `7`  (`0x07`) - `READ_EXCEPTION_STATUS`
+* `8`  (`0x08`) - `DIAGNOSTICS`
+* `11` (`0x0B`) - `GET_COMM_EVENT_COUNTER`
+* `12` (`0x0C`) - `GET_COMM_EVENT_LOG`
+* `15` (`0x0F`) - `WRITE_MULTIPLE_COILS`
+* `16` (`0x10`) - `WRITE_MULTIPLE_REGISTERS`
+* `17` (`0x11`) - `REPORT_SERVER_ID`
+* `22` (`0x16`) - `MASK_WRITE_REGISTER`
+* `23` (`0x17`) - `WRITE_MULTIPLE_REGISTERS`
+* `24` (`0x18`) - `READ_FIFO_QUEUE`
 
 ## Using Library
 
@@ -40,8 +45,9 @@ that creates corresponding `ModbusClientPort` and `ModbusServerPort` main workin
 Those classes that implements Modbus functions for the library for client and server 
 version of protocol, respectively.
 
-#### Client
-`ModbusClientPort` implements Modbus interface directly and can be used very simply:
+### Client
+
+`ModbusClientPort` implements Modbus interface directly and can be used very simple:
 ```cpp
 #include <ModbusClientPort.h>
 //...
@@ -49,7 +55,7 @@ void main()
 {
     Modbus::TcpSettings settings;
     settings.host = "someadr.plc";
-    settings.port = 502;
+    settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
     ModbusClientPort *port = Modbus::createClientPort(Modbus::TCP, &settings, true);
     const uint8_t unit = 1;
@@ -97,7 +103,8 @@ In this example 3 clients with unit address 1, 2, 3 are used.
 User don't need to manage its common resource `port`. Library make it automatically.
 First `c1` client owns `port`, than when finished resource transferred to `c2` and so on.
 
-#### Server
+### Server
+
 Unlike client the server do not implement `ModbusInterface` directly. 
 It accepts pointer to `ModbusInterface` in its constructor as parameter and transfer all requests
 to this interface. So user can define by itself how incoming Modbus-request will be processed:
@@ -121,7 +128,7 @@ public:
             return Modbus::Status_BadGatewayPathUnavailable;
         if ((offset + count) <= MEM_SIZE)
         {
-            memcpy(values, mem4x, count*sizeof(uint16_t));
+            memcpy(values, &mem4x[offset], count*sizeof(uint16_t));
             return Modbus::Status_Good;
         }
         return Modbus::Status_BadIllegalDataAddress;
@@ -132,7 +139,7 @@ void main()
 {
     MyModbusDevice device;
     Modbus::TcpSettings settings;
-    settings.port = 502;
+    settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
     ModbusServerPort *port = Modbus::createServerPort(&device, Modbus::TCP, &settings, false);
     int c = 0;
@@ -147,7 +154,7 @@ void main()
 ```
 
 In this example `MyModbusDevice` ModbusInterface class was created.
-It imlements only single function: readHoldingRegisters (0x03).
+It imlements only single function: `readHoldingRegisters` (`0x03`).
 All other functions will return `Modbus::Status_BadIllegalFunction` by default.
 
 This example creates Modbus TCP server that process connections and increment 
@@ -198,7 +205,7 @@ So if user needs to check is function finished he can write:
 
 Library has simplified Qt-like signal/slot mechanism that can use callbacks when some signal is occured.
 User can connect function(s) or class method(s) to the predefined signal. 
-Callbacks will be called in order which it were connected.
+Callbacks will be called in the order in which they were connected.
 
 For example `ModbusClientPort` signal/slot mechanism:
 ```cpp
@@ -233,7 +240,7 @@ void main()
 
 To use the library with pure C language user needs to include only one header: `cModbus.h`.
 This header includes functions that wraps Modbus interface classes and its methods.
-```cpp
+```c
 #include <cModbus.h>
 //...
 void printTx(const Char *source, const uint8_t* buff, uint16_t size)
@@ -252,7 +259,7 @@ void main()
 {
     TcpSettings settings;
     settings.host = "someadr.plc";
-    settings.port = 502;
+    settings.port = STANDARD_TCP_PORT;
     settings.timeout = 3000;
     const uint8_t unit = 1;
     cModbusClient client = cCliCreate(unit, TCP, &settings, true);
