@@ -2,12 +2,9 @@
 
 ## Overview
 
-ModbusLib is a free, open-source Modbus library written in C++. 
-
+ModbusLib is a free, open-source Modbus library written in C++.
 It implements client and server functions for TCP, RTU and ASCII versions of Modbus Protocol.
-
 It has interface for plain C language (implements in cModbus.h header file).
-
 Also it has optional wrapper to use with Qt (implements in ModbusQt.h header file).
 
 Library implements such Modbus functions as:
@@ -74,10 +71,12 @@ User can use `ModbusClient` class to simplify Modbus function's interface (don't
 `unit` parameter):
 ```cpp
 #include <ModbusClientPort.h>
+#include <ModbusClient.h>
 //...
 void main()
 {
     //...
+    ModbusClientPort *port = Modbus::createClientPort(Modbus::TCP, &settings, true);
     ModbusClient c1(1, port);
     ModbusClient c2(2, port);
     ModbusClient c3(3, port);
@@ -141,14 +140,16 @@ void main()
     {
         port->process();
         Modbus::msleep(1);
-        if (c % 1000 == 0) setValue(0, getValue(0)+1);
+        if (c % 1000 == 0)
+            setValue(0, getValue(0)+1);
+        ++c;
     }
 }
 //...
 ```
 
 In this example `MyModbusDevice` ModbusInterface class was created.
-It imlements only single function: `readHoldingRegisters` (`0x03`).
+It implements only single function: `readHoldingRegisters` (`0x03`).
 All other functions will return `Modbus::Status_BadIllegalFunction` by default.
 
 This example creates Modbus TCP server that process connections and increment 
