@@ -68,8 +68,11 @@ void ModbusTcpServer::setTimeout(uint32_t timeout)
 void ModbusTcpServer::clearConnections()
 {
     ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
-    for (auto& elem : d->connections)
-        deleteTcpPort(elem);
+    for (auto& c : d->connections)
+    {
+        signalCloseConnection(c->objectName());
+        deleteTcpPort(c);
+    }
     d->connections.clear();
 }
 

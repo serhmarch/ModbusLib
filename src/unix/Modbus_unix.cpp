@@ -5,6 +5,7 @@
 #include <cerrno>   // for errno
 #include <cstring>
 #include <set>
+#include <algorithm>
 
 namespace Modbus {
 
