@@ -62,7 +62,7 @@ StatusCode ModbusAscPort::readBuffer(uint8_t& unit, uint8_t &func, uint8_t* buff
     const uint16_t szIBuff = MB_ASC_IO_BUFF_SZ/2;
     uint8_t ibuff[szIBuff];
 
-    if (d->sz < 9) // 9 = 1(':')+2(unit)+2(func)+2(lrc)+1('\r')+1('\n')
+    if (d->sz < 9) // Note: 9 = 1(':')+2(unit)+2(func)+2(lrc)+1('\r')+1('\n')
         return d->setError(Status_BadNotCorrectRequest, StringLiteral("ASCII. Not correct response. Responsed data length to small"));
 
     if (d->buff[0] != ':')
@@ -80,7 +80,7 @@ StatusCode ModbusAscPort::readBuffer(uint8_t& unit, uint8_t &func, uint8_t* buff
     unit = ibuff[0];
     func = ibuff[1];
 
-    d->sz -= 3; // 3 = 1(unit)+1(func)+1(lrc)
+    d->sz -= 3; // Note: 3 = 1(unit)+1(func)+1(lrc)
     if (d->sz > maxSzBuff)
         return d->setError(Modbus::Status_BadReadBufferOverflow, StringLiteral("ASCII. Read-buffer overflow"));
     memcpy(buff, &ibuff[2], d->sz);

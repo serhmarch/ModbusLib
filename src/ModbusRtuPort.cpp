@@ -58,8 +58,8 @@ StatusCode ModbusRtuPort::readBuffer(uint8_t& unit, uint8_t& func, uint8_t *buff
 {
     ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
     uint16_t crc;
-    if (d->sz < 5)
-        return d->setError(Status_BadNotCorrectRequest, StringLiteral("RTU. Not correct response. Responsed data length to small"));
+    if (d->sz < 4) // Note: Unit + Func + 2 bytes CRC
+        return d->setError(Status_BadNotCorrectRequest, StringLiteral("RTU. Not correct input. Input data length to small"));
 
     crc = d->buff[d->sz-2] | (d->buff[d->sz-1] << 8);
     if (Modbus::crc16(d->buff, d->sz-2) != crc)
