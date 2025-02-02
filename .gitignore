@@ -51,8 +51,8 @@ bin/**/*.smod
 #ignore external
 external/
 
-#ignore cmake presets
-CMakePresets.json
+#ignore only cmake presets in root folder
+/CMakePresets.json
 
 #ignore vscode
 .vscode/

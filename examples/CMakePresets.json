@@ -1,0 +1,425 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "Config-All",
+            "displayName": "Config All",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_EXAMPLES_ENABLED": "ON",
+                "MB_TESTS_ENABLED": "ON"
+            }
+        },
+        {
+            "name": "Config-No-Examples-Tests",
+            "displayName": "No Examples And Tests",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_EXAMPLES_ENABLED": "OFF",
+                "MB_TESTS_ENABLED": "OFF"
+            }
+        },
+        {
+            "name": "Win64-Default",
+            "displayName": "Win64 Config Default MSVC",
+            "description": "Using compilers for Visual Studio 17 2022 (x64 architecture)",
+            "generator": "Visual Studio 17 2022",
+            "toolset": "host=x64",
+            "architecture": "x64",
+            "binaryDir": "c:/tmp/cmake/ModbusLib/Win64",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "Win64-Qt",
+            "displayName": "Windows MSVC x64 Qt",
+            "hidden": true,
+            "binaryDir": "c:/tmp/cmake/ModbusLib/Win64-Qt",
+            "cacheVariables": {
+                "MB_QT_ENABLED": "ON",
+                "CMAKE_PREFIX_PATH": "C:/Qt/5.15.2/msvc2019_64"
+            }
+        },
+        {
+            "name": "Win64-All",
+            "displayName": "Win64 Config All",
+            "inherits": "Win64-Default",
+            "cacheVariables": {
+                "MB_EXAMPLES_ENABLED": "ON",
+                "MB_TESTS_ENABLED": "ON"
+            }
+        },
+        {
+            "name": "Win64-Qt-All",
+            "displayName": "Win64 Config Qt All",
+            "inherits": [
+                "Win64-Qt",
+                "Win64-All"
+            ]
+        },
+        {
+            "name": "Win64-No-Examples-Tests",
+            "displayName": "Win64 Config No Examples And Tests",
+            "inherits": [
+                "Win64-Default",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
+            "name": "Win64-Qt-No-Examples-Tests",
+            "displayName": "Win64 Config Qt No Examples And Tests",
+            "inherits": [
+                "Win64-Qt",
+                "Win64-Default",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
+            "name": "Win32-Default",
+            "displayName": "Win32 Config Default MSVC",
+            "description": "Using compilers for Visual Studio 17 2022 (x64_x86 architecture)",
+            "generator": "Visual Studio 17 2022",
+            "toolset": "host=x64",
+            "architecture": "win32",
+            "binaryDir": "c:/tmp/cmake/ModbusLib/Win32",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "Win32-Qt",
+            "displayName": "Windows MSVC x32 Qt",
+            "hidden": true,
+            "binaryDir": "c:/tmp/cmake/ModbusLib/Win32-Qt",
+            "cacheVariables": {
+                "MB_QT_ENABLED": "ON",
+                "CMAKE_PREFIX_PATH": "C:/Qt/5.15.2/msvc2019"
+            }
+        },
+        {
+            "name": "Win32-All",
+            "displayName": "Win32 Config All",
+            "inherits": [
+                "Win32-Default",
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Win32-Qt-All",
+            "displayName": "Win32 Config Qt All",
+            "inherits": [
+                "Win32-Qt",
+                "Win32-All"
+            ]
+        },
+        {
+            "name": "Win32-No-Examples-Tests",
+            "displayName": "Win32 Config No Examples And Tests",
+            "inherits": [
+                "Win32-Default",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
+            "name": "Win32-Qt-No-Examples-Tests",
+            "displayName": "Win32 Config Qt No Examples And Tests",
+            "inherits": [
+                "Win32-Qt",
+                "Win32-Default",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
+            "name": "Linux-Default",
+            "displayName": "GCC Linux-gnu Default",
+            "description": "Using compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "/usr/bin/gcc",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "Linux-Debug",
+            "displayName": "Linux GCC Config Debug",
+            "inherits": "Linux-Default",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux/Debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "Linux-Release",
+            "displayName": "Linux GCC Config Release",
+            "inherits": "Linux-Default",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux/Release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "Linux-Qt",
+            "displayName": "Linux GCC Qt",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_QT_ENABLED": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "Linux-Qt-Debug",
+            "hidden": true,
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux-Qt/Debug",
+            "inherits": "Linux-Qt"
+        },
+        {
+            "name": "Linux-Qt-Release",
+            "hidden": true,
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux-Qt/Release",
+            "inherits": "Linux-Qt"
+        },
+        {
+            "name": "Linux-All-Debug",
+            "displayName": "Linux GCC Config All Debug",
+            "inherits": [
+                "Linux-Debug",
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Linux-All-Release",
+            "displayName": "Linux GCC Config All Release",
+            "inherits": [
+                "Linux-Release", 
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Linux-No-Examples-Tests-Debug",
+            "displayName": "Linux Config No Examples And Tests Debug",
+            "inherits": [
+                "Linux-Debug",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
+            "name": "Linux-No-Examples-Tests-Release",
+            "displayName": "Linux Config No Examples And Tests Release",
+            "inherits": [
+                "Linux-Release",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
+            "name": "Linux-Qt-All-Debug",
+            "displayName": "Linux GCC Config Qt All Debug",
+            "inherits": [
+                "Linux-Qt-Debug",
+                "Linux-Debug",
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Linux-Qt-All-Release",
+            "displayName": "Linux GCC Config Qt All Release",
+            "inherits": [
+                "Linux-Qt-Release",
+                "Linux-Release",
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Linux-Qt-No-Examples-Tests-Debug",
+            "displayName": "Linux Config Qt No Examples And Tests Debug",
+            "inherits": [
+                "Linux-Qt-Debug",
+                "Linux-Debug",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
+            "name": "Linux-Qt-No-Examples-Tests-Release",
+            "displayName": "Linux Config Qt No Examples And Tests Release",
+            "inherits": [
+                "Linux-Qt-Release",
+                "Linux-Release",
+                "Config-No-Examples-Tests"
+            ]
+        }
+
+    ],
+    "buildPresets": [
+        {
+            "name": "Build-Base",
+            "displayName": "Build Base",
+            "hidden": true,
+            "jobs": 10
+        },
+        {
+            "name": "Win64-All-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-All",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win64-All-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-All",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win64-Qt-All-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Qt-All",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win64-Qt-All-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Qt-All",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win64-No-Examples-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-No-Examples-Tests",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win64-No-Examples-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-No-Examples-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win64-Qt-No-Examples-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Qt-No-Examples-Tests",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win64-Qt-No-Examples-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Qt-No-Examples-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win32-All-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-All",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win32-All-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-All",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win32-Qt-All-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Qt-All",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win32-Qt-All-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Qt-All",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win32-No-Examples-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-No-Examples-Tests",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win32-No-Examples-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-No-Examples-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win32-Qt-No-Examples-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Qt-No-Examples-Tests",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win32-Qt-No-Examples-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Qt-No-Examples-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Linux-All-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-All-Debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Linux-All-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-All-Release",
+            "configuration": "Release"
+        },
+        {
+            "name": "Linux-No-Examples-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-No-Examples-Tests-Debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Linux-No-Examples-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-No-Examples-Tests-Release",
+            "configuration": "Release"
+        },
+        {
+            "name": "Linux-Qt-All-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Qt-All-Debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Linux-Qt-All-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Qt-All-Release",
+            "configuration": "Release"
+        },
+        {
+            "name": "Linux-Qt-No-Examples-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Qt-No-Examples-Tests-Debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Linux-Qt-No-Examples-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Qt-No-Examples-Tests-Release",
+            "configuration": "Release"
+        }
+
+    ]
+}

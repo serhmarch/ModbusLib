@@ -25,19 +25,19 @@ Strings::Strings() :
     timeoutFirstByte(QStringLiteral("timeoutFirstByte")),
     timeoutInterByte(QStringLiteral("timeoutInterByte")),
 
-    NoParity        (QStringLiteral("No")),
-    EvenParity      (QStringLiteral("Even")),
-    OddParity       (QStringLiteral("Odd")),
-    SpaceParity     (QStringLiteral("Space")),
-    MarkParity      (QStringLiteral("Mark")),
+    NoParity        (sparity(NoParity   )),
+    EvenParity      (sparity(EvenParity )),
+    OddParity       (sparity(OddParity  )),
+    SpaceParity     (sparity(SpaceParity)),
+    MarkParity      (sparity(MarkParity )),
 
-    OneStop         (QStringLiteral("1")),
-    OneAndHalfStop  (QStringLiteral("1.5")),
-    TwoStop         (QStringLiteral("2")),
+    OneStop         (sstopBits(OneStop       )),
+    OneAndHalfStop  (sstopBits(OneAndHalfStop)),
+    TwoStop         (sstopBits(TwoStop       )),
 
-    NoFlowControl   (QStringLiteral("No")),
-    HardwareControl (QStringLiteral("Hard")),
-    SoftwareControl (QStringLiteral("Soft"))
+    NoFlowControl   (sflowControl(NoFlowControl  )),
+    HardwareControl (sflowControl(HardwareControl)),
+    SoftwareControl (sflowControl(SoftwareControl)),
 {
 }
 

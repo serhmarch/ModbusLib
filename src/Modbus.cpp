@@ -11,6 +11,7 @@
 #ifndef MB_SERVER_DISABLE
 #include "ModbusTcpServer.h"
 #include "ModbusServerResource.h"
+#include "ModbusGlobal.h"
 #endif // MB_SERVER_DISABLE
 
 namespace Modbus {
@@ -315,6 +316,52 @@ String asciiToString(const uint8_t* buff, uint32_t count)
         }
     }
     return str;
+}
+
+const Char *sprotocolType(ProtocolType type)
+{
+    switch (type)
+    {
+    case ASC: return StringLiteral("ASC");
+    case RTU: return StringLiteral("RTU");
+    case TCP: return StringLiteral("TCP");
+    default: return nullptr;
+    }
+}
+
+const Char *sparity(Parity parity)
+{
+    switch (parity)
+    {
+    case NoParity   : return StringLiteral("No"   );
+    case EvenParity : return StringLiteral("Even" );
+    case OddParity  : return StringLiteral("Odd"  );
+    case SpaceParity: return StringLiteral("Space");
+    case MarkParity : return StringLiteral("Mark" );        
+    default: return nullptr;
+    }
+}
+
+const Char *sstopBits(StopBits stopBits)
+{
+    switch (stopBits)
+    {
+    case OneStop       : return StringLiteral("1"  );
+    case OneAndHalfStop: return StringLiteral("1.5");
+    case TwoStop       : return StringLiteral("2"  );
+    default: return nullptr;
+    }
+}
+
+const Char *sflowControl(FlowControl flowControl)
+{
+    switch (flowControl)
+    {
+    case NoFlowControl  : return StringLiteral("No"  );
+    case HardwareControl: return StringLiteral("Hard");
+    case SoftwareControl: return StringLiteral("Soft");
+    default: return nullptr;
+    }
 }
 
 ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)

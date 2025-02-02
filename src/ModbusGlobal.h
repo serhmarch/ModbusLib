@@ -43,7 +43,7 @@
 #define MODBUS_EXPORT
 #endif
 
-#else
+#else // MB_DYNAMIC_LINKING
 
 #define MODBUS_EXPORT
 
@@ -506,6 +506,22 @@ MODBUS_EXPORT Char *sbytes(const uint8_t* buff, uint32_t count, Char *str, uint3
 
 /// \details Make string representation of ASCII array and separate bytes by space
 MODBUS_EXPORT Char *sascii(const uint8_t* buff, uint32_t count, Char *str, uint32_t strmaxlen);
+
+/// \details Returns pointer to constant string value that represent name of the `ProtocolType` value
+/// or nullptr (NULL) if the value is invalid.
+MODBUS_EXPORT const Char *sprotocolType(ProtocolType type);
+
+/// \details Returns pointer to constant string value that represent name of the `Parity` value
+/// or nullptr (NULL) if the value is invalid.
+MODBUS_EXPORT const Char *sparity(Parity parity);
+
+/// \details Returns pointer to constant string value that represent name of the `StopBits` value
+/// or nullptr (NULL) if the value is invalid.
+MODBUS_EXPORT const Char *sstopBits(StopBits stopBits);
+
+/// \details Returns pointer to constant string value that represent name of the `FlowControl` parameter
+/// or nullptr (NULL) if the value is invalid.
+MODBUS_EXPORT const Char *sflowControl(FlowControl flowControl);
 
 /// \details Get timer value in milliseconds.
 MODBUS_EXPORT Timer timer();
