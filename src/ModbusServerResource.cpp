@@ -98,6 +98,7 @@ StatusCode ModbusServerResource::process()
                 d->state = STATE_TIMEOUT;
                 return r;
             }
+            signalOpened(this->objectName());
             d->state = STATE_OPENED;
             fRepeatAgain = true;
             break;
@@ -215,14 +216,17 @@ StatusCode ModbusServerResource::process()
         case STATE_TIMEOUT:
             if (timer() - d->timestamp < d->port->timeout())
                 return Status_Processing;
-            d->state = STATE_CLOSED;
+            d->state = STATE_BEGIN;
             fRepeatAgain = true;
             break;
         default:
-            if (d->cmdClose && isOpen())
-                d->state = STATE_WAIT_FOR_CLOSE;
-            else if (isOpen())
-                d->state = STATE_OPENED;
+            if (isOpen())
+            {
+                if (d->cmdClose)
+                    d->state = STATE_WAIT_FOR_CLOSE;
+                else
+                    d->state = STATE_OPENED;
+            }
             else
                 d->state = STATE_CLOSED;
             fRepeatAgain = true;
