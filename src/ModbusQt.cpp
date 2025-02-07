@@ -37,7 +37,7 @@ Strings::Strings() :
 
     NoFlowControl   (sflowControl(Modbus::NoFlowControl  )),
     HardwareControl (sflowControl(Modbus::HardwareControl)),
-    SoftwareControl (sflowControl(Modbus::SoftwareControl)),
+    SoftwareControl (sflowControl(Modbus::SoftwareControl))
 {
 }
 
