@@ -25,19 +25,19 @@ Strings::Strings() :
     timeoutFirstByte(QStringLiteral("timeoutFirstByte")),
     timeoutInterByte(QStringLiteral("timeoutInterByte")),
 
-    NoParity        (sparity(NoParity   )),
-    EvenParity      (sparity(EvenParity )),
-    OddParity       (sparity(OddParity  )),
-    SpaceParity     (sparity(SpaceParity)),
-    MarkParity      (sparity(MarkParity )),
+    NoParity        (sparity(Modbus::NoParity   )),
+    EvenParity      (sparity(Modbus::EvenParity )),
+    OddParity       (sparity(Modbus::OddParity  )),
+    SpaceParity     (sparity(Modbus::SpaceParity)),
+    MarkParity      (sparity(Modbus::MarkParity )),
 
-    OneStop         (sstopBits(OneStop       )),
-    OneAndHalfStop  (sstopBits(OneAndHalfStop)),
-    TwoStop         (sstopBits(TwoStop       )),
+    OneStop         (sstopBits(Modbus::OneStop       )),
+    OneAndHalfStop  (sstopBits(Modbus::OneAndHalfStop)),
+    TwoStop         (sstopBits(Modbus::TwoStop       )),
 
-    NoFlowControl   (sflowControl(NoFlowControl  )),
-    HardwareControl (sflowControl(HardwareControl)),
-    SoftwareControl (sflowControl(SoftwareControl)),
+    NoFlowControl   (sflowControl(Modbus::NoFlowControl  )),
+    HardwareControl (sflowControl(Modbus::HardwareControl)),
+    SoftwareControl (sflowControl(Modbus::SoftwareControl)),
 {
 }
 
