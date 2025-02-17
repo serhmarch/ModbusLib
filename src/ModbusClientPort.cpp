@@ -57,33 +57,33 @@ Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t uni
         if (count > MB_MAX_DISCRETS)
         {
             const size_t len = 200;
-            Char buff[len];
-            snprintf(buff, len, StringLiteral("ModbusClientPort::readCoils(offset=%hu, count=%hu): Requested count of coils is too large"), offset, count);
-            d->lastErrorText = buff;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readCoils(offset=%hu, count=%hu): Requested count of coils is too large"), offset, count);
             this->cancelRequest(client);
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct request"));
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1];    // Start coil offset - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&offset)[0];    // Start coil offset - LS BYTE
         buff[2] = reinterpret_cast<uint8_t*>(&count)[1];     // Quantity of coils - MS BYTE
         buff[3] = reinterpret_cast<uint8_t*>(&count)[0];     // Quantity of coils - LS BYTE
+        d->count = count;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
-                          MBF_READ_COILS,                 // modbus function number
-                          buff,                           // in-out buffer
-                          4,                              // count of input data bytes
-                          szBuff,                         // maximum size of buffer
-                          &szOutBuff);                    // count of output data bytes
+                          MBF_READ_COILS,   // modbus function number
+                          buff,             // in-out buffer
+                          4,                // count of input data bytes
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
         if (r != Status_Good)
             return r;
         if (!szOutBuff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
-        if (fcBytes != ((count + 7) / 8))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+        if (fcBytes != ((d->count + 7) / 8))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' is not match received one"));
         memcpy(values, &buff[1], fcBytes);
         return d->setGoodStatus();
     default:
@@ -110,33 +110,33 @@ Modbus::StatusCode ModbusClientPort::readDiscreteInputs(ModbusObject *client, ui
         if (count > MB_MAX_DISCRETS)
         {
             const size_t len = 200;
-            Char buff[len];
-            snprintf(buff, len, StringLiteral("ModbusClientPort::readDiscreteInputs(offset=%hu, count=%hu): Requested count of inputs is too large"), offset, count);
-            d->lastErrorText = buff;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readDiscreteInputs(offset=%hu, count=%hu): Requested count of inputs is too large"), offset, count);
             this->cancelRequest(client);
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct request"));
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
         }
-        buff[0] = reinterpret_cast<uint8_t*>(&offset)[1];    // Start input offset - MS BYTE
-        buff[1] = reinterpret_cast<uint8_t*>(&offset)[0];    // Start input offset - LS BYTE
-        buff[2] = reinterpret_cast<uint8_t*>(&count)[1];     // Quantity of inputs - MS BYTE
-        buff[3] = reinterpret_cast<uint8_t*>(&count)[0];     // Quantity of inputs - LS BYTE
+        buff[0] = reinterpret_cast<uint8_t*>(&offset)[1];   // Start input offset - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&offset)[0];   // Start input offset - LS BYTE
+        buff[2] = reinterpret_cast<uint8_t*>(&count)[1];    // Quantity of inputs - MS BYTE
+        buff[3] = reinterpret_cast<uint8_t*>(&count)[0];    // Quantity of inputs - LS BYTE
+        d->count = count;
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
-                          MBF_READ_DISCRETE_INPUTS,       // modbus function number
-                          buff,                           // in-out buffer
-                          4,                              // count of input data bytes
-                          szBuff,                         // maximum size of buffer
-                          &szOutBuff);                    // count of output data bytes
+        r = this->request(unit,                     // unit ID
+                          MBF_READ_DISCRETE_INPUTS, // modbus function number
+                          buff,                     // in-out buffer
+                          4,                        // count of input data bytes
+                          szBuff,                   // maximum size of buffer
+                          &szOutBuff);              // count of output data bytes
         if (r != Status_Good)
             return r;
         if (!szOutBuff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
-        if (fcBytes != ((count + 7) / 8))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+        if (fcBytes != ((d->count + 7) / 8))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' is not match received one"));
         memcpy(values, &buff[1], fcBytes);
         return d->setGoodStatus();
     default:
@@ -163,36 +163,36 @@ Modbus::StatusCode ModbusClientPort::readHoldingRegisters(ModbusObject *client, 
         if (count > MB_MAX_REGISTERS)
         {
             const size_t len = 200;
-            Char buff[len];
-            snprintf(buff, len, StringLiteral("ModbusClientPort::readHoldingRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
-            d->lastErrorText = buff;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readHoldingRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
             this->cancelRequest(client);
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct request"));
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1]; // Start register offset - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&offset)[0]; // Start register offset - LS BYTE
         buff[2] = reinterpret_cast<uint8_t*>(&count)[1];  // Quantity of values - MS BYTE
         buff[3] = reinterpret_cast<uint8_t*>(&count)[0];  // Quantity of values - LS BYTE
+        d->count = count;
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
-                          MBF_READ_HOLDING_REGISTERS,     // modbus function number
-                          buff,                           // in-out buffer
-                          4,                              // count of input data bytes
-                          szBuff,                         // maximum size of buffer
-                          &szOutBuff);                    // count of output data bytes
+        r = this->request(unit,                         // unit ID
+                          MBF_READ_HOLDING_REGISTERS,   // modbus function number
+                          buff,                         // in-out buffer
+                          4,                            // count of input data bytes
+                          szBuff,                       // maximum size of buffer
+                          &szOutBuff);                  // count of output data bytes
         if (r != Status_Good)
             return r;
         if (!szOutBuff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         fcRegs = fcBytes / sizeof(uint16_t); // count values received
-        if (fcRegs != count)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        if (fcRegs != d->count)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Count' is not match received one"));
         for (i = 0; i < fcRegs; i++)
-            values[i] = (buff[i * 2 + 1] << 8) | buff[i * 2 + 2];
+            values[i] = (buff[i*2+1] << 8) | buff[i*2+2];
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -218,16 +218,16 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
         if (count > MB_MAX_REGISTERS)
         {
             const size_t len = 200;
-            Char buff[len];
-            snprintf(buff, len, StringLiteral("ModbusClientPort::readInputRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
-            d->lastErrorText = buff;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readInputRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
             this->cancelRequest(client);
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct request"));
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1]; // Start register offset - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&offset)[0]; // Start register offset - LS BYTE
         buff[2] = reinterpret_cast<uint8_t*>(&count)[1];  // Quantity of values - MS BYTE
         buff[3] = reinterpret_cast<uint8_t*>(&count)[0];  // Quantity of values - LS BYTE
+        d->count = count;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
@@ -239,15 +239,15 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
         if (r != Status_Good) // processing
             return r;
         if (!szOutBuff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         fcRegs = fcBytes / sizeof(uint16_t); // count values received
-        if (fcRegs != count)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        if (fcRegs != d->count)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Count' is not match received one"));
         for (i = 0; i < fcRegs; i++)
-            values[i] = (buff[i * 2 + 1] << 8) | buff[i * 2 + 2];
+            values[i] = (buff[i*2+1] << 8) | buff[i*2+2];
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -274,6 +274,7 @@ Modbus::StatusCode ModbusClientPort::writeSingleCoil(ModbusObject *client, uint8
         buff[1] = reinterpret_cast<uint8_t*>(&offset)[0];   // Coil offset - LS BYTE
         buff[2] = (value ? 0xFF : 0x00);                    // Value - 0xFF if true, 0x00 if false
         buff[3] = 0x00;                                     // Value - must always be NULL
+        d->offset = offset;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
@@ -285,11 +286,11 @@ Modbus::StatusCode ModbusClientPort::writeSingleCoil(ModbusObject *client, uint8
         if (r != Status_Good)
             return r;
         if (szOutBuff != 4)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
 
         outOffset = buff[1] | (buff[0] << 8);
-        if (outOffset != offset)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        if (outOffset != d->offset)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -316,6 +317,8 @@ Modbus::StatusCode ModbusClientPort::writeSingleRegister(ModbusObject *client, u
         buff[1] = reinterpret_cast<uint8_t*>(&offset)[0];    // Register offset - LS BYTE
         buff[2] = reinterpret_cast<uint8_t*>(&value)[1];     // Value - MS BYTE
         buff[3] = reinterpret_cast<uint8_t*>(&value)[0];     // Value - LS BYTE
+        d->offset = offset;
+        d->value = value;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
@@ -328,12 +331,14 @@ Modbus::StatusCode ModbusClientPort::writeSingleRegister(ModbusObject *client, u
             return r;
 
         if (szOutBuff != 4)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
 
         outOffset = buff[1] | (buff[0] << 8);
+        if (outOffset != d->offset)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
         outValue = buff[3] | (buff[2] << 8);
-        if (!((outOffset == offset) && (outValue == value)))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        if (outValue != d->value)   
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Value' is not match received one"));
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -368,7 +373,7 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
             return r;
 
         if (szOutBuff != 1)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         *value = buff[0];
         return d->setGoodStatus();
     default:
@@ -395,6 +400,7 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
         buff[0] = reinterpret_cast<uint8_t*>(&subfunc)[1]; // Sub function - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&subfunc)[0]; // Sub function - LS BYTE
         memcpy(&buff[2], indata, insize);
+        d->subfunc = subfunc;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
@@ -407,11 +413,11 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
             return r;
 
         if (szOutBuff < 2)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
 
         outSubfunc = buff[1] | (buff[0] << 8);
-        if (outSubfunc != subfunc)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Responded subfunction doesn't match with requested"));
+        if (outSubfunc != d->subfunc)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Subfunc' is not match received one"));
         *outsize = static_cast<uint8_t>(szOutBuff-2);
         memcpy(outdata, &buff[2], *outsize);
         return d->setGoodStatus();
@@ -448,7 +454,7 @@ Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, u
             return r;
 
         if (szOutBuff != 4)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Incorrect output buffer size"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         *status = buff[1] | (buff[0] << 8);
         *eventCount = buff[3] | (buff[2] << 8);
         return d->setGoodStatus();
@@ -485,17 +491,17 @@ Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8
             return r;
 
         if (szOutBuff < 7)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Incorrect output buffer size"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         byteCount = buff[0];
         if (szOutBuff != (byteCount+1))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. 'ByteCount' doesn't match with received data size"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with received data size"));
         *status       = buff[2] | (buff[1] << 8);
         *eventCount   = buff[4] | (buff[3] << 8);
         *messageCount = buff[6] | (buff[5] << 8);
 
         byteCount = byteCount-6;
         if (byteCount > GET_COMM_EVENT_LOG_MAX)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Event count is more than 64"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'EventCount' is bigger than 64"));
         *eventBuffSize = byteCount;
         memcpy(eventBuff, &buff[7], byteCount);
         return d->setGoodStatus();
@@ -514,7 +520,7 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
 
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
-    uint16_t szOutBuff, outOffset, fcCoils, fcBytes;
+    uint16_t szOutBuff, outOffset, outCount, fcBytes;
 
 
     ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
@@ -524,11 +530,10 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
         if (count > MB_MAX_DISCRETS)
         {
             const size_t len = 200;
-            Char buff[len];
-            snprintf(buff, len, StringLiteral("ModbusClientPort::writeMultipleCoils(offset=%hu, count=%hu): Requested count of coils is too large"), offset, count);
-            d->lastErrorText = buff;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("ModbusClientPort::writeMultipleCoils(offset=%hu, count=%hu): Requested count of coils is too large"), offset, count);
             this->cancelRequest(client);
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct request"));
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1]; // Start coil offset - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&offset)[0]; // Start coil offset - LS BYTE
@@ -537,6 +542,8 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
         fcBytes = (count + 7) / 8;
         buff[4] = static_cast<uint8_t>(fcBytes);      // Quantity of next bytes
         memcpy(&buff[5], values, fcBytes);
+        d->offset = offset;
+        d->count = count;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,                     // unit ID
@@ -548,11 +555,13 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
         if (r != Status_Good)
             return r;
         if (szOutBuff != 4)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         outOffset = (buff[0] << 8) | buff[1];
-        if (outOffset != offset)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
-        fcCoils = (buff[2] << 8) | buff[3];
+        if (outOffset != d->offset)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
+        outCount = (buff[2] << 8) | buff[3];
+        if (outCount != d->count)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Count' is not match received one"));
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -569,7 +578,7 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
 
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
-    uint16_t szOutBuff, i, outOffset, fcRegs;
+    uint16_t szOutBuff, i, outOffset, outCount;
 
 
     ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
@@ -579,11 +588,10 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
         if (count > MB_MAX_REGISTERS)
         {
             const size_t len = 200;
-            Char buff[len];
-            snprintf(buff, len, StringLiteral("ModbusClientPort::writeMultipleRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
-            d->lastErrorText = buff;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("ModbusClientPort::writeMultipleRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
             this->cancelRequest(client);
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct request"));
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1];   // start register offset - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&offset)[0];   // start register offset - LS BYTE
@@ -596,6 +604,8 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
             buff[5 + i * 2] = reinterpret_cast<const uint8_t*>(&values[i])[1];
             buff[6 + i * 2] = reinterpret_cast<const uint8_t*>(&values[i])[0];
         }
+        d->offset = offset;
+        d->count = count;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
@@ -607,11 +617,13 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
         if (r != Status_Good)
             return r;
         if (szOutBuff != 4)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         outOffset = (buff[0] << 8) | buff[1];
-        if (outOffset != offset)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
-        fcRegs = (buff[2] << 8) | buff[3];
+        if (outOffset != d->offset)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
+        outCount = (buff[2] << 8) | buff[3];
+        if (outCount != d->count)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Count' is not match received one"));
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -646,7 +658,7 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
             return r;
 
         if (szOutBuff == 0)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Incorrect output buffer size"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         *count = buff[0];
         memcpy(data, &buff[1], *count);
         return d->setGoodStatus();
@@ -677,6 +689,9 @@ StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t uni
         buff[3] = reinterpret_cast<uint8_t*>(&andMask)[0];   // AndMask - LS BYTE
         buff[4] = reinterpret_cast<uint8_t*>(&orMask)[1];    // OrMask - MS BYTE
         buff[5] = reinterpret_cast<uint8_t*>(&orMask)[0];    // OrMask - LS BYTE
+        d->offset = offset;
+        d->andMask = andMask;
+        d->orMask = orMask;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,                           // unit ID
@@ -689,13 +704,17 @@ StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t uni
             return r;
 
         if (szOutBuff != 6)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
 
         outOffset  = buff[1] | (buff[0] << 8);
         outAndMask = buff[3] | (buff[2] << 8);
         outOrMask  = buff[5] | (buff[4] << 8);
-        if ((outOffset != offset) || (outAndMask != andMask) || (outOrMask != orMask))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        if (outOffset != d->offset)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
+        if (outAndMask != d->andMask)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'AndMask' is not match received one"));
+        if (outOrMask != d->orMask)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'OrMask' is not match received one"));
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -722,11 +741,10 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
         if ((readCount > MB_MAX_REGISTERS) || (writeCount > MB_MAX_REGISTERS))
         {
             const size_t len = 200;
-            Char buff[len];
-            snprintf(buff, len, StringLiteral("ModbusClientPort::readWriteMultipleRegisters(): Requested count of registers is too large"));
-            d->lastErrorText = buff;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readWriteMultipleRegisters(): Requested count of registers is too large"));
             this->cancelRequest(client);
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Not correct request"));
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&readOffset)[1];   // read starting offset - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&readOffset)[0];   // read starting offset - LS BYTE
@@ -743,6 +761,7 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
             buff[ 9 + i * 2] = reinterpret_cast<const uint8_t*>(&writeValues[i])[1];
             buff[10 + i * 2] = reinterpret_cast<const uint8_t*>(&writeValues[i])[0];
         }
+        d->count = readCount;
         // no need break
     case ModbusClientPort::Process:
         r = this->request(unit,                             // unit ID
@@ -754,13 +773,13 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
         if (r != Status_Good)
             return r;
         if (!szOutBuff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         fcRegs = fcBytes / sizeof(uint16_t); // count values received
-        if (fcRegs != readCount)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response"));
+        if (fcRegs != d->count)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Count registers to read is not match received one"));
         for (i = 0; i < fcRegs; i++)
             readValues[i] = (buff[i * 2 + 1] << 8) | buff[i * 2 + 2];
         return d->setGoodStatus();
@@ -798,15 +817,15 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
         if (r != Status_Good) // processing
             return r;
         if (szOutBuff < 4)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Incorrect output buffer size"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
         bytesCount = buff[1] | (buff[0] << 8);
         if (bytesCount != (szOutBuff - 2))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. 'ByteCount' doesn't match with received data size"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with received data size"));
         FIFOCount  = buff[3] | (buff[2] << 8);
         if (bytesCount != (FIFOCount + 1) * 2)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. 'ByteCount' doesn't match with 'FIFOCount'"));
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with 'FIFOCount'"));
         if (FIFOCount > READ_FIFO_QUEUE_MAX)
-            return d->setError(Status_BadIllegalDataValue, StringLiteral("Not correct response. 'FIFOCount' more than 31"));
+            return d->setError(Status_BadIllegalDataValue, StringLiteral("'FIFOCount' is bigger than 31"));
         for (i = 0; i < FIFOCount; i++)
             values[i] = buff[i*2+5] | (buff[i*2+4] << 8);
         *count = FIFOCount;

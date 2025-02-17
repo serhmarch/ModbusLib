@@ -37,6 +37,9 @@ public:
         this->state = STATE_UNKNOWN;
         this->unit = 0;
         this->func = 0;
+        this->offset = 0;
+        this->count = 0;
+        this->orMask = 0;
         this->block = false;;
         this->currentClient = nullptr;
         this->port = port;
@@ -113,6 +116,21 @@ public:
     State state;
     uint8_t unit;
     uint8_t func;
+    union
+    {
+    uint16_t offset;
+    uint16_t subfunc;
+    };
+    union
+    {
+    uint16_t count;
+    uint16_t value;
+    uint16_t andMask;
+    };
+    union
+    {
+    uint16_t orMask;
+    };
     bool block;
     ModbusObject *currentClient;
     uint32_t repeats;

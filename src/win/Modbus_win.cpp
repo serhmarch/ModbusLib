@@ -61,24 +61,30 @@ String getLastErrorText()
         return String();
     }
 
-    LPSTR messageBuffer = nullptr;
+    LPWSTR messageBuffer = nullptr;
 
     // Format the error message from the error code
-    size_t size = FormatMessageA(
+    DWORD size = FormatMessageW(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+        NULL,
+        errorMessageID,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPWSTR)&messageBuffer,
+        0,
+        NULL
+    );
 
-    // Copy the error message into a std::string
-    String message(messageBuffer, size);
+    if (size == 0)
+        return StringLiteral("Unknown error"); // Failed to retrieve error message
 
-    // Free the buffer allocated by FormatMessage
-    LocalFree(messageBuffer);
+    // Convert UTF-16 to UTF-8
+    int utf8Size = WideCharToMultiByte(CP_UTF8, 0, messageBuffer, size, NULL, 0, NULL, NULL);
+    String errorMsg(utf8Size, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, messageBuffer, size, &errorMsg[0], utf8Size, NULL, NULL);
 
-    message.erase(std::find_if(message.rbegin(), message.rend(), [](Char ch) {
-                return !std::isspace(ch);
-            }).base(), message.end());
+    LocalFree(messageBuffer); // Free allocated memory
 
-    return message;
+    return errorMsg;
 }
 
 List<String> availableSerialPorts()
