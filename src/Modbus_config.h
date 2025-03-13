@@ -9,7 +9,7 @@
 
 /* #undef MB_CLIENT_DISABLE */
 /* #undef MB_SERVER_DISABLE */
-/* #undef MB_C_SUPPORT_DISABLE */
+#define MB_C_SUPPORT_DISABLE
 
 /* #undef MBF_READ_COILS_DISABLE */
 /* #undef MBF_READ_DISCRETE_INPUTS_DISABLE */

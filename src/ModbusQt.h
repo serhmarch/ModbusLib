@@ -24,34 +24,35 @@ typedef QHash<QString, QVariant> Settings;
 class MODBUS_EXPORT Strings
 {
 public:
-    const QString unit            ; ///< Setting key for the unit number of remote device
-    const QString type            ; ///< Setting key for the type of Modbus protocol
-    const QString tries           ; ///< Setting key for the number of tries a Modbus request is repeated if it fails
-    const QString host            ; ///< Setting key for the IP address or DNS name of the remote device
-    const QString port            ; ///< Setting key for the TCP port number of the remote device
-    const QString timeout         ; ///< Setting key for connection timeout (milliseconds)
-    const QString serialPortName  ; ///< Setting key for the serial port name
-    const QString baudRate        ; ///< Setting key for the serial port's baud rate
-    const QString dataBits        ; ///< Setting key for the serial port's data bits
-    const QString parity          ; ///< Setting key for the serial port's parity
-    const QString stopBits        ; ///< Setting key for the serial port's stop bits
-    const QString flowControl     ; ///< Setting key for the serial port's flow control
-    const QString timeoutFirstByte; ///< Setting key for the serial port's timeout waiting first byte of packet
-    const QString timeoutInterByte; ///< Setting key for the serial port's timeout waiting next byte of packet
+    const QString unit              ; ///< Setting key for the unit number of remote device
+    const QString type              ; ///< Setting key for the type of Modbus protocol
+    const QString tries             ; ///< Setting key for the number of tries a Modbus request is repeated if it fails
+    const QString host              ; ///< Setting key for the IP address or DNS name of the remote device
+    const QString port              ; ///< Setting key for the TCP port number of the remote device
+    const QString timeout           ; ///< Setting key for connection timeout (milliseconds)
+    const QString serialPortName    ; ///< Setting key for the serial port name
+    const QString baudRate          ; ///< Setting key for the serial port's baud rate
+    const QString dataBits          ; ///< Setting key for the serial port's data bits
+    const QString parity            ; ///< Setting key for the serial port's parity
+    const QString stopBits          ; ///< Setting key for the serial port's stop bits
+    const QString flowControl       ; ///< Setting key for the serial port's flow control
+    const QString timeoutFirstByte  ; ///< Setting key for the serial port's timeout waiting first byte of packet
+    const QString timeoutInterByte  ; ///< Setting key for the serial port's timeout waiting next byte of packet
+    const QString isBroadcastEnabled; ///< Setting key for the serial port enables broadcast mode for `0` unit address
 
-    const QString NoParity        ;
-    const QString EvenParity      ;
-    const QString OddParity       ;
-    const QString SpaceParity     ;
-    const QString MarkParity      ;
+    const QString NoParity          ;
+    const QString EvenParity        ;
+    const QString OddParity         ;
+    const QString SpaceParity       ;
+    const QString MarkParity        ;
 
-    const QString OneStop         ;
-    const QString OneAndHalfStop  ;
-    const QString TwoStop         ;
+    const QString OneStop           ;
+    const QString OneAndHalfStop    ;
+    const QString TwoStop           ;
 
-    const QString NoFlowControl   ;
-    const QString HardwareControl ;
-    const QString SoftwareControl ;
+    const QString NoFlowControl     ;
+    const QString HardwareControl   ;
+    const QString SoftwareControl   ;
 
     /// \details Constructor ot the class.
     Strings();
@@ -65,20 +66,21 @@ public:
 class MODBUS_EXPORT Defaults
 {
 public:
-    const uint8_t      unit            ; ///< Default value for the unit number of remote device
-    const ProtocolType type            ; ///< Default value for the type of Modbus protocol
-    const uint32_t     tries           ; ///< Default value for number of tries a Modbus request is repeated if it fails
-    const QString      host            ; ///< Default value for the IP address or DNS name of the remote device
-    const uint16_t     port            ; ///< Default value for the TCP port number of the remote device
-    const uint32_t     timeout         ; ///< Default value for connection timeout (milliseconds)
-    const QString      serialPortName  ; ///< Default value for the serial port name
-    const int32_t      baudRate        ; ///< Default value for the serial port's baud rate
-    const int8_t       dataBits        ; ///< Default value for the serial port's data bits
-    const Parity       parity          ; ///< Default value for the serial port's parity
-    const StopBits     stopBits        ; ///< Default value for the serial port's stop bits
-    const FlowControl  flowControl     ; ///< Default value for the serial port's flow control
-    const uint32_t     timeoutFirstByte; ///< Default value for the serial port's timeout waiting first byte of packet
-    const uint32_t     timeoutInterByte; ///< Default value for the serial port's timeout waiting next byte of packet
+    const uint8_t      unit              ; ///< Default value for the unit number of remote device
+    const ProtocolType type              ; ///< Default value for the type of Modbus protocol
+    const uint32_t     tries             ; ///< Default value for number of tries a Modbus request is repeated if it fails
+    const QString      host              ; ///< Default value for the IP address or DNS name of the remote device
+    const uint16_t     port              ; ///< Default value for the TCP port number of the remote device
+    const uint32_t     timeout           ; ///< Default value for connection timeout (milliseconds)
+    const QString      serialPortName    ; ///< Default value for the serial port name
+    const int32_t      baudRate          ; ///< Default value for the serial port's baud rate
+    const int8_t       dataBits          ; ///< Default value for the serial port's data bits
+    const Parity       parity            ; ///< Default value for the serial port's parity
+    const StopBits     stopBits          ; ///< Default value for the serial port's stop bits
+    const FlowControl  flowControl       ; ///< Default value for the serial port's flow control
+    const uint32_t     timeoutFirstByte  ; ///< Default value for the serial port's timeout waiting first byte of packet
+    const uint32_t     timeoutInterByte  ; ///< Default value for the serial port's timeout waiting next byte of packet
+    const bool         isBroadcastEnabled; ///< Default value for the serial port enables broadcast mode for `0` unit address
 
     /// \details Constructor ot the class.
     Defaults();
@@ -143,6 +145,10 @@ MODBUS_EXPORT uint32_t getSettingTimeoutFirstByte(const Settings &s, bool *ok = 
 /// If value can't be retrieved that default value is returned and *ok = false (if provided).
 MODBUS_EXPORT uint32_t getSettingTimeoutInterByte(const Settings &s, bool *ok = nullptr);
 
+/// \details Get settings value for the serial port enables broadcast mode for `0` unit address.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT bool getSettingBroadcastEnabled(const Settings &s, bool *ok = nullptr);
+
 /// \details Set settings value for the unit number of remote device.
 MODBUS_EXPORT void setSettingUnit(Settings &s, uint8_t v);
 
@@ -184,6 +190,10 @@ MODBUS_EXPORT void setSettingTimeoutFirstByte(Settings &s, uint32_t v);
 
 /// \details Set settings value for the serial port's timeout waiting next byte of packet.
 MODBUS_EXPORT void setSettingTimeoutInterByte(Settings &s, uint32_t v);
+
+/// \details Set settings value for the serial port enables broadcast mode for `0` unit address.
+MODBUS_EXPORT void setSettingBroadcastEnabled(Settings &s, bool v);
+
 
 /*! \brief Class for convinient manipulation with Modbus Data Address.
 */

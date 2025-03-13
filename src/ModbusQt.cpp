@@ -10,34 +10,35 @@
 namespace Modbus {
 
 Strings::Strings() :
-    unit            (QStringLiteral("unit")),
-    type            (QStringLiteral("type")),
-    tries           (QStringLiteral("tries")),
-    host            (QStringLiteral("host")),
-    port            (QStringLiteral("port")),
-    timeout         (QStringLiteral("timeout")),
-    serialPortName  (QStringLiteral("serialPortName")),
-    baudRate        (QStringLiteral("baudRate")),
-    dataBits        (QStringLiteral("dataBits")),
-    parity          (QStringLiteral("parity")),
-    stopBits        (QStringLiteral("stopBits")),
-    flowControl     (QStringLiteral("flowControl")),
-    timeoutFirstByte(QStringLiteral("timeoutFirstByte")),
-    timeoutInterByte(QStringLiteral("timeoutInterByte")),
+    unit              (QStringLiteral("unit")),
+    type              (QStringLiteral("type")),
+    tries             (QStringLiteral("tries")),
+    host              (QStringLiteral("host")),
+    port              (QStringLiteral("port")),
+    timeout           (QStringLiteral("timeout")),
+    serialPortName    (QStringLiteral("serialPortName")),
+    baudRate          (QStringLiteral("baudRate")),
+    dataBits          (QStringLiteral("dataBits")),
+    parity            (QStringLiteral("parity")),
+    stopBits          (QStringLiteral("stopBits")),
+    flowControl       (QStringLiteral("flowControl")),
+    timeoutFirstByte  (QStringLiteral("timeoutFirstByte")),
+    timeoutInterByte  (QStringLiteral("timeoutInterByte")),
+    isBroadcastEnabled(QStringLiteral("isBroadcastEnabled")),
 
-    NoParity        (sparity(Modbus::NoParity   )),
-    EvenParity      (sparity(Modbus::EvenParity )),
-    OddParity       (sparity(Modbus::OddParity  )),
-    SpaceParity     (sparity(Modbus::SpaceParity)),
-    MarkParity      (sparity(Modbus::MarkParity )),
+    NoParity          (sparity(Modbus::NoParity   )),
+    EvenParity        (sparity(Modbus::EvenParity )),
+    OddParity         (sparity(Modbus::OddParity  )),
+    SpaceParity       (sparity(Modbus::SpaceParity)),
+    MarkParity        (sparity(Modbus::MarkParity )),
 
-    OneStop         (sstopBits(Modbus::OneStop       )),
-    OneAndHalfStop  (sstopBits(Modbus::OneAndHalfStop)),
-    TwoStop         (sstopBits(Modbus::TwoStop       )),
+    OneStop           (sstopBits(Modbus::OneStop       )),
+    OneAndHalfStop    (sstopBits(Modbus::OneAndHalfStop)),
+    TwoStop           (sstopBits(Modbus::TwoStop       )),
 
-    NoFlowControl   (sflowControl(Modbus::NoFlowControl  )),
-    HardwareControl (sflowControl(Modbus::HardwareControl)),
-    SoftwareControl (sflowControl(Modbus::SoftwareControl))
+    NoFlowControl     (sflowControl(Modbus::NoFlowControl  )),
+    HardwareControl   (sflowControl(Modbus::HardwareControl)),
+    SoftwareControl   (sflowControl(Modbus::SoftwareControl))
 {
 }
 
@@ -48,20 +49,21 @@ const Strings &Strings::instance()
 }
 
 Defaults::Defaults() :
-    unit            (1),
-    type            (TCP),
-    tries           (1), // TODO: initialize by constant from ModbusClientPort
-    host            (ModbusTcpPort   ::Defaults::instance().host            ),
-    port            (ModbusTcpPort   ::Defaults::instance().port            ),
-    timeout         (ModbusTcpPort   ::Defaults::instance().timeout         ),
-    serialPortName  (ModbusSerialPort::Defaults::instance().portName        ),
-    baudRate        (ModbusSerialPort::Defaults::instance().baudRate        ),
-    dataBits        (ModbusSerialPort::Defaults::instance().dataBits        ),
-    parity          (ModbusSerialPort::Defaults::instance().parity          ),
-    stopBits        (ModbusSerialPort::Defaults::instance().stopBits        ),
-    flowControl     (ModbusSerialPort::Defaults::instance().flowControl     ),
-    timeoutFirstByte(ModbusSerialPort::Defaults::instance().timeoutFirstByte),
-    timeoutInterByte(ModbusSerialPort::Defaults::instance().timeoutInterByte)
+    unit              (1),
+    type              (TCP),
+    tries             (1), // TODO: initialize by constant from ModbusClientPort
+    host              (ModbusTcpPort   ::Defaults::instance().host            ),
+    port              (ModbusTcpPort   ::Defaults::instance().port            ),
+    timeout           (ModbusTcpPort   ::Defaults::instance().timeout         ),
+    serialPortName    (ModbusSerialPort::Defaults::instance().portName        ),
+    baudRate          (ModbusSerialPort::Defaults::instance().baudRate        ),
+    dataBits          (ModbusSerialPort::Defaults::instance().dataBits        ),
+    parity            (ModbusSerialPort::Defaults::instance().parity          ),
+    stopBits          (ModbusSerialPort::Defaults::instance().stopBits        ),
+    flowControl       (ModbusSerialPort::Defaults::instance().flowControl     ),
+    timeoutFirstByte  (ModbusSerialPort::Defaults::instance().timeoutFirstByte),
+    timeoutInterByte  (ModbusSerialPort::Defaults::instance().timeoutInterByte),
+    isBroadcastEnabled(true)
 {
 }
 
@@ -157,6 +159,11 @@ uint32_t getSettingTimeoutInterByte(const Settings &s, bool *ok)
     MB_GET_SETTING_MACRO(uint32_t, timeoutInterByte, v = static_cast<uint32_t>(var.toUInt(&okInner)))
 }
 
+bool getSettingBroadcastEnabled(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(bool, isBroadcastEnabled, v = var.toBool(); okInner = true)
+}
+
 void setSettingUnit(Settings &s, uint8_t v)
 {
     s[Modbus::Strings::instance().unit] = v;
@@ -227,6 +234,10 @@ void setSettingTimeoutInterByte(Settings &s, uint32_t v)
     s[Modbus::Strings::instance().timeoutInterByte] = v;
 }
 
+void setSettingBroadcastEnabled(Settings &s, bool v)
+{
+    s[Modbus::Strings::instance().isBroadcastEnabled] = v;
+}
 
 Address::Address()
 {
