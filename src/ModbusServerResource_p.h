@@ -23,6 +23,7 @@ public:
     }
 
 public:
+    inline bool isBroadcast() const { return (unit == 0) && isBroadcastEnabled(); }
     inline StatusCode lastPortErrorStatus() const { return port->lastErrorStatus(); }
     inline const Char *lastPortErrorText() const { return port->lastErrorText(); }
     inline const Char *getLastErrorText() const

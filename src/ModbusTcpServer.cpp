@@ -65,6 +65,14 @@ void ModbusTcpServer::setTimeout(uint32_t timeout)
     d_ModbusTcpServer(d_ptr)->timeout = timeout;
 }
 
+void ModbusTcpServer::setBroadcastEnabled(bool enable)
+{
+    ModbusServerPort::setBroadcastEnabled(enable);
+    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    for (auto& c : d->connections)
+        c->setBroadcastEnabled(enable);
+}
+
 void ModbusTcpServer::clearConnections()
 {
     ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);

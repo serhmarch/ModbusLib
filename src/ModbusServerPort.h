@@ -46,7 +46,15 @@ public: // server port interface
     /// \details Returns `true` if inner port is open, `false` otherwise.
     virtual bool isOpen() const = 0;
 
-    /// \details Return context of the port previously set by `setContext` function or `nullptr` by default. 
+    /// \details Returns `true` if broadcast mode for `0` unit address is enabled, `false` otherwise.
+    /// Broadcast mode for `0` unit address is required by Modbus protocol so it is enabled by default
+    bool isBroadcastEnabled() const;
+
+    /// \details Enables broadcast mode for `0` unit address. It is enabled by default.
+    /// \sa `isBroadcastEnabled()`
+    virtual void setBroadcastEnabled(bool enable);
+
+    /// \details Return context of the port previously set by `setContext` function or `nullptr` by default.
     void *context() const;
 
     /// \details Set context of the port. 

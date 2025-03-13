@@ -44,12 +44,13 @@ public:
         this->currentClient = nullptr;
         this->port = port;
         this->repeats = 0;
-        this->settings.tries = 1;
         this->lastStatus = Modbus::Status_Uncertain;
         this->lastErrorStatus = Modbus::Status_Uncertain;
         this->isLastPortError = true;
         this->timestamp = 0;
         this->lastStatusTimestamp = 0;
+        this->settings.tries = 1;
+        this->settings.broadcastEnabled = true;
 
         port->setServerMode(false);
     }
@@ -60,6 +61,9 @@ public:
     }
 
 public:
+    inline bool isBroadcastEnabled() const { return settings.broadcastEnabled; }
+    inline void setBroadcastEnabled(bool enable) { settings.broadcastEnabled = enable; }
+    inline bool isBroadcast() const { return (unit == 0) && isBroadcastEnabled(); }
     inline void timestampRefresh() { timestamp = timer(); }
     inline bool isStateClosed() const { return state == STATE_CLOSED || state == STATE_TIMEOUT; }
     inline bool isWriteBufferBlocked() const  { return block; }
@@ -145,6 +149,7 @@ public:
     struct
     {
         uint32_t tries;
+        bool broadcastEnabled;
     } settings;
 
 };

@@ -172,7 +172,7 @@ StatusCode ModbusServerResource::process()
             r = processDevice();
             if (StatusIsProcessing(r))
                 return r;
-            if (r == Status_BadGatewayPathUnavailable)
+            if ((r == Status_BadGatewayPathUnavailable) || d->isBroadcast())
             {
                 d->state = STATE_BEGIN_READ;
                 return r;

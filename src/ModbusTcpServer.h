@@ -78,6 +78,10 @@ public:
     /// \details Returns `true` if the server is currently listening for incoming connections, `false` otherwise.
     bool isOpen() const override;
 
+    /// \details Enables broadcast mode for `0` unit address. It is enabled by default.
+    /// \sa `isBroadcastEnabled()`
+    void setBroadcastEnabled(bool enable) override;
+
     /// \details Main function of TCP server. Must be called in cycle to perform all incoming TCP connections.
     Modbus::StatusCode process() override;
     

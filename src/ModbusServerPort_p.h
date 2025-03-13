@@ -39,9 +39,12 @@ public:
         this->cmdClose = false;
         this->timestamp = 0;
         this->context = nullptr;
+        this->settings.broadcastEnabled = true;
     }
 
 public: // state
+    inline bool isBroadcastEnabled() const { return settings.broadcastEnabled; }
+    inline void setBroadcastEnabled(bool enable) { settings.broadcastEnabled = enable; }
     inline void timestampRefresh() { timestamp = timer(); }
     inline bool isStateClosed() const { return state == STATE_CLOSED || state == STATE_TIMEOUT; }
     inline const Char *getName() const { return objectName.data(); }
@@ -54,7 +57,6 @@ public: // state
         return status;
     }
 
-
 public:
     ModbusInterface *device;
     State state;
@@ -63,6 +65,10 @@ public:
     String errorText;
     Timer timestamp;
     void *context;
+    struct
+    {
+        bool broadcastEnabled;
+    } settings;
 };
 
 inline ModbusServerPortPrivate *d_ModbusServerPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerPortPrivate*>(d_ptr); }

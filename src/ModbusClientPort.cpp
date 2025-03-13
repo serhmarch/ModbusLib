@@ -39,6 +39,16 @@ void ModbusClientPort::setTries(uint32_t v)
         d_ModbusClientPort(d_ptr)->settings.tries = v;
 }
 
+bool ModbusClientPort::isBroadcastEnabled() const
+{
+    return d_ModbusClientPort(d_ptr)->isBroadcastEnabled();
+}
+
+void ModbusClientPort::setBroadcastEnabled(bool enable)
+{
+    d_ModbusClientPort(d_ptr)->setBroadcastEnabled(enable);
+}
+
 #ifndef MBF_READ_COILS_DISABLE
 Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values)
 {
@@ -1105,7 +1115,7 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
         d->blockWriteBuffer();
     }
     StatusCode r = process();
-    if (r == Status_Processing)
+    if (StatusIsProcessing(r))
         return r;
     if (StatusIsBad(r))
     {
@@ -1228,6 +1238,11 @@ StatusCode ModbusClientPort::process()
             }
             else
                 signalTx(d->getName(), d->port->writeBufferData(), d->port->writeBufferSize());
+            if (d->isBroadcast())
+            {
+                d->state = STATE_OPENED;
+                return r;
+            }
             d->state = STATE_BEGIN_READ;
             // no need break
         case STATE_BEGIN_READ:

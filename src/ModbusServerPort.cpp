@@ -38,6 +38,16 @@ bool ModbusServerPort::isTcpServer() const
     return false;
 }
 
+bool ModbusServerPort::isBroadcastEnabled() const
+{
+    return d_ModbusServerPort(d_ptr)->isBroadcastEnabled();
+}
+
+void ModbusServerPort::setBroadcastEnabled(bool enable)
+{
+    d_ModbusServerPort(d_ptr)->setBroadcastEnabled(enable);
+}
+
 void *ModbusServerPort::context() const
 {
     return d_ModbusServerPort(d_ptr)->context;
