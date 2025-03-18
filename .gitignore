@@ -60,4 +60,7 @@ external/
 # Ignore Qt-Project user files
 *.user
 
+# Ignore doc tmps
+doc/output/modbuslib
+
 TODO

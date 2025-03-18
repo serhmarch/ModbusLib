@@ -49,3 +49,22 @@
 # 0.3.10
 
 * Added 'ModbusClientPort::setPort' method
+
+# 0.4.0
+
+* Added functions:
+    * 8  (0x08) - DIAGNOSTICS
+    * 11 (0x0B) - GET_COMM_EVENT_COUNTER
+    * 12 (0x0C) - GET_COMM_EVENT_LOG
+    * 17 (0x11) - REPORT_SERVER_ID
+    * 24 (0x18) - READ_FIFO_QUEUE
+* Added options for client/server/c-support disable
+* Added options for Modbus function disabling from lib
+* Added option for dynamic/static lib
+* Added some string convertion functions
+* Added 'signalOpened' generation for ModbusServerResource class
+
+# 0.4.1
+
+* Added support for broadcast
+* Updated docs

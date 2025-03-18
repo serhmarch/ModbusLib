@@ -40,19 +40,19 @@ public:
     const QString timeoutInterByte  ; ///< Setting key for the serial port's timeout waiting next byte of packet
     const QString isBroadcastEnabled; ///< Setting key for the serial port enables broadcast mode for `0` unit address
 
-    const QString NoParity          ;
-    const QString EvenParity        ;
-    const QString OddParity         ;
-    const QString SpaceParity       ;
-    const QString MarkParity        ;
+    const QString NoParity          ; ///< String constant for repr of `NoParity` enum value
+    const QString EvenParity        ; ///< String constant for repr of `EvenParity` enum value
+    const QString OddParity         ; ///< String constant for repr of `OddParity` enum value
+    const QString SpaceParity       ; ///< String constant for repr of `SpaceParity` enum value
+    const QString MarkParity        ; ///< String constant for repr of `MarkParity` enum value
 
-    const QString OneStop           ;
-    const QString OneAndHalfStop    ;
-    const QString TwoStop           ;
+    const QString OneStop           ; ///< String constant for repr of `OneStop` enum value
+    const QString OneAndHalfStop    ; ///< String constant for repr of `OneAndHalfStop` enum value
+    const QString TwoStop           ; ///< String constant for repr of `TwoStop` enum value
 
-    const QString NoFlowControl     ;
-    const QString HardwareControl   ;
-    const QString SoftwareControl   ;
+    const QString NoFlowControl     ; ///< String constant for repr of `NoFlowControl` enum value
+    const QString HardwareControl   ; ///< String constant for repr of `HardwareControl` enum value
+    const QString SoftwareControl   ; ///< String constant for repr of `SoftwareControl` enum value
 
     /// \details Constructor ot the class.
     Strings();

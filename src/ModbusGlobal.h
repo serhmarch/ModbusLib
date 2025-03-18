@@ -385,7 +385,7 @@ extern "C" {
 inline bool StatusIsProcessing(StatusCode status) { return status == Status_Processing; }
 
 /// \details Returns a general indication that the operation result is successful.
-inline bool StatusIsGood(StatusCode status) { return status == Status_Good; }
+inline bool StatusIsGood(StatusCode status) { return (status & 0xFF000000) == Status_Good; }
 
 /// \details Returns a general indication that the operation result is unsuccessful.
 inline bool StatusIsBad(StatusCode status) { return (status & Status_Bad) != 0; }

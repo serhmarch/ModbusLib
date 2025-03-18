@@ -207,9 +207,9 @@ public:
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
     /// \details Function for read the contents of a First-In-First-Out (FIFO) queue of register in a remote device.
     /// \param[in]  unit    Address of the remote Modbus device.
-    /// \param[in]  offset  Starting offset (0-based).
+    /// \param[in]  fifoadr Address of FIFO (0-based).
     /// \param[in]  count   Count of registers.
-    /// \param[out] values  Pointer to the output buffer (bit array) where the read values are stored.
+    /// \param[out] values  Pointer to the output buffer where the read values are stored.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
