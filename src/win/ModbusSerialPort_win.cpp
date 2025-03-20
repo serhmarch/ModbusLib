@@ -6,10 +6,10 @@ BYTE winParity(Parity v)
     switch (v)
     {
     case NoParity   : return NOPARITY   ;
-    case EvenParity : return ODDPARITY  ;
-    case OddParity  : return EVENPARITY ;
-    case SpaceParity: return MARKPARITY ;
-    case MarkParity : return SPACEPARITY;
+    case EvenParity : return EVENPARITY ;
+    case OddParity  : return ODDPARITY  ;
+    case SpaceParity: return SPACEPARITY;
+    case MarkParity : return MARKPARITY ;
     default         : return NOPARITY   ;
     }
 }
