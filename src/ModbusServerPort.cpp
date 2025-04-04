@@ -48,12 +48,22 @@ void ModbusServerPort::setBroadcastEnabled(bool enable)
     d_ModbusServerPort(d_ptr)->setBroadcastEnabled(enable);
 }
 
+const void *ModbusServerPort::unitsMap() const
+{
+    return d_ModbusServerPort(d_ptr)->unitsMap();
+}
+
+void ModbusServerPort::setUnitsMap(const void *unitsmap)
+{
+    d_ModbusServerPort(d_ptr)->setUnitsMap(unitsmap);
+}
+
 void *ModbusServerPort::context() const
 {
     return d_ModbusServerPort(d_ptr)->context;
 }
 
-void ModbusServerPort::setContext(void *context) const
+void ModbusServerPort::setContext(void *context)
 {
     d_ModbusServerPort(d_ptr)->context = context;
 }

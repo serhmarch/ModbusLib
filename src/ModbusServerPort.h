@@ -54,11 +54,23 @@ public: // server port interface
     /// \sa `isBroadcastEnabled()`
     virtual void setBroadcastEnabled(bool enable);
 
+    /// \details Return pointer to the units map byte array of the current server. 
+    /// By default unit map is not set so return value is `nullptr`.
+    /// Unit map is data type with size of 32 bytes in which every bit represents unit address from `0` to `255`.
+    /// So bit 0 of byte 0 represents unit address `0`, bit 1 of byte 0 represents unit address `1` and so on.
+    /// Bit 0 of byte 1 represnt unit address `8`, bit 7 of byte 31 represents unit address `255`.
+    /// Units
+    const void *unitsMap() const;
+
+    /// \details Set units map of current server. Server make a copy of units map data.
+    /// \sa `unitsMap()`
+    virtual void setUnitsMap(const void *unitsmap);
+
     /// \details Return context of the port previously set by `setContext` function or `nullptr` by default.
     void *context() const;
 
     /// \details Set context of the port. 
-    void setContext(void *context) const;
+    void setContext(void *context);
 
     /// \details Main function of the class. Must be called in the cycle. 
     /// Return statuc code is not very useful but can indicate that inner server operations are good, bad or in process.

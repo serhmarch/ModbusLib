@@ -5,6 +5,8 @@
 
 class ModbusPort;
 
+#define MB_UNITS_MAP_SIZE 32
+
 namespace ModbusServerPortPrivateNS {
 
 enum State
@@ -40,11 +42,41 @@ public:
         this->timestamp = 0;
         this->context = nullptr;
         this->settings.broadcastEnabled = true;
+        this->settings.unitsmap = nullptr;
+    }
+
+    ~ModbusServerPortPrivate() override
+    {
+        if (settings.unitsmap)
+            free(settings.unitsmap);
     }
 
 public: // state
     inline bool isBroadcastEnabled() const { return settings.broadcastEnabled; }
     inline void setBroadcastEnabled(bool enable) { settings.broadcastEnabled = enable; }
+    inline const void *unitsMap() const { return settings.unitsmap; }
+    inline void setUnitsMap(const void *unitsmap)
+    {
+        if (settings.unitsmap == unitsmap)
+            return;
+        if (settings.unitsmap)
+            free(settings.unitsmap); 
+        if (unitsmap)
+        {
+            settings.unitsmap = reinterpret_cast<uint8_t*>(malloc(MB_UNITS_MAP_SIZE));
+            memcpy(settings.unitsmap, unitsmap, MB_UNITS_MAP_SIZE);
+        }
+        else
+            settings.unitsmap = nullptr;
+    }
+
+    inline bool isUnitEnabled(uint8_t unit) const
+    {
+        if (settings.unitsmap == nullptr)
+            return true;
+        return ((settings.unitsmap[unit/8]) & (1 << (unit%8))) != 0;
+    }
+
     inline void timestampRefresh() { timestamp = timer(); }
     inline bool isStateClosed() const { return state == STATE_CLOSED || state == STATE_TIMEOUT; }
     inline const Char *getName() const { return objectName.data(); }
@@ -68,6 +100,7 @@ public:
     struct
     {
         bool broadcastEnabled;
+        uint8_t *unitsmap;
     } settings;
 };
 
