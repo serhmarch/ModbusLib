@@ -60,11 +60,11 @@ public: // server port interface
     /// So bit 0 of byte 0 represents unit address `0`, bit 1 of byte 0 represents unit address `1` and so on.
     /// Bit 0 of byte 1 represnt unit address `8`, bit 7 of byte 31 represents unit address `255`.
     /// Units
-    const void *unitsMap() const;
+    const void *unitMap() const;
 
     /// \details Set units map of current server. Server make a copy of units map data.
-    /// \sa `unitsMap()`
-    virtual void setUnitsMap(const void *unitsmap);
+    /// \sa `unitMap()`
+    virtual void setUnitMap(const void *unitmap);
 
     /// \details Return context of the port previously set by `setContext` function or `nullptr` by default.
     void *context() const;

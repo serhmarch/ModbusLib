@@ -5,7 +5,7 @@
 
 class ModbusPort;
 
-#define MB_UNITS_MAP_SIZE 32
+#define MB_UNITMAP_SIZE 32
 
 namespace ModbusServerPortPrivateNS {
 
@@ -42,39 +42,40 @@ public:
         this->timestamp = 0;
         this->context = nullptr;
         this->settings.broadcastEnabled = true;
-        this->settings.unitsmap = nullptr;
+        this->settings.unitmap = nullptr;
     }
 
     ~ModbusServerPortPrivate() override
     {
-        if (settings.unitsmap)
-            free(settings.unitsmap);
+        if (settings.unitmap)
+            free(settings.unitmap);
     }
 
 public: // state
     inline bool isBroadcastEnabled() const { return settings.broadcastEnabled; }
     inline void setBroadcastEnabled(bool enable) { settings.broadcastEnabled = enable; }
-    inline const void *unitsMap() const { return settings.unitsmap; }
-    inline void setUnitsMap(const void *unitsmap)
+    inline bool isBroadcast(uint8_t unit) const { return (unit == 0) && isBroadcastEnabled(); }
+    inline const void *unitMap() const { return settings.unitmap; }
+    inline void setUnitMap(const void *unitmap)
     {
-        if (settings.unitsmap == unitsmap)
+        if (settings.unitmap == unitmap)
             return;
-        if (settings.unitsmap)
-            free(settings.unitsmap); 
-        if (unitsmap)
+        if (settings.unitmap)
+            free(settings.unitmap); 
+        if (unitmap)
         {
-            settings.unitsmap = reinterpret_cast<uint8_t*>(malloc(MB_UNITS_MAP_SIZE));
-            memcpy(settings.unitsmap, unitsmap, MB_UNITS_MAP_SIZE);
+            settings.unitmap = reinterpret_cast<uint8_t*>(malloc(MB_UNITMAP_SIZE));
+            memcpy(settings.unitmap, unitmap, MB_UNITMAP_SIZE);
         }
         else
-            settings.unitsmap = nullptr;
+            settings.unitmap = nullptr;
     }
 
     inline bool isUnitEnabled(uint8_t unit) const
     {
-        if (settings.unitsmap == nullptr)
+        if (settings.unitmap == nullptr || isBroadcast(unit))
             return true;
-        return MB_GET_UNITMAP_BIT(settings.unitsmap, unit);
+        return MB_UNITMAP_GET_BIT(settings.unitmap, unit);
     }
 
     inline void timestampRefresh() { timestamp = timer(); }
@@ -100,7 +101,7 @@ public:
     struct
     {
         bool broadcastEnabled;
-        uint8_t *unitsmap;
+        uint8_t *unitmap;
     } settings;
 };
 
