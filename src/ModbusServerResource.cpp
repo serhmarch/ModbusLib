@@ -149,6 +149,11 @@ StatusCode ModbusServerResource::process()
             r = d->port->readBuffer(d->unit, d->func, buff, szBuff, &outBytes);
             if (StatusIsBad(r))
                 d->setPortError(r);
+            else if (!d->isUnitEnabled(d->unit))
+            {
+                d->state = STATE_BEGIN_READ;
+                return Status_Good;
+            }
             if (StatusIsGood(r))
                 r = processInputData(buff, outBytes);
             if (StatusIsBad(r)) // data error

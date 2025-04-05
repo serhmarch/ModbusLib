@@ -73,6 +73,14 @@ void ModbusTcpServer::setBroadcastEnabled(bool enable)
         c->setBroadcastEnabled(enable);
 }
 
+void ModbusTcpServer::setUnitsMap(const void *unitsmap)
+{
+    ModbusServerPort::setUnitsMap(unitsmap);
+    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    for (auto& c : d->connections)
+        c->setUnitsMap(unitsmap);
+}
+
 void ModbusTcpServer::clearConnections()
 {
     ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
@@ -155,6 +163,8 @@ StatusCode ModbusTcpServer::process()
                 c->connect(&ModbusServerPort::signalTx   , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalTx   );
                 c->connect(&ModbusServerPort::signalRx   , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalRx   );
                 c->connect(&ModbusServerPort::signalError, static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalError);
+                c->setBroadcastEnabled(isBroadcastEnabled());
+                c->setUnitsMap(unitsMap());
                 d->connections.push_back(c);
                 signalNewConnection(c->objectName());
             }

@@ -74,7 +74,7 @@ public: // state
     {
         if (settings.unitsmap == nullptr)
             return true;
-        return ((settings.unitsmap[unit/8]) & (1 << (unit%8))) != 0;
+        return MB_GET_UNITMAP_BIT(settings.unitsmap, unit);
     }
 
     inline void timestampRefresh() { timestamp = timer(); }

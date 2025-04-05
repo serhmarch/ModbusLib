@@ -82,6 +82,10 @@ public:
     /// \sa `isBroadcastEnabled()`
     void setBroadcastEnabled(bool enable) override;
 
+    /// \details Set units map of current server. Server make a copy of units map data.
+    /// \sa `unitsMap()`
+    virtual void setUnitsMap(const void *unitsmap);
+
     /// \details Main function of TCP server. Must be called in cycle to perform all incoming TCP connections.
     Modbus::StatusCode process() override;
     

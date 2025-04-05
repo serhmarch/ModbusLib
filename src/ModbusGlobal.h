@@ -84,6 +84,15 @@
         else                                                                                                                \
             ((uint8_t*)(bitBuff))[((bitNum)+__i__)/8] &= (~(1<<(((bitNum)+__i__)%8)));
 
+/// \brief
+#define MB_GET_UNITMAP_BIT(unitmap, unit) ((((const uint8_t*)(unitmap))[(unit)/8] & (1<<((unit)%8))) != 0)
+
+/// \brief
+#define MB_SET_UNITMAP_BIT(unitmap, unit, value)                                                                            \
+    if (value)                                                                                                              \
+        ((uint8_t*)(unitmap))[(unit)/8] |= (1<<((unit)%8));                                                                 \
+    else                                                                                                                    \
+        ((uint8_t*)(unitmap))[(unit)/8] &= (~(1<<((unit)%8)));
 
 // --------------------------------------------------------------------------------------------------------
 // ----------------------------------------- Modbus function codes ----------------------------------------
