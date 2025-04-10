@@ -68,3 +68,8 @@
 
 * Added support for broadcast
 * Updated docs
+
+# 0.4.2
+
+* Fixed 'Parity'-setting swap for Win
+* Added `unitmap` byte array for ModbusServerPort to prefilter unit addresses

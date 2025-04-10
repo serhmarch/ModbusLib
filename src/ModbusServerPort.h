@@ -59,7 +59,8 @@ public: // server port interface
     /// Unit map is data type with size of 32 bytes in which every bit represents unit address from `0` to `255`.
     /// So bit 0 of byte 0 represents unit address `0`, bit 1 of byte 0 represents unit address `1` and so on.
     /// Bit 0 of byte 1 represnt unit address `8`, bit 7 of byte 31 represents unit address `255`.
-    /// Units
+    /// If set unit map can enable or disable (depends on respecting 1/0 bit value) unit address for further processing.
+    /// It is not set by default and function returns `nullptr`.
     const void *unitMap() const;
 
     /// \details Set units map of current server. Server make a copy of units map data.
