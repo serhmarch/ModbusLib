@@ -308,6 +308,67 @@ inline StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *valu
     return writeMemBits(offset, count , values, memBuff, memBitCount, nullptr);
 }
 
+
+#ifndef MB_ADDRESS_CLASS_DISABLE
+
+/// \brief Modbus Data Address class. Represents Modbus Data Address.
+class Address
+{
+public:
+    enum Notation
+    {
+        Notation_Default    ,
+        Notation_Modbus     ,
+        Notation_IEC61131   ,
+        Notation_IEC61131Hex
+    };
+
+public:
+    /// \brief Make modbus address from string representaion
+    static Address fromString(const String &s);
+
+public:
+    /// \details Defauilt constructor ot the class. Creates invalid Modbus Data Address
+    Address();
+
+    /// \details Constructor ot the class. E.g. `Address(Modbus::Memory_4x, 0)` creates `400001` standard address. 
+    Address(Modbus::MemoryType, uint16_t offset);
+
+    /// \details Constructor ot the class. E.g. `Address(400001)` creates `Address` with type `Modbus::Memory_4x`
+    /// and offset `0`, and `Address(1)` creates `Address` with type `Modbus::Memory_0x` and offset `0`. 
+    Address(uint32_t adr);
+
+public:
+    /// \details Returns `true` if memory type is `Modbus::Memory_Unknown`, `false` otherwise
+    inline bool isValid() const { return m_type != Modbus::Memory_Unknown; }
+
+    /// \details Returns memory type of Modbus Data Address
+    inline Modbus::MemoryType type() const { return static_cast<Modbus::MemoryType>(m_type); }
+ 
+    /// \details Returns memory offset of Modbus Data Address
+    inline uint16_t offset() const { return m_offset; }
+ 
+    /// \details Returns memory number (offset+1) of Modbus Data Address
+    inline uint32_t number() const { return m_offset+1; }
+ 
+    /// \details Returns string repr of Modbus Data Address
+    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `QString("400001")`.
+    String toString(Notation notation = Notation_Default) const;
+
+    /// \details Converts current Modbus Data Address to `quint32`,
+    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `400001`.
+    inline operator uint32_t () const { return number() + (m_type*100000);  }
+
+    /// \details Assigment operator definition.
+    Address &operator= (uint32_t v);
+
+private:
+    uint16_t m_type;
+    uint16_t m_offset;
+};
+
+#endif // MB_ADDRESS_CLASS_DISABLE
+
 } //namespace Modbus
 
 #endif // MODBUS_H
