@@ -27,6 +27,23 @@ Timestamp currentTimestamp()
     return static_cast<int64_t>(ts.tv_sec) * 1000 + static_cast<int64_t>(ts.tv_nsec) / 1000000;
 }
 
+void setConsoleColor(Color color)
+{
+    switch(color)
+    {
+    case Color_Black  : std::cout << "\033[30m"; break;
+    case Color_Red    : std::cout << "\033[31m"; break;
+    case Color_Green  : std::cout << "\033[32m"; break;
+    case Color_Yellow : std::cout << "\033[33m"; break;
+    case Color_Blue   : std::cout << "\033[34m"; break;
+    case Color_Magenta: std::cout << "\033[35m"; break;
+    case Color_Cyan   : std::cout << "\033[36m"; break; 
+    case Color_White  : std::cout << "\033[37m"; break;
+    case Color_Default:
+    default:            std::cout << "\033[0m" ; break;
+    }
+}
+
 void msleep(uint32_t msec)
 {
     struct timespec ts;

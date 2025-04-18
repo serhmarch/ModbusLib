@@ -217,6 +217,21 @@ typedef enum _MemoryType
     Memory_HoldingRegisters = Memory_4x,     ///< Same as `Memory_4x`.
 } MemoryType;
 
+/// \brief Enum of color (used for console text color).
+typedef enum _Color
+{                  //   Unix Color    Windows Color   
+    Color_Black  , // 30 = Black     0 = Black
+    Color_Red    , // 31 = Red       4 = Red       
+    Color_Green  , // 32 = Green     2 = Green
+    Color_Yellow , // 33 = Yellow    6 = Yellow 
+    Color_Blue   , // 34 = Blue      1 = Blue 
+    Color_Magenta, // 35 = Magenta   13 = Light Purple   
+    Color_Cyan   , // 36 = Cyan      9 = Light Blue 
+    Color_White  , // 37 = White     7 = White (default) 
+    Color_Default  
+} Color;
+
+
 /// \brief Defines status of executed Modbus functions.
 #ifdef __cplusplus // Note: for Qt/moc support
 enum StatusCode
@@ -540,6 +555,9 @@ MODBUS_EXPORT Timer timer();
 
 /// \details Get current timestamp in UNIX format in milliseconds.
 MODBUS_EXPORT Timestamp currentTimestamp();
+
+/// \details Set color of console text.
+MODBUS_EXPORT void setConsoleColor(Color color);
 
 /// \details Make current thread sleep with 'msec' milliseconds.
 MODBUS_EXPORT void msleep(uint32_t msec);

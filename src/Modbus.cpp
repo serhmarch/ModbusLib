@@ -620,7 +620,6 @@ String Address::toString(Notation notation) const
             break;
         default:
             return std::to_string(m_type) + std::to_string(number()).insert(0, 5 - std::to_string(number()).length(), '0');
-
         }
     }
     else
