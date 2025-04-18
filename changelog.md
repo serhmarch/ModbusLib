@@ -73,3 +73,7 @@
 
 * Fixed 'Parity'-setting swap for Win
 * Added `unitmap` byte array for ModbusServerPort to prefilter unit addresses
+
+# 0.4.3
+
+* Fixed TCP Server delay while connecting

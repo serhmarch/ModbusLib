@@ -149,18 +149,30 @@ ModbusTcpSocket *ModbusTcpServer::nextPendingConnection()
 
 bool ModbusTcpServerPrivate::getHostService(ModbusTcpSocket *socket, String &host, String &service)
 {
-    sockaddr_in clientAddr;
+    sockaddr_storage clientAddr;
     socklen_t clientAddrSize = sizeof(clientAddr);
     SOCKET clientSocket = socket->socket();
-    // Get the remote host name and port number
-    char remoteHost[NI_MAXHOST];
-    char remoteService[NI_MAXSERV];
     if (getpeername(clientSocket, (sockaddr*)&clientAddr, &clientAddrSize) == 0)
     {
-        if (getnameinfo((sockaddr*)&clientAddr, clientAddrSize, remoteHost, NI_MAXHOST, remoteService, NI_MAXSERV, 0) == 0)
+        char ipStr[INET6_ADDRSTRLEN] = {};
+        uint16_t port = 0;
+
+        if (clientAddr.ss_family == AF_INET)
         {
-            host = remoteHost;
-            service = remoteService;
+            sockaddr_in* ipv4 = reinterpret_cast<sockaddr_in*>(&clientAddr);
+            inet_ntop(AF_INET, &ipv4->sin_addr, ipStr, sizeof(ipStr));
+            port = ntohs(ipv4->sin_port);
+            host = ipStr;
+            service = std::to_string(port);
+            return true;
+        }
+        else if (clientAddr.ss_family == AF_INET6)
+        {
+            sockaddr_in6* ipv6 = reinterpret_cast<sockaddr_in6*>(&clientAddr);
+            inet_ntop(AF_INET6, &ipv6->sin6_addr, ipStr, sizeof(ipStr));
+            port = ntohs(ipv6->sin6_port);
+            host = ipStr;
+            service = std::to_string(port);
             return true;
         }
     }
