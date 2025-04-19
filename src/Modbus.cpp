@@ -329,6 +329,64 @@ const Char *sprotocolType(ProtocolType type)
     }
 }
 
+ProtocolType toProtocolType(const Char * s)
+{
+    if (strcmp(s, StringLiteral("ASC")) == 0) return ASC;
+    if (strcmp(s, StringLiteral("RTU")) == 0) return RTU;
+    if (strcmp(s, StringLiteral("TCP")) == 0) return TCP;
+    return static_cast<ProtocolType>(-1);
+}   
+
+const Char* sbaudRate(int32_t baudRate)
+{
+    switch (baudRate)
+    {
+    case 1200  : return StringLiteral("1200"  );
+    case 2400  : return StringLiteral("2400"  );
+    case 4800  : return StringLiteral("4800"  );
+    case 9600  : return StringLiteral("9600"  );
+    case 19200 : return StringLiteral("19200" );
+    case 38400 : return StringLiteral("38400" );
+    case 57600 : return StringLiteral("57600" );
+    case 115200: return StringLiteral("115200");
+    default: return nullptr;
+    }
+}
+
+int32_t toBaudRate(const Char * s)
+{
+    if (strcmp(s, StringLiteral("1200"  )) == 0) return 1200  ;
+    if (strcmp(s, StringLiteral("2400"  )) == 0) return 2400  ;
+    if (strcmp(s, StringLiteral("4800"  )) == 0) return 4800  ;
+    if (strcmp(s, StringLiteral("9600"  )) == 0) return 9600  ;
+    if (strcmp(s, StringLiteral("19200" )) == 0) return 19200 ;
+    if (strcmp(s, StringLiteral("38400" )) == 0) return 38400 ;
+    if (strcmp(s, StringLiteral("57600" )) == 0) return 57600 ;
+    if (strcmp(s, StringLiteral("115200")) == 0) return 115200;
+    return -1;
+}   
+
+const Char *sdataBits(int8_t dataBits)
+{
+    switch (dataBits)
+    {
+    case 5: return StringLiteral("5");
+    case 6: return StringLiteral("6");
+    case 7: return StringLiteral("7");
+    case 8: return StringLiteral("8");
+    default: return nullptr;
+    }
+}
+
+int8_t toDataBits(const Char * s)
+{
+    if (strcmp(s, StringLiteral("5")) == 0) return 5;
+    if (strcmp(s, StringLiteral("6")) == 0) return 6;
+    if (strcmp(s, StringLiteral("7")) == 0) return 7;
+    if (strcmp(s, StringLiteral("8")) == 0) return 8;
+    return -1;
+}   
+
 const Char *sparity(Parity parity)
 {
     switch (parity)
@@ -342,6 +400,16 @@ const Char *sparity(Parity parity)
     }
 }
 
+Parity toParity(const Char* s)
+{
+    if (strcmp(s, StringLiteral("No"   )) == 0 || strcmp(s, StringLiteral("N")) == 0) return NoParity   ;
+    if (strcmp(s, StringLiteral("Even" )) == 0 || strcmp(s, StringLiteral("E")) == 0) return EvenParity ;
+    if (strcmp(s, StringLiteral("Odd"  )) == 0 || strcmp(s, StringLiteral("O")) == 0) return OddParity  ;
+    if (strcmp(s, StringLiteral("Space")) == 0 || strcmp(s, StringLiteral("S")) == 0) return SpaceParity;
+    if (strcmp(s, StringLiteral("Mark" )) == 0 || strcmp(s, StringLiteral("M")) == 0) return MarkParity ;
+    return static_cast<Parity>(-1);
+}   
+
 const Char *sstopBits(StopBits stopBits)
 {
     switch (stopBits)
@@ -353,6 +421,14 @@ const Char *sstopBits(StopBits stopBits)
     }
 }
 
+StopBits toStopBits(const Char* s)
+{
+    if (strcmp(s, StringLiteral("1"  )) == 0) return OneStop       ;
+    if (strcmp(s, StringLiteral("1.5")) == 0) return OneAndHalfStop;
+    if (strcmp(s, StringLiteral("2"  )) == 0) return TwoStop       ;
+    return static_cast<StopBits>(-1);
+}   
+
 const Char *sflowControl(FlowControl flowControl)
 {
     switch (flowControl)
@@ -363,6 +439,14 @@ const Char *sflowControl(FlowControl flowControl)
     default: return nullptr;
     }
 }
+
+FlowControl toFlowControl(const Char* s)
+{
+    if (strcmp(s, StringLiteral("No"  )) == 0) return NoFlowControl  ;
+    if (strcmp(s, StringLiteral("Hard")) == 0) return HardwareControl;
+    if (strcmp(s, StringLiteral("Soft")) == 0) return SoftwareControl;
+    return static_cast<FlowControl>(-1);
+}   
 
 ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
 {
