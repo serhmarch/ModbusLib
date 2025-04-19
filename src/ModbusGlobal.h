@@ -401,7 +401,8 @@ typedef struct
 {
     const Char *host   ; ///< Value for the IP address or DNS name of the remote device
     uint16_t    port   ; ///< Value for the TCP port number of the remote device
-    uint16_t    timeout; ///< Value for connection timeout (milliseconds)
+    uint32_t    timeout; ///< Value for connection timeout (milliseconds)
+    uint32_t    maxconn; ///< Maximum number of simultaneous connections to the server (for server side only)
 } TcpSettings;
 
 #ifdef __cplusplus

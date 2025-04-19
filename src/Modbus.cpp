@@ -523,8 +523,9 @@ ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, c
     {
         ModbusTcpServer *tcp = new ModbusTcpServer(device);
         const TcpSettings *s = reinterpret_cast<const TcpSettings*>(settings);
-        tcp->setPort   (s->port   );
-        tcp->setTimeout(s->timeout);
+        tcp->setPort          (s->port   );
+        tcp->setTimeout       (s->timeout);
+        tcp->setMaxConnections(s->maxconn);
         serv = tcp;
     }
         break;

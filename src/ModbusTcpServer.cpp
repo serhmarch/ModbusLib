@@ -30,7 +30,8 @@
 
 ModbusTcpServer::Defaults::Defaults() :
     port   (STANDARD_TCP_PORT),
-    timeout(3000)
+    timeout(3000),
+    maxconn(10)
 {
 }
 
@@ -63,6 +64,16 @@ uint32_t ModbusTcpServer::timeout() const
 void ModbusTcpServer::setTimeout(uint32_t timeout)
 {
     d_ModbusTcpServer(d_ptr)->timeout = timeout;
+}
+
+uint32_t ModbusTcpServer::maxConnections() const
+{
+    return d_ModbusTcpServer(d_ptr)->maxconn;
+}
+
+void ModbusTcpServer::setMaxConnections(uint32_t maxconn)
+{
+    d_ModbusTcpServer(d_ptr)->maxconn = maxconn;
 }
 
 void ModbusTcpServer::setBroadcastEnabled(bool enable)

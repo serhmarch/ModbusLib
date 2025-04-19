@@ -74,7 +74,8 @@ StatusCode ModbusTcpServer::open()
             }
 
             // Listen on the socket
-            if (d->socket->listen(SOMAXCONN) == SOCKET_ERROR)
+            //if (d->socket->listen(SOMAXCONN) == SOCKET_ERROR)
+            if (d->socket->listen(d->maxconn) == SOCKET_ERROR)
             {
                 d->socket->close();
                 d->state = STATE_CLOSED;

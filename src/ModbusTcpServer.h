@@ -27,6 +27,7 @@ public:
     {
         const uint16_t port   ; ///< Default setting 'TCP port number' for the listening server
         const uint32_t timeout; ///< Default setting for the read timeout of every single conncetion
+        const uint32_t maxconn; ///< Default setting for the maximum number of simultaneous connections to the server
 
         ///  \details Constructor of the class.
         Defaults();
@@ -54,6 +55,12 @@ public:
 
     ///  \details Sets the setting for the read timeout of every single conncetion.
     void setTimeout(uint32_t timeout);
+
+    ///  \details Returns setting for the maximum number of simultaneous connections to the server.
+    uint32_t maxConnections() const;
+
+    ///  \details Sets the setting for the maximum number of simultaneous connections to the server.
+    void setMaxConnections(uint32_t maxconn);
 
 public:
     /// \details Returns the Modbus protocol type. In this case it is `Modbus::TCP`.
