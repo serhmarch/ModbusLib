@@ -329,7 +329,7 @@ const Char *sprotocolType(ProtocolType type)
     }
 }
 
-ProtocolType toProtocolType(const Char * s)
+ProtocolType toprotocolType(const Char * s)
 {
     if (strcmp(s, StringLiteral("ASC")) == 0) return ASC;
     if (strcmp(s, StringLiteral("RTU")) == 0) return RTU;
@@ -353,7 +353,7 @@ const Char* sbaudRate(int32_t baudRate)
     }
 }
 
-int32_t toBaudRate(const Char * s)
+int32_t tobaudRate(const Char * s)
 {
     if (strcmp(s, StringLiteral("1200"  )) == 0) return 1200  ;
     if (strcmp(s, StringLiteral("2400"  )) == 0) return 2400  ;
@@ -378,7 +378,7 @@ const Char *sdataBits(int8_t dataBits)
     }
 }
 
-int8_t toDataBits(const Char * s)
+int8_t todataBits(const Char * s)
 {
     if (strcmp(s, StringLiteral("5")) == 0) return 5;
     if (strcmp(s, StringLiteral("6")) == 0) return 6;
@@ -400,7 +400,7 @@ const Char *sparity(Parity parity)
     }
 }
 
-Parity toParity(const Char* s)
+Parity toparity(const Char* s)
 {
     if (strcmp(s, StringLiteral("No"   )) == 0 || strcmp(s, StringLiteral("N")) == 0) return NoParity   ;
     if (strcmp(s, StringLiteral("Even" )) == 0 || strcmp(s, StringLiteral("E")) == 0) return EvenParity ;
@@ -421,7 +421,7 @@ const Char *sstopBits(StopBits stopBits)
     }
 }
 
-StopBits toStopBits(const Char* s)
+StopBits tostopBits(const Char* s)
 {
     if (strcmp(s, StringLiteral("1"  )) == 0) return OneStop       ;
     if (strcmp(s, StringLiteral("1.5")) == 0) return OneAndHalfStop;
@@ -440,7 +440,7 @@ const Char *sflowControl(FlowControl flowControl)
     }
 }
 
-FlowControl toFlowControl(const Char* s)
+FlowControl toflowControl(const Char* s)
 {
     if (strcmp(s, StringLiteral("No"  )) == 0) return NoFlowControl  ;
     if (strcmp(s, StringLiteral("Hard")) == 0) return HardwareControl;

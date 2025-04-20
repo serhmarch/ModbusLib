@@ -541,7 +541,7 @@ MODBUS_EXPORT const Char *sprotocolType(ProtocolType type);
 
 /// \details Converts string representation to `ProtocolType` value
 /// or returns -1 if value cannot be converted.
-MODBUS_EXPORT ProtocolType toProtocolType(const Char *s);
+MODBUS_EXPORT ProtocolType toprotocolType(const Char *s);
 
 /// \details Returns pointer to constant string value that represent `int32_t` baud rate value
 /// or nullptr (NULL) if the value is invalid.
@@ -550,7 +550,7 @@ MODBUS_EXPORT const Char *sbaudRate(int32_t baudRate);
 
 /// \details Converts string representation to `int32_t` baud rate value
 /// or returns -1 if value cannot be converted.
-MODBUS_EXPORT int32_t toBaudRate(const Char *s);
+MODBUS_EXPORT int32_t tobaudRate(const Char *s);
 
 /// \details Returns pointer to constant string value that represent name of the data bits value
 /// ("8", "7", "6" or "5") or nullptr (NULL) if the value is invalid.
@@ -559,7 +559,7 @@ MODBUS_EXPORT const Char *sdataBits(int8_t dataBits);
 
 /// \details Converts string representation to data bits `int8_t` value
 /// or returns -1 if value cannot be converted.
-MODBUS_EXPORT int8_t toDataBits(const Char *s);
+MODBUS_EXPORT int8_t todataBits(const Char *s);
 
 /// \details Returns pointer to constant string value that represent name of the `Parity` value
 /// or nullptr (NULL) if the value is invalid.
@@ -568,7 +568,7 @@ MODBUS_EXPORT const Char *sparity(Parity parity);
 
 /// \details Converts string representation to `Parity` value
 /// or returns -1 if value cannot be converted.
-MODBUS_EXPORT Parity toParity(const Char *s);
+MODBUS_EXPORT Parity toparity(const Char *s);
 
 /// \details Returns pointer to constant string value that represent name of the `StopBits` value
 /// or nullptr (NULL) if the value is invalid.
@@ -577,7 +577,7 @@ MODBUS_EXPORT const Char *sstopBits(StopBits stopBits);
 
 /// \details Converts string representation to `StopBits` value
 /// or returns -1 if value cannot be converted.
-MODBUS_EXPORT StopBits toStopBits(const Char *s);
+MODBUS_EXPORT StopBits tostopBits(const Char *s);
 
 /// \details Returns pointer to constant string value that represent name of the `FlowControl` parameter
 /// or nullptr (NULL) if the value is invalid.
@@ -586,7 +586,7 @@ MODBUS_EXPORT const Char *sflowControl(FlowControl flowControl);
 
 /// \details Converts string representation to `FlowControl` value
 /// or returns -1 if value cannot be converted.
-MODBUS_EXPORT FlowControl toFlowControl(const Char *s);
+MODBUS_EXPORT FlowControl toflowControl(const Char *s);
 
 /// \details Get timer value in milliseconds.
 MODBUS_EXPORT Timer timer();
