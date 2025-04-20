@@ -253,7 +253,23 @@ Char *sascii(const uint8_t* buff, uint32_t count, Char *str, uint32_t strmaxlen)
     return str;
 }
 
-String bytesToString(const uint8_t* buff, uint32_t count)
+String trim(const String &s)
+{
+    // Trim leading whitespace
+    String::const_iterator start = s.begin();
+    while (start != s.end() && isspace(*start))
+        ++start;
+
+    // Trim trailing whitespace
+    String::const_iterator end = s.end();
+    while (end != start && isspace(*(end - 1))) 
+        --end;
+
+    // Construct the trimmed CnString
+    return String(start, end);
+}
+
+String bytesToString(const uint8_t *buff, uint32_t count)
 {
     String str;
     for (uint32_t i = 0; i < count; ++i)

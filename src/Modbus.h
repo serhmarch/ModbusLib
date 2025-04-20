@@ -233,6 +233,9 @@ using List = std::list<T>;
 /// \details Returns string representation of the last error
 MODBUS_EXPORT String getLastErrorText();
 
+/// \details Returns trim white spaces from the left and right side of the string `str`
+MODBUS_EXPORT String trim(const String &str);
+
 /// \details Convert interger value to Modbus::String
 /// \returns Returns new Modbus::String value
 inline String toModbusString(int val) { return std::to_string(val); }
