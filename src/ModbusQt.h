@@ -30,6 +30,7 @@ public:
     const QString host              ; ///< Setting key for the IP address or DNS name of the remote device
     const QString port              ; ///< Setting key for the TCP port number of the remote device
     const QString timeout           ; ///< Setting key for connection timeout (milliseconds)
+    const QString maxconn           ; ///< Setting key for the maximum number of simultaneous connections to the server
     const QString serialPortName    ; ///< Setting key for the serial port name
     const QString baudRate          ; ///< Setting key for the serial port's baud rate
     const QString dataBits          ; ///< Setting key for the serial port's data bits
@@ -72,6 +73,7 @@ public:
     const QString      host              ; ///< Default value for the IP address or DNS name of the remote device
     const uint16_t     port              ; ///< Default value for the TCP port number of the remote device
     const uint32_t     timeout           ; ///< Default value for connection timeout (milliseconds)
+    const uint32_t     maxconn           ; ///< Default value for the maximum number of simultaneous connections to the server
     const QString      serialPortName    ; ///< Default value for the serial port name
     const int32_t      baudRate          ; ///< Default value for the serial port's baud rate
     const int8_t       dataBits          ; ///< Default value for the serial port's data bits
@@ -112,6 +114,10 @@ MODBUS_EXPORT uint16_t getSettingPort(const Settings &s, bool *ok = nullptr);
 /// \details Get settings value for connection timeout (milliseconds).
 /// If value can't be retrieved that default value is returned and *ok = false (if provided).
 MODBUS_EXPORT uint32_t getSettingTimeout(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the maximum number of simultaneous connections to the server.
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT uint32_t getSettingMaxconn(const Settings &s, bool *ok = nullptr);
 
 /// \details Get settings value for the serial port name.
 /// If value can't be retrieved that default value is returned and *ok = false (if provided).
@@ -167,6 +173,9 @@ MODBUS_EXPORT void setSettingPort(Settings &s, uint16_t v);
 /// \details Set settings value for connection timeout (milliseconds).
 MODBUS_EXPORT void setSettingTimeout(Settings &s, uint32_t v);
 
+/// \details Set settings value for maximum number of simultaneous connections to the server.
+MODBUS_EXPORT void setSettingMaxconn(Settings &s, uint32_t v);
+
 /// \details Set settings value for the serial port name.
 MODBUS_EXPORT void setSettingSerialPortName(Settings &s, const QString&v);
 
@@ -195,52 +204,8 @@ MODBUS_EXPORT void setSettingTimeoutInterByte(Settings &s, uint32_t v);
 MODBUS_EXPORT void setSettingBroadcastEnabled(Settings &s, bool v);
 
 
-/*! \brief Class for convinient manipulation with Modbus Data Address.
-*/
-class MODBUS_EXPORT Address
-{
-public:
-    /// \details Defauilt constructor ot the class. Creates invalid Modbus Data Address
-    Address();
-
-    /// \details Constructor ot the class. E.g. `Address(Modbus::Memory_4x, 0)` creates `400001` standard address. 
-    Address(Modbus::MemoryType, quint16 offset);
-
-    /// \details Constructor ot the class. E.g. `Address(400001)` creates `Address` with type `Modbus::Memory_4x`
-    /// and offset `0`, and `Address(1)` creates `Address` with type `Modbus::Memory_0x` and offset `0`. 
-    Address(quint32 adr);
-
-public:
-    /// \details Returns `true` if memory type is `Modbus::Memory_Unknown`, `false` otherwise
-    inline bool isValid() const { return m_type != Memory_Unknown; }
-
-    /// \details Returns memory type of Modbus Data Address
-    inline MemoryType type() const { return static_cast<MemoryType>(m_type); }
- 
-    /// \details Returns memory offset of Modbus Data Address
-    inline quint16 offset() const { return m_offset; }
- 
-    /// \details Returns memory number (offset+1) of Modbus Data Address
-    inline quint32 number() const { return m_offset+1; }
- 
-    /// \details Returns string repr of Modbus Data Address
-    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `QString("400001")`.
-    QString toString() const;
-
-    /// \details Converts current Modbus Data Address to `quint32`,
-    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `400001`.
-    inline operator quint32 () const { return number() + (m_type*100000);  }
-
-    /// \details Assigment operator definition.
-    Address &operator= (quint32 v);
-
-private:
-    quint16 m_type;
-    quint16 m_offset;
-};
-
 /// \details Convert String repr to Modbus::Address
-inline Address addressFromString(const QString &s) { return Address(s.toUInt()); }
+inline Address addressFromQString(const QString &s) { return Address::fromString(s.toStdString()); }
 
 /// \details Convert value to QString key for type
 template <class EnumType>

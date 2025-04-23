@@ -16,6 +16,7 @@ Strings::Strings() :
     host              (QStringLiteral("host")),
     port              (QStringLiteral("port")),
     timeout           (QStringLiteral("timeout")),
+    maxconn           (QStringLiteral("maxconn")),
     serialPortName    (QStringLiteral("serialPortName")),
     baudRate          (QStringLiteral("baudRate")),
     dataBits          (QStringLiteral("dataBits")),
@@ -55,6 +56,7 @@ Defaults::Defaults() :
     host              (ModbusTcpPort   ::Defaults::instance().host            ),
     port              (ModbusTcpPort   ::Defaults::instance().port            ),
     timeout           (ModbusTcpPort   ::Defaults::instance().timeout         ),
+    maxconn           (ModbusTcpServer ::Defaults::instance().maxconn         ),
     serialPortName    (ModbusSerialPort::Defaults::instance().portName        ),
     baudRate          (ModbusSerialPort::Defaults::instance().baudRate        ),
     dataBits          (ModbusSerialPort::Defaults::instance().dataBits        ),
@@ -116,7 +118,12 @@ uint16_t getSettingPort(const Settings &s, bool *ok)
 
 uint32_t getSettingTimeout(const Settings &s, bool *ok)
 {
-   MB_GET_SETTING_MACRO(uint32_t, timeout, v = static_cast<uint32_t>(var.toUInt(&okInner)))
+    MB_GET_SETTING_MACRO(uint32_t, timeout, v = static_cast<uint32_t>(var.toUInt(&okInner)))
+}
+
+uint32_t getSettingMaxconn(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(uint32_t, maxconn, v = static_cast<uint32_t>(var.toUInt(&okInner)))
 }
 
 QString getSettingSerialPortName(const Settings &s, bool *ok)
@@ -194,6 +201,11 @@ void setSettingTimeout(Settings &s, uint32_t v)
     s[Modbus::Strings::instance().timeout] = v;
 }
 
+void setSettingMaxconn(Settings &s, uint32_t v)
+{
+    s[Modbus::Strings::instance().maxconn] = v;
+}
+
 void setSettingSerialPortName(Settings &s, const QString& v)
 {
     s[Modbus::Strings::instance().serialPortName] = v;
@@ -237,58 +249,6 @@ void setSettingTimeoutInterByte(Settings &s, uint32_t v)
 void setSettingBroadcastEnabled(Settings &s, bool v)
 {
     s[Modbus::Strings::instance().isBroadcastEnabled] = v;
-}
-
-Address::Address()
-{
-    m_type = Memory_Unknown;
-    m_offset = 0;
-}
-
-Address::Address(MemoryType type, quint16 offset) :
-    m_type(type),
-    m_offset(offset)
-{
-}
-
-Address::Address(quint32 adr)
-{
-    this->operator=(adr);
-}
-
-QString Address::toString() const
-{
-    if (isValid())
-        return QString("%1%2").arg(m_type).arg(number(), 5, 10, QChar('0'));
-    else
-        return QString();
-}
-
-Address &Address::operator=(quint32 v)
-{
-    quint32 number = v % 100000;
-    if ((number < 1) || (number > 65536))
-    {
-        m_type = Memory_Unknown;
-        m_offset = 0;
-        return *this;
-    }
-    quint16 type = static_cast<quint16>(v/100000);
-    switch(type)
-    {
-    case Memory_0x:
-    case Memory_1x:
-    case Memory_3x:
-    case Memory_4x:
-        m_type = type;
-        m_offset = static_cast<quint16>(number-1);
-        break;
-    default:
-        m_type = Memory_Unknown;
-        m_offset = 0;
-        break;
-    }
-    return *this;
 }
 
 ProtocolType toProtocolType(const QString &v, bool *ok)
@@ -587,10 +547,11 @@ ModbusServerPort *createServerPort(ModbusInterface *device, const Settings &sett
             {
             case Modbus::TCP:
             {
-                const ModbusTcpPort::Defaults &d = ModbusTcpPort::Defaults::instance();
+                const auto &d = ModbusTcpServer::Defaults::instance();
                 ModbusTcpServer *tcp = new ModbusTcpServer(device);
                 tcp->setPort   (settings.value(s.port, d.port).toUInt());
                 tcp->setTimeout(settings.value(s.timeout, d.timeout).toUInt());
+                tcp->setMaxConnections(settings.value(s.maxconn, d.maxconn).toUInt());
                 return tcp;
             }
             break;

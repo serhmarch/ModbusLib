@@ -146,7 +146,11 @@ ModbusTcpSocket *ModbusTcpServer::nextPendingConnection()
         }
         return nullptr;
     }
-
+    if (d->connections.size() >= d->maxconn)
+    {
+        ::closesocket(clientSocket);
+        return nullptr;
+    }
 
     ModbusTcpSocket *tcp = new ModbusTcpSocket(clientSocket);
     return tcp;

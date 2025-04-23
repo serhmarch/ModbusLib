@@ -315,7 +315,7 @@ inline StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *valu
 #ifndef MB_ADDRESS_CLASS_DISABLE
 
 /// \brief Modbus Data Address class. Represents Modbus Data Address.
-class Address
+class MODBUS_EXPORT Address
 {
 public:
     enum Notation
@@ -338,7 +338,7 @@ public:
     Address(Modbus::MemoryType, uint16_t offset);
 
     /// \details Constructor ot the class. E.g. `Address(400001)` creates `Address` with type `Modbus::Memory_4x`
-    /// and offset `0`, and `Address(1)` creates `Address` with type `Modbus::Memory_0x` and offset `0`. 
+    /// and offset `0`, and `Address(1)` creates `Address` with type `Modbus::Memory_0x` and offset `0`.
     Address(uint32_t adr);
 
 public:
@@ -350,10 +350,20 @@ public:
  
     /// \details Returns memory offset of Modbus Data Address
     inline uint16_t offset() const { return m_offset; }
- 
+
+    /// \details Set memory offset of Modbus Data Address
+    inline void setOffset(uint16_t offset) { m_offset = offset; }
+
     /// \details Returns memory number (offset+1) of Modbus Data Address
     inline uint32_t number() const { return m_offset+1; }
- 
+
+    /// \details Set memory number of Modbus Data Address
+    inline void setNumber(uint16_t number) { m_offset = number-1; }
+
+    /// \details Returns int repr of Modbus Data Address
+    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `400001`.
+    inline int toInt() const { return number() + (m_type*100000);  }
+
     /// \details Returns string repr of Modbus Data Address
     /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `QString("400001")`.
     String toString(Notation notation = Notation_Default) const;
@@ -363,7 +373,10 @@ public:
     inline operator uint32_t () const { return number() + (m_type*100000);  }
 
     /// \details Assigment operator definition.
-    Address &operator= (uint32_t v);
+    Address& operator= (uint32_t v);
+
+    /// \details Add operator definition.
+    inline Address& operator+= (uint16_t c) { m_offset += c; return *this; }
 
 private:
     uint16_t m_type;
