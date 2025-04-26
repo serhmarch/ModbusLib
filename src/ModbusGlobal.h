@@ -13,6 +13,7 @@
 
 #ifdef QT_CORE_LIB
 #include <qobjectdefs.h>
+#include <QString>
 #endif
 
 #include "ModbusPlatform.h"

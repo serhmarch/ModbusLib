@@ -203,9 +203,8 @@ MODBUS_EXPORT void setSettingTimeoutInterByte(Settings &s, uint32_t v);
 /// \details Set settings value for the serial port enables broadcast mode for `0` unit address.
 MODBUS_EXPORT void setSettingBroadcastEnabled(Settings &s, bool v);
 
-
 /// \details Convert String repr to Modbus::Address
-inline Address addressFromQString(const QString &s) { return Address::fromString(s.toStdString()); }
+inline Address addressFromQString(const QString &s) { return Address::fromString(s); }
 
 /// \details Convert value to QString key for type
 template <class EnumType>

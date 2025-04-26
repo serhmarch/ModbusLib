@@ -236,6 +236,138 @@ MODBUS_EXPORT String getLastErrorText();
 /// \details Returns trim white spaces from the left and right side of the string `str`
 MODBUS_EXPORT String trim(const String &str);
 
+template<class StringT, class T>
+StringT toBinString(T value)
+{
+    int c = sizeof(value) * MB_BYTE_SZ_BITES;
+    StringT res(c, '0');
+    while (value)
+    {
+        res[--c] = '0' + static_cast<char>(value & 1);
+        value >>= 1;
+    }
+    return res;
+}
+
+template<class StringT, class T>
+StringT toOctString(T value)
+{
+    int c = (sizeof(value) * MB_BYTE_SZ_BITES + 2) / 3;
+    StringT res(c, '0');
+    while (value)
+    {
+        res[--c] = '0' + static_cast<char>(value & 7);
+        value >>= 3;
+    }
+    return res;
+}
+
+template<class StringT, class T>
+StringT toHexString(T value)
+{
+    int c = sizeof(value) * 2;
+    StringT res(c, '0');
+    T v;
+    while (value)
+    {
+        v = value & 0xF;
+        if (v < 10)
+            res[--c] = '0' + static_cast<char>(v);
+        else
+            res[--c] = 'A' - 10 + static_cast<char>(v);
+        value >>= 4;
+    }
+    return res;
+}
+
+template<class StringT, class T>
+StringT toDecString(T value)
+{
+    using CharT = typename StringT::value_type;
+    const size_t sz = sizeof(T)*3+1;
+    CharT buffer[sz];
+    buffer[sz-1] = '\0';
+    CharT *ptr = &buffer[sz-1];
+    do
+    {
+        --ptr;
+        T v = value % 10;
+        ptr[0] = ('0' + static_cast<char>(v));
+        value /= 10;
+    }
+    while (value);
+    return StringT(ptr);
+}
+
+template<class StringT, class T>
+StringT toDecString(T value, int c, char fillChar = '0')
+{
+    StringT res(c, fillChar);
+    do
+    {
+        T v = value % 10;
+        res[--c] = ('0' + static_cast<char>(v));
+        value /= 10;
+    }
+    while (value && c);
+    return res;
+}
+
+template <typename StringT>
+bool startsWith(const StringT& s, const char* prefix)
+{
+    if (!prefix)
+        return false;
+
+    using CharT = typename StringT::value_type;
+
+    size_t prefixLen = std::char_traits<char>::length(prefix);
+    if (prefixLen > static_cast<size_t>(s.size()))
+        return false;
+
+    auto it = s.begin();
+    for (size_t i = 0; i < prefixLen; ++i, ++it)
+    {
+        if (static_cast<CharT>(prefix[i]) != *it)
+            return false;
+    }
+    return true;
+}
+
+inline int decDigitValue(int ch)
+{
+    switch (ch)
+    {
+    case '0':case'1':case'2':case'3':case'4':case'5':case'6':case'7':case'8':case'9':
+        return ch-'0';
+    default:
+        return -1;
+    }
+}
+
+inline int hexDigitValue(int ch)
+{
+    switch (ch)
+    {
+    case '0':case'1':case'2':case'3':case'4':case'5':case'6':case'7':case'8':case'9':
+        return ch-'0';
+    case 'A':case'B':case'C':case'D':case'E':case'F':
+        return ch-'A'+10;
+    case 'a':case'b':case'c':case'd':case'e':case'f':
+        return ch-'a'+10;
+    default:
+        return -1;
+    }
+}
+
+#ifdef QT_CORE_LIB
+
+inline int decDigitValue(QChar ch) { return decDigitValue(ch.toLatin1()); }
+
+inline int hexDigitValue(QChar ch) { return hexDigitValue(ch.toLatin1()); }
+
+#endif // QT_CORE_LIB
+
 /// \details Convert interger value to Modbus::String
 /// \returns Returns new Modbus::String value
 inline String toModbusString(int val) { return std::to_string(val); }
@@ -314,8 +446,14 @@ inline StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *valu
 
 #ifndef MB_ADDRESS_CLASS_DISABLE
 
+#define sIEC61131Prefix0x "%Q"
+#define sIEC61131Prefix1x "%I"
+#define sIEC61131Prefix3x "%IW"
+#define sIEC61131Prefix4x "%MW"
+#define cIEC61131SuffixHex 'h'
+
 /// \brief Modbus Data Address class. Represents Modbus Data Address.
-class MODBUS_EXPORT Address
+class Address
 {
 public:
     enum Notation
@@ -327,19 +465,15 @@ public:
     };
 
 public:
-    /// \brief Make modbus address from string representaion
-    static Address fromString(const String &s);
-
-public:
     /// \details Defauilt constructor ot the class. Creates invalid Modbus Data Address
-    Address();
+    Address() : m_type(Modbus::Memory_Unknown), m_offset(0) {}
 
-    /// \details Constructor ot the class. E.g. `Address(Modbus::Memory_4x, 0)` creates `400001` standard address. 
-    Address(Modbus::MemoryType, uint16_t offset);
+    /// \details Constructor ot the class. E.g. `Address(Modbus::Memory_4x, 0)` creates `400001` standard address.
+    Address(Modbus::MemoryType type, uint16_t offset) : m_type(type), m_offset(offset) {}
 
     /// \details Constructor ot the class. E.g. `Address(400001)` creates `Address` with type `Modbus::Memory_4x`
     /// and offset `0`, and `Address(1)` creates `Address` with type `Modbus::Memory_0x` and offset `0`.
-    Address(uint32_t adr);
+    Address(uint32_t adr) { this->operator=(adr); }
 
 public:
     /// \details Returns `true` if memory type is `Modbus::Memory_Unknown`, `false` otherwise
@@ -362,21 +496,162 @@ public:
 
     /// \details Returns int repr of Modbus Data Address
     /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `400001`.
-    inline int toInt() const { return number() + (m_type*100000);  }
-
-    /// \details Returns string repr of Modbus Data Address
-    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `QString("400001")`.
-    String toString(Notation notation = Notation_Default) const;
+    inline int toInt() const { return (m_type*100000) + number();  }
 
     /// \details Converts current Modbus Data Address to `quint32`,
     /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `400001`.
-    inline operator uint32_t () const { return number() + (m_type*100000);  }
+    inline operator uint32_t () const { return (m_type*100000) + number();  }
 
     /// \details Assigment operator definition.
-    Address& operator= (uint32_t v);
+    inline Address &operator=(uint32_t v)
+    {
+        uint32_t number = v % 100000;
+        if ((number < 1) || (number > 65536))
+        {
+            m_type = Modbus::Memory_Unknown;
+            m_offset = 0;
+            return *this;
+        }
+        uint16_t type = static_cast<uint16_t>(v/100000);
+        switch(type)
+        {
+        case Modbus::Memory_0x:
+        case Modbus::Memory_1x:
+        case Modbus::Memory_3x:
+        case Modbus::Memory_4x:
+            m_type = type;
+            m_offset = static_cast<uint16_t>(number-1);
+            break;
+        default:
+            m_type = Modbus::Memory_Unknown;
+            m_offset = 0;
+            break;
+        }
+        return *this;
+    }
 
     /// \details Add operator definition.
     inline Address& operator+= (uint16_t c) { m_offset += c; return *this; }
+
+    /// \brief Make modbus address from string representaion
+    template<class StringT>
+    static Address fromString(const StringT &s)
+    {
+        if (s.size() && s.at(0) == '%')
+        {
+            Address adr;
+            decltype(s.size()) i;
+            // Note: 3x (%IW) handled before 1x (%I)
+            if (startsWith(s, sIEC61131Prefix3x)) // Check if string starts with sIEC61131Prefix3x
+            {
+                adr.m_type = Modbus::Memory_3x;
+                i = sizeof(sIEC61131Prefix3x)-1;
+            }
+            else if (startsWith(s, sIEC61131Prefix4x)) // Check if string starts with sIEC61131Prefix4x
+            {
+                adr.m_type = Modbus::Memory_4x;
+                i = sizeof(sIEC61131Prefix4x)-1;
+            }
+            else if (startsWith(s, sIEC61131Prefix0x)) // Check if string starts with sIEC61131Prefix0x
+            {
+                adr.m_type = Modbus::Memory_0x;
+                i = sizeof(sIEC61131Prefix0x)-1;
+            }
+            else if (startsWith(s, sIEC61131Prefix1x)) // Check if string starts with sIEC61131Prefix1x
+            {
+                adr.m_type = Modbus::Memory_1x;
+                i = sizeof(sIEC61131Prefix1x)-1;
+            }
+            else
+                return Address();
+
+            auto suffix = s.back();
+            adr.m_offset = 0;
+            if (suffix == cIEC61131SuffixHex)
+            {
+                for (; i < s.size()-1; i++)
+                {
+                    adr.m_offset *= 16;
+                    int d = hexDigitValue(s.at(i));
+                    if (d < 0)
+                        return Address();
+                    adr.m_offset += static_cast<uint16_t>(d);
+                }
+            }
+            else
+            {
+                for (; i < s.size(); i++)
+                {
+                    adr.m_offset *= 10;
+                    int d = decDigitValue(s.at(i));
+                    if (d < 0)
+                        return Address();
+                    adr.m_offset += static_cast<uint16_t>(d);
+                }
+            }
+            return adr;
+        }
+        uint32_t acc = 0;
+        for (decltype(s.size()) i = 0; i < s.size(); i++)
+        {
+            acc *= 10;
+            int d = decDigitValue(s.at(i));
+            if (d < 0)
+                return Address();
+            acc += static_cast<uint16_t>(d);
+        }
+        return Address(acc);
+    }
+
+
+    /// \details Returns string repr of Modbus Data Address
+    /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `QString("400001")`.
+    template<class StringT>
+    StringT toString(Notation notation) const
+    {
+        if (isValid())
+        {
+            switch (notation)
+            {
+            case Notation_IEC61131:
+                switch (m_type)
+                {
+                case Modbus::Memory_0x:
+                    return StringT(sIEC61131Prefix0x) + toDecString<StringT>(offset());
+                case Modbus::Memory_1x:
+                    return StringT(sIEC61131Prefix1x) + toDecString<StringT>(offset());
+                case Modbus::Memory_3x:
+                    return StringT(sIEC61131Prefix3x) + toDecString<StringT>(offset());
+                case Modbus::Memory_4x:
+                    return StringT(sIEC61131Prefix4x) + toDecString<StringT>(offset());
+                default:
+                    return StringT();;
+                }
+                break;
+            case Notation_IEC61131Hex:
+            {
+                switch (m_type)
+                {
+                case Modbus::Memory_0x:
+                    return StringT(sIEC61131Prefix0x) + toHexString<StringT>(offset()) + cIEC61131SuffixHex;
+                case Modbus::Memory_1x:
+                    return StringT(sIEC61131Prefix1x) + toHexString<StringT>(offset()) + cIEC61131SuffixHex;
+                case Modbus::Memory_3x:
+                    return StringT(sIEC61131Prefix3x) + toHexString<StringT>(offset()) + cIEC61131SuffixHex;
+                case Modbus::Memory_4x:
+                    return StringT(sIEC61131Prefix4x) + toHexString<StringT>(offset()) + cIEC61131SuffixHex;
+                default:
+                    return StringT();
+                }
+            }
+                break;
+            default:
+                return toDecString<StringT>(toInt(), 6);
+            }
+        }
+        else
+            return StringT();
+    }
 
 private:
     uint16_t m_type;
