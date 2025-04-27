@@ -236,6 +236,7 @@ MODBUS_EXPORT String getLastErrorText();
 /// \details Returns trim white spaces from the left and right side of the string `str`
 MODBUS_EXPORT String trim(const String &str);
 
+/// \details Convert integer value to oct string representation withleading zeroes.
 template<class StringT, class T>
 StringT toBinString(T value)
 {
@@ -249,6 +250,7 @@ StringT toBinString(T value)
     return res;
 }
 
+/// \details Convert integer value to oct string representation withleading zeroes.
 template<class StringT, class T>
 StringT toOctString(T value)
 {
@@ -262,6 +264,7 @@ StringT toOctString(T value)
     return res;
 }
 
+/// \details Convert integer value to hex string representation with upper case and leading zeroes.
 template<class StringT, class T>
 StringT toHexString(T value)
 {
@@ -280,6 +283,7 @@ StringT toHexString(T value)
     return res;
 }
 
+/// \details Convert integer value to dec string representation.
 template<class StringT, class T>
 StringT toDecString(T value)
 {
@@ -299,6 +303,8 @@ StringT toDecString(T value)
     return StringT(ptr);
 }
 
+/// \details Convert integer value to dec string representation
+/// for `c`-count symbols with left digits filled with `fillChar`.
 template<class StringT, class T>
 StringT toDecString(T value, int c, char fillChar = '0')
 {
@@ -313,6 +319,7 @@ StringT toDecString(T value, int c, char fillChar = '0')
     return res;
 }
 
+/// \details Returns true if string `s` starts with `prefix`.
 template <typename StringT>
 bool startsWith(const StringT& s, const char* prefix)
 {
@@ -334,26 +341,30 @@ bool startsWith(const StringT& s, const char* prefix)
     return true;
 }
 
+/// \details Returns value of decimal digit [0-9] for ASCII code `ch`
+/// or -1 if the value cannot be converted.
 inline int decDigitValue(int ch)
 {
     switch (ch)
     {
-    case '0':case'1':case'2':case'3':case'4':case'5':case'6':case'7':case'8':case'9':
+    case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
         return ch-'0';
     default:
         return -1;
     }
 }
 
+/// \details Returns value of hex digit [0-15] for ASCII code `ch`.
+/// or -1 if the value cannot be converted.
 inline int hexDigitValue(int ch)
 {
     switch (ch)
     {
-    case '0':case'1':case'2':case'3':case'4':case'5':case'6':case'7':case'8':case'9':
+    case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
         return ch-'0';
-    case 'A':case'B':case'C':case'D':case'E':case'F':
+    case 'A':case 'B':case 'C':case 'D':case 'E':case 'F':
         return ch-'A'+10;
-    case 'a':case'b':case'c':case'd':case'e':case'f':
+    case 'a':case 'b':case 'c':case 'd':case 'e':case 'f':
         return ch-'a'+10;
     default:
         return -1;
@@ -362,8 +373,10 @@ inline int hexDigitValue(int ch)
 
 #ifdef QT_CORE_LIB
 
+/// \details Same as `decDigitValue(int ch)` but for `QChar` type.
 inline int decDigitValue(QChar ch) { return decDigitValue(ch.toLatin1()); }
 
+/// \details Same as `hexDigitValue(int ch)` but for `QChar` type.
 inline int hexDigitValue(QChar ch) { return hexDigitValue(ch.toLatin1()); }
 
 #endif // QT_CORE_LIB
@@ -453,6 +466,13 @@ inline StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *valu
 #define cIEC61131SuffixHex 'h'
 
 /// \brief Modbus Data Address class. Represents Modbus Data Address.
+
+/// \details `Address` class is used to represent Modbus Data Address. It contains memory type and offset.
+/// E.g. `Address(Modbus::Memory_4x, 0)` creates `400001` standard address.
+/// E.g. `Address(400001)` creates `Address` with type `Modbus::Memory_4x` and offset `0`, and
+/// `Address(1)` creates `Address` with type `Modbus::Memory_0x` and offset `0`.
+/// Class provides convertions from/to String using template methods for this.
+/// `template <class StringT>` - `StringT` can be `std::basic_string` or `QString`.
 class Address
 {
 public:

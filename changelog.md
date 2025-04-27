@@ -77,3 +77,8 @@
 # 0.4.3
 
 * Fixed TCP Server delay while connecting
+* Added max connections setting for TCP server
+* Added Modbus::Address class
+* Added setConsoleColor()-function
+* Added string converting functions for serial port settings
+* Updated docs
