@@ -6,6 +6,7 @@
 #include <cstring>
 #include <set>
 #include <algorithm>
+#include <iostream>
 
 namespace Modbus {
 

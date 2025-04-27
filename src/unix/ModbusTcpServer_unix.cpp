@@ -145,7 +145,7 @@ ModbusTcpSocket *ModbusTcpServer::nextPendingConnection()
     }
     if (d->connections.size() >= d->maxconn)
     {
-        ::closesocket(clientSocket);
+        ::close(clientSocket);
         return nullptr;
     }
 
