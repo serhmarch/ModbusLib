@@ -26,7 +26,7 @@
             "generator": "Visual Studio 17 2022",
             "toolset": "host=x64",
             "architecture": "x64",
-            "binaryDir": "c:/tmp/cmake/ModbusLib/Win64",
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe"
@@ -41,7 +41,7 @@
             "name": "Win64-Qt",
             "displayName": "Windows MSVC x64 Qt",
             "hidden": true,
-            "binaryDir": "c:/tmp/cmake/ModbusLib/Win64-Qt",
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Qt",
             "cacheVariables": {
                 "MB_QT_ENABLED": "ON",
                 "CMAKE_PREFIX_PATH": "C:/Qt/5.15.2/msvc2019_64"
@@ -88,7 +88,7 @@
             "generator": "Visual Studio 17 2022",
             "toolset": "host=x64",
             "architecture": "win32",
-            "binaryDir": "c:/tmp/cmake/ModbusLib/Win32",
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe"
@@ -103,7 +103,7 @@
             "name": "Win32-Qt",
             "displayName": "Windows MSVC x32 Qt",
             "hidden": true,
-            "binaryDir": "c:/tmp/cmake/ModbusLib/Win32-Qt",
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32-Qt",
             "cacheVariables": {
                 "MB_QT_ENABLED": "ON",
                 "CMAKE_PREFIX_PATH": "C:/Qt/5.15.2/msvc2019"

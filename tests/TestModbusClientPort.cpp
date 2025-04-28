@@ -238,14 +238,18 @@ TEST(ModbusClientPort, testAlgorithmBlocking)
     buff07[0] = 0;
     testAlgorithmReadExceptionStatus(&cp, unit, buff07, sizeof(buff07));
 
-    union { uint8_t buff15[4]; uint16_t buff15reg[2]; };
-    buff15reg[0] = offset;
-    buff15reg[1] = count;
+    uint8_t buff15[4];
+    buff15[0] = reinterpret_cast<const uint8_t*>(&offset)[1];
+    buff15[1] = reinterpret_cast<const uint8_t*>(&offset)[0];
+    buff15[2] = reinterpret_cast<const uint8_t*>(&count )[1];
+    buff15[3] = reinterpret_cast<const uint8_t*>(&count )[0];
     testAlgorithmWrite(&cp, &ModbusClientPort::writeMultipleCoils, unit, MBF_WRITE_MULTIPLE_COILS, offset, count, buff15, sizeof(buff15));
 
-    union { uint8_t buff16[4]; uint16_t buff16reg[2]; };
-    buff16reg[0] = offset;
-    buff16reg[1] = count;
+    uint8_t buff16[4];
+    buff16[0] = reinterpret_cast<const uint8_t*>(&offset)[1];
+    buff16[1] = reinterpret_cast<const uint8_t*>(&offset)[0];
+    buff16[2] = reinterpret_cast<const uint8_t*>(&count )[1];
+    buff16[3] = reinterpret_cast<const uint8_t*>(&count )[0];
     WriteMethodRegsPtr ptr16 = &ModbusClientPort::writeMultipleRegisters;
     testAlgorithmWrite(&cp, reinterpret_cast<WriteMethodPtr>(ptr16), unit, MBF_WRITE_MULTIPLE_REGISTERS, offset, count, buff16, sizeof(buff16));
 }

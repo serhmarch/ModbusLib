@@ -9,6 +9,7 @@ set(MB_TESTS_HEADERS
 
 set(MB_TESTS_SOURCES 
     TestModbus.cpp
+    TestModbusAddress.cpp
     TestModbusClientPort.cpp
     TestModbusServerPort.cpp
     main.cpp

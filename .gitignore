@@ -41,7 +41,7 @@ bin/**/*.o
 bin/**/*.obj
 bin/**/*.out
 bin/**/*.bin
-# Precompiled Headers
+# Precompiled Headers0
 bin/**/*.gch
 bin/**/*.pch
 # Fortran module files
@@ -51,8 +51,8 @@ bin/**/*.smod
 #ignore external
 external/
 
-#ignore only cmake presets in root folder
-/CMakePresets.json
+#ignore only cmake user presets in root folder
+/CMakeUserPresets.json
 
 #ignore vscode
 .vscode/
