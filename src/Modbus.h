@@ -476,12 +476,13 @@ inline StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *valu
 class Address
 {
 public:
+    /// \brief Type of Modbus Data Address notation.
     enum Notation
     {
-        Notation_Default    ,
-        Notation_Modbus     ,
-        Notation_IEC61131   ,
-        Notation_IEC61131Hex
+        Notation_Default    , ///< Default notation which is equal to Modbus notation
+        Notation_Modbus     , ///< Standard Modbus address notation like `000001`, `100001`, `300001`, `400001`
+        Notation_IEC61131   , ///< IEC-61131 address notation like `%%Q0`, `%%I0`, `%%IW0`, `%%MW0`
+        Notation_IEC61131Hex  ///< IEC-61131 Hex address notation like `%%Q0000h`, `%%I0000h`, `%%IW0000h`, `%%MW0000h`
     };
 
 public:
@@ -496,7 +497,7 @@ public:
     Address(uint32_t adr) { this->operator=(adr); }
 
 public:
-    /// \details Returns `true` if memory type is `Modbus::Memory_Unknown`, `false` otherwise
+    /// \details Returns `true` if memory type is not `Modbus::Memory_Unknown`, `false` otherwise
     inline bool isValid() const { return m_type != Modbus::Memory_Unknown; }
 
     /// \details Returns memory type of Modbus Data Address
@@ -550,7 +551,7 @@ public:
         return *this;
     }
 
-    /// \details Add operator definition.
+    /// \details Add operator definition. Increase address offset by `c` value
     inline Address& operator+= (uint16_t c) { m_offset += c; return *this; }
 
     /// \brief Make modbus address from string representaion
@@ -585,8 +586,8 @@ public:
             else
                 return Address();
 
-            auto suffix = s.back();
             adr.m_offset = 0;
+            auto suffix = s.back();
             if (suffix == cIEC61131SuffixHex)
             {
                 for (; i < s.size()-1; i++)
@@ -622,7 +623,6 @@ public:
         }
         return Address(acc);
     }
-
 
     /// \details Returns string repr of Modbus Data Address
     /// e.g. `Address(Modbus::Memory_4x, 0)` will be converted to `QString("400001")`.
