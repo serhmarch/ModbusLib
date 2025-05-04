@@ -73,7 +73,10 @@ uint32_t ModbusTcpServer::maxConnections() const
 
 void ModbusTcpServer::setMaxConnections(uint32_t maxconn)
 {
-    d_ModbusTcpServer(d_ptr)->maxconn = maxconn;
+    if (maxconn)
+        d_ModbusTcpServer(d_ptr)->maxconn = maxconn;
+    else
+        d_ModbusTcpServer(d_ptr)->maxconn = 1;
 }
 
 void ModbusTcpServer::setBroadcastEnabled(bool enable)

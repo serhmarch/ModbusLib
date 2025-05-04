@@ -134,6 +134,7 @@ void main()
     Modbus::TcpSettings settings;
     settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
+    settings.maxconn = 10;
     ModbusServerPort *port = Modbus::createServerPort(&device, Modbus::TCP, &settings, false);
     int c = 0;
     while (1)

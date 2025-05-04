@@ -12,18 +12,19 @@ const char* help_options =
 "Usage: demoserver [options]\n"
 "\n"
 "Options:\n"
-"  -help (-?)               - show this help.\n"
-"  -type (-t) <type>        - protocol type. Can be TCP, RTU or ASC (default is TCP)\n"
-"  -port (-p) <port>        - remote TCP port (502 is default)\n"
-"  -tm <timeout>            - timeout for TCP (millisec, default is 3000)\n"
-"  -serial (-sl)            - serial port name for RTU and ASC\n"
-"  -baud (-b)               - baud rate (for RTU and ASC)\n"
-"  -data (-d)               - data bits (5-8, for RTU and ASC)\n"
-"  -parity                  - parity: E (even), O (odd), N (none) (default is none)\n"
-"  -stop (-s)               - stop bits: 1, 1.5, 2\n"
-"  -tfb <timeout>           - timeout first byte for RTU or ASC (millisec, default is 3000)\n"
-"  -tib <timeout>           - timeout inter byte for RTU or ASC (millisec, default is 5)\n"
-"  -count (-c) <count>      - memory size (count of 16-bit registers, default is 16)\n"
+"  -help (-?)          - show this help.\n"
+"  -type (-t) <type>   - protocol type. Can be TCP, RTU or ASC (default is TCP)\n"
+"  -port (-p) <port>   - remote TCP port (502 is default)\n"
+"  -tm <timeout>       - timeout for TCP (millisec, default is 3000)\n"
+"  -maxconn <count>    - max active TCP connections (millisec, default is 10)\n"
+"  -serial (-sl)       - serial port name for RTU and ASC\n"
+"  -baud (-b)          - baud rate (for RTU and ASC)\n"
+"  -data (-d)          - data bits (5-8, for RTU and ASC)\n"
+"  -parity             - parity: E (even), O (odd), N (none) (default is none)\n"
+"  -stop (-s)          - stop bits: 1, 1.5, 2\n"
+"  -tfb <timeout>      - timeout first byte for RTU or ASC (millisec, default is 3000)\n"
+"  -tib <timeout>      - timeout inter byte for RTU or ASC (millisec, default is 5)\n"
+"  -count (-c) <count> - memory size (count of 16-bit registers, default is 16)\n"
 ;
 
 void printTx(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
@@ -166,7 +167,7 @@ struct Options
 {
     Modbus::ProtocolType        type  ;
     uint8_t                     unit  ;
-    Modbus::SerialSettings  ser   ;
+    Modbus::SerialSettings      ser   ;
     Modbus::TcpSettings         tcp   ; 
     uint16_t                    count ;
 
@@ -179,6 +180,7 @@ struct Options
         unit                 = 1                         ;
         tcp.port             = dTcp.port                 ;
         tcp.timeout          = dTcp.timeout              ;
+        tcp.maxconn          = dTcp.maxconn              ;
         ser.portName         = dSer.portName             ;
         ser.baudRate         = dSer.baudRate             ;
         ser.dataBits         = dSer.dataBits             ;
@@ -271,6 +273,16 @@ void parseOptions(int argc, char **argv)
                 continue;
             }
             printf("'-tm' option must have an integer value\n");
+            exit(1);
+        }
+        if (!strcmp(opt, "maxconn"))
+        {
+            if (++i < argc)
+            {
+                options.tcp.maxconn = (uint32_t)atoi(argv[i]);
+                continue;
+            }
+            printf("'-maxconn' option must have an integer value\n");
             exit(1);
         }
         if (!strcmp(opt, "serial") || !strcmp(opt, "sl"))

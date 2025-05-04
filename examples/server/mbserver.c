@@ -13,6 +13,7 @@ const char* help_options =
 "  -type (-t) <type> - protocol type. Can be TCP, RTU or ASC (default is TCP)\n"
 "  -port (-p) <port> - remote TCP port (502 is default)\n"
 "  -tm <timeout>     - timeout for TCP (millisec, default is 3000)\n"
+"  -maxconn <count>  - max active TCP connections (millisec, default is 10)\n"
 "  -serial (-sl)     - serial port name for RTU and ASC\n"
 "  -baud (-b)        - baud rate (for RTU and ASC)\n"
 "  -data (-d)        - data bits (5-8, for RTU and ASC)\n"
@@ -49,6 +50,7 @@ void initOptions()
     options.tcp.host             = StringLiteral("localhost");
     options.tcp.port             = STANDARD_TCP_PORT;
     options.tcp.timeout          = 3000;
+    options.tcp.maxconn          = 10;
     options.ser.portName         = StringLiteral("\0");;
     options.ser.baudRate         = 9600;
     options.ser.dataBits         = 8;
@@ -142,6 +144,16 @@ void parseOptions(int argc, char **argv)
                 continue;
             }
             printf("'-tm' option must have an integer value\n");
+            exit(1);
+        }
+        if (!strcmp(opt, "maxconn"))
+        {
+            if (++i < argc)
+            {
+                options.tcp.maxconn = (uint32_t)atoi(argv[i]);
+                continue;
+            }
+            printf("'-maxconn' option must have an integer value\n");
             exit(1);
         }
         if (!strcmp(opt, "serial") || !strcmp(opt, "sl"))
