@@ -46,6 +46,7 @@ public:
         this->repeats = 0;
         this->lastStatus = Modbus::Status_Uncertain;
         this->lastErrorStatus = Modbus::Status_Uncertain;
+        this->lastTries = 0;
         this->isLastPortError = true;
         this->timestamp = 0;
         this->lastStatusTimestamp = 0;
@@ -142,6 +143,7 @@ public:
     StatusCode lastStatus;
     StatusCode lastErrorStatus;
     String lastErrorText;
+    uint32_t lastTries;
     bool isLastPortError;
     Timer timestamp;
     Timestamp lastStatusTimestamp;

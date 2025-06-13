@@ -296,6 +296,12 @@ public:
     /// \details Returns the text of the last error of the performed operation.
     const Modbus::Char *lastErrorText() const;
 
+    /// \details Returns statistics of the count of tries already processed.
+    uint32_t lastTries() const;
+
+    /// \details Same as `lastTries()`.
+    inline uint32_t lastRepeatCount() const { return lastTries(); }
+
 public:
     /// \details Returns a pointer to the client object whose request is currently being processed by the current port.
     const ModbusObject *currentClient() const;

@@ -1111,20 +1111,18 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
     {
         d->unit = unit;
         d->func = func;
+        d->lastTries = 0;
         d->port->writeBuffer(unit, func, buff, szInBuff);
         d->blockWriteBuffer();
     }
     StatusCode r = process();
     if (StatusIsProcessing(r))
         return r;
-    if (StatusIsBad(r))
+    d->lastTries = ++d->repeats;
+    if (StatusIsBad(r) && (d->repeats < d->settings.tries))
     {
-        d->repeats++;
-        if (d->repeats < d->settings.tries)
-        {
-            d->port->setNextRequestRepeated(true);
-            return Status_Processing;
-        }
+        d->port->setNextRequestRepeated(true);
+        return Status_Processing;
     }
     d->freeWriteBuffer();
     d->repeats = 0;
@@ -1134,23 +1132,25 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
     if (!d->isBroadcast())
     {
         r = d->port->readBuffer(unit, func, buff, maxSzBuff, szOutBuff);
-
-        if (unit != d->unit)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested unit (unit) is not equal to responsed"));
-
-        if ((func & MBF_EXCEPTION) == MBF_EXCEPTION)
+        if (StatusIsGood(r))
         {
-            if (*szOutBuff > 0)
-            {
-                r = static_cast<StatusCode>(buff[0]); // Returned modbus exception
-                return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
-            }
-            else
-                return d->setError(Status_BadNotCorrectResponse, StringLiteral("Exception status missed"));
-        }
+            if (unit != d->unit)
+                return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested unit (unit) is not equal to responsed"));
 
-        if (func != d->func)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested function is not equal to responsed"));
+            if ((func & MBF_EXCEPTION) == MBF_EXCEPTION)
+            {
+                if (*szOutBuff > 0)
+                {
+                    r = static_cast<StatusCode>(buff[0]); // Returned modbus exception
+                    return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
+                }
+                else
+                    return d->setError(Status_BadNotCorrectResponse, StringLiteral("Exception status missed"));
+            }
+
+            if (func != d->func)
+                return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested function is not equal to responsed"));
+        }
     }
     return d->setPortStatus(r);
 }
