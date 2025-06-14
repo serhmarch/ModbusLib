@@ -164,7 +164,8 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             if (c > 0)
             {
                 this->sz += static_cast<uint16_t>(c);
-                if (this->sz == this->c_buffSz) // input buffer is full. Try to handle it
+                if ((this->settings.timeoutInterByte == 0) || // timeoutInterByte = 0 means no need to wait next bytes
+                    (this->sz == this->c_buffSz))             // input buffer is full. Try to handle it
                 {
                     this->state = STATE_BEGIN;
                     return Status_Good;
