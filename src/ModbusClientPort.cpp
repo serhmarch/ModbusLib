@@ -766,7 +766,7 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
         buff[7] = reinterpret_cast<uint8_t*>(&writeCount)[0];   // quantity to write - LS BYTE
         buff[8] = static_cast<uint8_t>(writeCount * 2);         // quantity of next bytes
 
-        for (i = 0; i < readCount; i++)
+        for (i = 0; i < writeCount; i++)
         {
             buff[ 9 + i * 2] = reinterpret_cast<const uint8_t*>(&writeValues[i])[1];
             buff[10 + i * 2] = reinterpret_cast<const uint8_t*>(&writeValues[i])[0];
