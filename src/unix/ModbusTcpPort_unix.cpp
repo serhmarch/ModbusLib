@@ -70,9 +70,9 @@ Modbus::StatusCode ModbusTcpPort::open()
                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
                                                         StringLiteral(". ") + getLastErrorText());
             }
-            d->socket->setBlocking(isBlocking());
+            d->socket->setBlocking(false); // Note: in case of block-socket it will be set after connect
             if (isBlocking())
-                d->socket->setTimeout(d->settingsBase.timeout);
+                d->socket->setTimeout(this->timeout());
             reinterpret_cast<sockaddr_in*>(d->addr->ai_addr)->sin_port = htons(d->settings.port);
             d->timestamp = timer();
             d->state = STATE_WAIT_FOR_OPEN;
@@ -80,26 +80,78 @@ Modbus::StatusCode ModbusTcpPort::open()
         // no need break
         case STATE_WAIT_FOR_OPEN:
         {
-            int r = d->socket->connect(d->addr->ai_addr, static_cast<int>(d->addr->ai_addrlen));
-            if ((r == 0) || (errno == EISCONN))
+            if (isNonBlocking())
             {
+                int r = d->socket->connect(d->addr->ai_addr, static_cast<int>(d->addr->ai_addrlen));
+                if ((r == 0) || (errno == EISCONN))
+                {
+                    d->state = STATE_BEGIN;
+                    return Status_Good;
+                }
+                else if (timer() - d->timestamp >= this->timeout())
+                {
+                    d->socket->close();
+                    d->state = STATE_CLOSED;
+                    return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                                                            StringLiteral("'. Timeout") );
+                }
+            }
+            else
+            {
+                int r = d->socket->connect(d->addr->ai_addr, static_cast<int>(d->addr->ai_addrlen));
+                if (r != 0 && errno != EISCONN)
+                {
+                    if (errno != EINPROGRESS)
+                    {
+                        d->socket->close();
+                        d->state = STATE_CLOSED;
+                        return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                                                                StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                                StringLiteral(". ") + getLastErrorText());
+                    }
+                    // Use select() to wait for writability (i.e., successful connect)
+                    fd_set writefds;
+                    FD_ZERO(&writefds);
+                    FD_SET(d->socket->socket(), &writefds);
+
+                    struct timeval tv;
+                    tv.tv_sec = this->timeout() / 1000;
+                    tv.tv_usec = (this->timeout() % 1000) * 1000;
+                    
+                    // From Linux man: select(int nfds, ...)
+                    // nfds - This argument should be set to the highest-numbered file descriptor in any of the three sets, plus 1. 
+                    //        The indicated file descriptors in each set are checked, up to this limit
+                    r = select(d->socket->socket()+1, nullptr, &writefds, nullptr, &tv);
+                    if (r <= 0)
+                    {
+                        d->socket->close();
+                        d->state = STATE_CLOSED;
+                        if (r == 0)
+                            return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                                                                    StringLiteral("'. Timeout") );
+                        else
+                            return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                                                                    StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                                    StringLiteral(". ") + getLastErrorText());
+                    }
+
+                    // Check for errors after select
+                    int sockErr = 0;
+                    socklen_t len = sizeof(sockErr);
+                    getsockopt(d->socket->socket(), SOL_SOCKET, SO_ERROR, (char*)&sockErr, &len);
+                    if (sockErr != 0)
+                    {
+                        d->socket->close();
+                        d->state = STATE_CLOSED;
+                        return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                                                                StringLiteral("'. Error code: ") + toModbusString(sockErr) +
+                                                                StringLiteral(". ") + getLastErrorText());
+                    }
+                }
+                // Success - set blocking mode
+                d->socket->setBlocking(true);
                 d->state = STATE_BEGIN;
                 return Status_Good;
-            }
-            else if (isNonBlocking() && (timer() - d->timestamp >= d->settingsBase.timeout))
-            {
-                d->socket->close();
-                d->state = STATE_CLOSED;
-                return d->setError(Status_BadTcpConnect, StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
-                                                         StringLiteral("'. Timeout") );
-            }
-            else if (isBlocking())
-            {
-                d->socket->close();
-                d->state = STATE_CLOSED;
-                return d->setError(Status_BadTcpConnect, StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
-                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
-                                                         StringLiteral(". ") + getLastErrorText());
             }
         }
             break;

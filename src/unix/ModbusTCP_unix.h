@@ -25,8 +25,17 @@ public:
     inline SOCKET socket() const { return m_socket; }
     inline void setSocket(SOCKET socket) { m_socket = socket; }
     inline ModbusTcpSocket &operator=(SOCKET socket) { setSocket(socket); return *this; }
-    inline void setTimeout(uint32_t timeout) { setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)); }
     inline void setBlocking(bool block) { int flags = fcntl(m_socket, F_GETFL, 0); fcntl(m_socket, F_SETFL, block ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK)); }
+    inline void setTimeout(uint32_t timeout)
+    {
+        timeval tv
+        {
+            .tv_sec = timeout / 1000,
+            .tv_usec = (timeout % 1000) * 1000
+        };
+        setsockopt(m_socket, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+        setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    }
 
 public: // socket interface
     inline SOCKET create(int domain, int type, int protocol) { m_socket = ::socket(domain, type, protocol); return m_socket; }

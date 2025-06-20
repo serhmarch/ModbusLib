@@ -16,8 +16,12 @@ public:
     inline SOCKET socket() const { return m_socket; }
     inline void setSocket(SOCKET socket) { m_socket = socket; }
     inline ModbusTcpSocket &operator=(SOCKET socket) { setSocket(socket); return *this; }
-    inline void setTimeout(uint32_t timeout) { setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)); }
     inline void setBlocking(bool block) { unsigned long ul = !block; ioctlsocket(m_socket, FIONBIO, (unsigned long *)&ul); }
+    inline void setTimeout(uint32_t timeout)
+    {
+        setsockopt(m_socket, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout));
+        setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+    }
 
 public: // socket interface
     inline SOCKET create(int af, int type, int protocol) { m_socket = ::socket(af, type, protocol); return m_socket; }
