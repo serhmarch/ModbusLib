@@ -20,6 +20,16 @@
             }
         },
         {
+            "name": "Config-Examples",
+            "displayName": "Examples",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_QT_ENABLED": "OFF",
+                "MB_EXAMPLES_ENABLED": "ON",
+                "MB_TESTS_ENABLED": "OFF"
+            }
+        },
+        {
             "name": "Win64-Default",
             "displayName": "Win64 Config Default MSVC",
             "description": "Using compilers for Visual Studio 17 2022 (x64 architecture)",
@@ -63,6 +73,15 @@
                 "Win64-Qt",
                 "Win64-All"
             ]
+        },
+        {
+            "name": "Win64-Examples",
+            "displayName": "Win64 Config Examples",
+            "inherits": [
+                "Config-Examples",
+                "Win64-Default"
+            ],
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Examples"
         },
         {
             "name": "Win64-No-Examples-Tests",
@@ -200,6 +219,22 @@
             "inherits": "Linux-Qt"
         },
         {
+            "name": "Linux-Examples-Debug",
+            "displayName": "Linux GCC Config Examples Debug",
+            "inherits": [
+                "Linux-Debug",
+                "Config-Examples"
+            ]
+        },
+        {
+            "name": "Linux-Examples-Release",
+            "displayName": "Linux GCC Config Examples Release",
+            "inherits": [
+                "Linux-Release", 
+                "Config-Examples"
+            ]
+        },
+        {
             "name": "Linux-All-Debug",
             "displayName": "Linux GCC Config All Debug",
             "inherits": [
@@ -289,6 +324,18 @@
             "configuration": "Release"
         },
         {
+            "name": "Win64-Examples-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Examples",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win64-Examples-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Examples",
+            "configuration": "Release"
+        },
+        {
             "name": "Win64-Qt-All-Debug",
             "inherits": "Build-Base",
             "configurePreset": "Win64-Qt-All",
@@ -370,6 +417,18 @@
             "name": "Win32-Qt-No-Examples-Tests-Release",
             "inherits": "Build-Base",
             "configurePreset": "Win32-Qt-No-Examples-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Linux-Examples-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Examples-Debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Linux-Examples-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Examples-Release",
             "configuration": "Release"
         },
         {

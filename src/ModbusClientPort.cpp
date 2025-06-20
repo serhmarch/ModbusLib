@@ -1051,6 +1051,11 @@ const Char *ModbusClientPort::lastErrorText() const
         return d->lastErrorText.data();
 }
 
+uint32_t ModbusClientPort::lastTries() const
+{
+    return d_ModbusClientPort(d_ptr)->lastTries;
+}
+
 const ModbusObject *ModbusClientPort::currentClient() const
 {
     return d_ModbusClientPort(d_ptr)->currentClient;
