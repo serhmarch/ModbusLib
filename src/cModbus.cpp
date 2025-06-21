@@ -196,7 +196,7 @@ public:
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
-    StatusCode getCommEventCounter(cModbusClientPort clientPort, uint8_t unit, uint16_t *status, uint16_t *eventCount)
+    StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount)
     {
         if (m_getCommEventCounter)
             return m_getCommEventCounter(m_device, unit, status, eventCount);
@@ -205,7 +205,7 @@ public:
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-    StatusCode getCommEventLog(cModbusClientPort clientPort, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
+    StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
     {
         if (m_getCommEventLog)
             return m_getCommEventLog(m_device, unit, status, eventCount, messageCount, eventBuffSize, eventBuff);
