@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13) # 2.2 - case insensitive syntax
                                      # 3.13 included policy CMP0077
 
-project(ModbusLib VERSION 0.4.3 LANGUAGES C CXX)
+project(ModbusLib VERSION 0.4.4 LANGUAGES C CXX)
 
 set(MB_LIBRARY_NAME modbus CACHE INTERNAL "Name of the modbus library")
 

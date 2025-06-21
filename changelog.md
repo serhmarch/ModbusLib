@@ -82,3 +82,12 @@
 * Added setConsoleColor()-function
 * Added string converting functions for serial port settings
 * Updated docs
+
+# 0.4.4
+
+* Fixed `ModbusTcpServer::setMaxConnection`
+* Fixed demo
+* Added `ModbusClientPort::lastTries` statistic
+* If serial port `timeoutInterByte = 0` that means no need to wait next bytes
+* Fixed issue with `writeCount` registers for `ReadWriteMultipleRegisters` Modbus func
+* Fixed issue with blocking TCP sockets
