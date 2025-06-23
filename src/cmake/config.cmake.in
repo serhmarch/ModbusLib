@@ -1,0 +1,6 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/modbus-targets.cmake")
+include(CMakeFindDependencyMacro)
+
+# Add dependencies (with find_dependencies)
