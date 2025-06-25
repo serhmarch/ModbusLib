@@ -240,7 +240,7 @@ It has wrapper functions for Qt library to use it together with Qt core objects:
 #include <ModbusQt.h>
 ```
 
-## Build using CMake
+## Build and install using CMake
 
 1.  Build Tools
 
@@ -276,3 +276,24 @@ It has wrapper functions for Qt library to use it together with Qt core objects:
     ```    
     
 6.  Resulting bin files is located in `./bin` directory.
+
+7. **Install the Project**
+
+To install ModbusLib, use CMake's install target after building:
+
+```console
+$ cmake --install .
+```
+
+By default, this installs the library and headers to the build directory. You can change the installation directory by setting the `CMAKE_INSTALL_PREFIX` variable:
+
+```console
+$ cmake -DCMAKE_INSTALL_PREFIX=/your/custom/path -P ...
+```
+
+After installation, you can use `find_package` in your own CMake project to locate and link against modbus:
+
+```cmake
+find_package(modbus REQUIRED)
+```
+
