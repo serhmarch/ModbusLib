@@ -81,8 +81,9 @@ Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t uni
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_READ_COILS,   // modbus function number
-                          buff,             // in-out buffer
+                          buff,             // in buffer
                           4,                // count of input data bytes
+                          buff,             // out buffer
                           szBuff,           // maximum size of buffer
                           &szOutBuff);      // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -134,8 +135,9 @@ Modbus::StatusCode ModbusClientPort::readDiscreteInputs(ModbusObject *client, ui
     case ModbusClientPort::Process:
         r = this->request(unit,                     // unit ID
                           MBF_READ_DISCRETE_INPUTS, // modbus function number
-                          buff,                     // in-out buffer
+                          buff,                     // in buffer
                           4,                        // count of input data bytes
+                          buff,                     // out buffer
                           szBuff,                   // maximum size of buffer
                           &szOutBuff);              // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -187,8 +189,9 @@ Modbus::StatusCode ModbusClientPort::readHoldingRegisters(ModbusObject *client, 
     case ModbusClientPort::Process:
         r = this->request(unit,                         // unit ID
                           MBF_READ_HOLDING_REGISTERS,   // modbus function number
-                          buff,                         // in-out buffer
+                          buff,                         // in buffer
                           4,                            // count of input data bytes
+                          buff,                         // out buffer
                           szBuff,                       // maximum size of buffer
                           &szOutBuff);                  // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -242,8 +245,9 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_READ_INPUT_REGISTERS,       // modbus function number
-                          buff,                           // in-out buffer
+                          buff,                           // in buffer
                           4,                              // count of input data bytes
+                          buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast()) // processing
@@ -287,10 +291,11 @@ Modbus::StatusCode ModbusClientPort::writeSingleCoil(ModbusObject *client, uint8
         d->offset = offset;
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
+        r = this->request(unit,                           // unit ID
                           MBF_WRITE_SINGLE_COIL,          // modbus function number
-                          buff,                           // in-out buffer
+                          buff,                           // in buffer
                           4,                              // count of input data bytes
+                          buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -331,10 +336,11 @@ Modbus::StatusCode ModbusClientPort::writeSingleRegister(ModbusObject *client, u
         d->value = value;
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
+        r = this->request(unit,                           // unit ID
                           MBF_WRITE_SINGLE_REGISTER,      // modbus function number
-                          buff,                           // in-out buffer
+                          buff,                           // in buffer
                           4,                              // count of input data bytes
+                          buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -373,10 +379,11 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
     case ModbusClientPort::Enable:
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
+        r = this->request(unit,                           // unit ID
                           MBF_READ_EXCEPTION_STATUS,      // modbus function number
-                          buff,                           // in-out buffer
+                          buff,                           // in buffer
                           0,                              // count of input data bytes
+                          buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -415,8 +422,9 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
-                          buff,             // in-out buffer
+                          buff,             // in buffer
                           insize+2,         // count of input data bytes
+                          buff,             // out buffer
                           szBuff,           // maximum size of buffer
                           &szOutBuff);      // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -456,8 +464,9 @@ Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, u
     case ModbusClientPort::Process:
         r = this->request(unit,                       // unit ID
                           MBF_GET_COMM_EVENT_COUNTER, // modbus function number
-                          buff,                       // in-out buffer
+                          buff,                       // in buffer
                           0,                          // count of input data bytes
+                          buff,                       // out buffer
                           szBuff,                     // maximum size of buffer
                           &szOutBuff);                // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -493,8 +502,9 @@ Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8
     case ModbusClientPort::Process:
         r = this->request(unit,                   // unit ID
                           MBF_GET_COMM_EVENT_LOG, // modbus function number
-                          buff,                   // in-out buffer
+                          buff,                   // in buffer
                           0,                      // count of input data bytes
+                          buff,                   // out buffer
                           szBuff,                 // maximum size of buffer
                           &szOutBuff);            // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -558,8 +568,9 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
     case ModbusClientPort::Process:
         r = this->request(unit,                     // unit ID
                           MBF_WRITE_MULTIPLE_COILS, // modbus function number
-                          buff,                     // in-out buffer
+                          buff,                     // in buffer
                           5 + buff[4],              // count of input data bytes
+                          buff,                     // out buffer
                           szBuff,                   // maximum size of buffer
                           &szOutBuff);              // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -620,8 +631,9 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_WRITE_MULTIPLE_REGISTERS,   // modbus function number
-                          buff,                           // in-out buffer
+                          buff,                           // in buffer
                           5 + buff[4],                    // count of input data bytes
+                          buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -660,8 +672,9 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
     case ModbusClientPort::Process:
         r = this->request(unit,                 // unit ID
                           MBF_REPORT_SERVER_ID, // modbus function number
-                          buff,                 // in-out buffer
+                          buff,                 // in buffer
                           0,                    // count of input data bytes
+                          buff,                 // out buffer
                           szBuff,               // maximum size of buffer
                           &szOutBuff);          // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -706,8 +719,9 @@ StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t uni
     case ModbusClientPort::Process:
         r = this->request(unit,                           // unit ID
                           MBF_MASK_WRITE_REGISTER,        // modbus function number
-                          buff,                           // in-out buffer
+                          buff,                           // in buffer
                           6,                              // count of input data bytes
+                          buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -776,8 +790,9 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
     case ModbusClientPort::Process:
         r = this->request(unit,                             // unit ID
                           MBF_READ_WRITE_MULTIPLE_REGISTERS,// modbus function number
-                          buff,                             // in-out buffer
+                          buff,                             // in buffer
                           9 + buff[8],                      // count of input data bytes
+                          buff,                             // out buffer
                           szBuff,                           // maximum size of buffer
                           &szOutBuff);                      // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast())
@@ -820,8 +835,9 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
     case ModbusClientPort::Process:
         r = this->request(unit,                // unit ID
                           MBF_READ_FIFO_QUEUE, // modbus function number
-                          buff,                // in-out buffer
+                          buff,                // in buffer
                           2,                   // count of input data bytes
+                          buff,                // out buffer
                           szBuff,              // maximum size of buffer
                           &szOutBuff);         // count of output data bytes
         if ((r != Status_Good) || d->isBroadcast()) // processing
@@ -1109,15 +1125,18 @@ void ModbusClientPort::signalError(const Modbus::Char *source, Modbus::StatusCod
     emitSignal(__func__, &ModbusClientPort::signalError, source, status, text);
 }
 
-StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
+StatusCode ModbusClientPort::rawRequest(const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
+    RequestStatus rs = getRequestStatus(this);
+    if (rs == Disable)
+        return Status_Processing;
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
     if (!d->isWriteBufferBlocked())
     {
-        d->unit = unit;
-        d->func = func;
         d->lastTries = 0;
-        d->port->writeBuffer(unit, func, buff, szInBuff);
+        StatusCode s = d->port->writeRawBuffer(inBuff, szInBuff);
+        if (StatusIsBad(s))
+            return s;
         d->blockWriteBuffer();
     }
     StatusCode r = process();
@@ -1136,7 +1155,41 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
         return r;
     if (!d->isBroadcast())
     {
-        r = d->port->readBuffer(unit, func, buff, maxSzBuff, szOutBuff);
+        r = d->port->readRawBuffer(outBuff, maxSzBuff, szOutBuff);
+    }
+    return d->setPortStatus(r);
+}
+
+StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+    if (!d->isWriteBufferBlocked())
+    {
+        d->unit = unit;
+        d->func = func;
+        d->lastTries = 0;
+        StatusCode s = d->port->writeBuffer(unit, func, inBuff, szInBuff);
+        if (StatusIsBad(s))
+            return s;
+        d->blockWriteBuffer();
+    }
+    StatusCode r = process();
+    if (StatusIsProcessing(r))
+        return r;
+    d->lastTries = ++d->repeats;
+    if (StatusIsBad(r) && (d->repeats < d->settings.tries))
+    {
+        d->port->setNextRequestRepeated(true);
+        return Status_Processing;
+    }
+    d->freeWriteBuffer();
+    d->repeats = 0;
+    d->currentClient = nullptr;
+    if (StatusIsBad(r))
+        return r;
+    if (!d->isBroadcast())
+    {
+        r = d->port->readBuffer(unit, func, outBuff, maxSzBuff, szOutBuff);
         if (StatusIsGood(r))
         {
             if (unit != d->unit)
@@ -1146,7 +1199,7 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
             {
                 if (*szOutBuff > 0)
                 {
-                    r = static_cast<StatusCode>(buff[0]); // Returned modbus exception
+                    r = static_cast<StatusCode>(outBuff[0]); // Returned modbus exception
                     return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
                 }
                 else

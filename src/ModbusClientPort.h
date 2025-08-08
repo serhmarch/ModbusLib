@@ -316,6 +316,14 @@ public:
     /// \details Cancels the previous request specified by the `*rp` pointer for the client.
     void cancelRequest(ModbusObject *client);
 
+    /// \details Make raw request to the server.
+    /// \param[in]  inBuff    Pointer to the input buffer to write.
+    /// \param[in]  szInBuff  Size of input buffer.
+    /// \param[in]  outBuff   Pointer to the output buffer where read data is stored.
+    /// \param[in]  maxSzBuff Maximum size of the output buffer.
+    /// \param[out] szOutBuff Pointer to the size of read data.
+    Modbus::StatusCode rawRequest(const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+
 public: // SIGNALS
     /// \details Calls each callback of the port when the port is opened. `source` - current port's name
     void signalOpened(const Modbus::Char *source);
@@ -333,7 +341,7 @@ public: // SIGNALS
     void signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text);
 
 private:
-    Modbus::StatusCode request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+    Modbus::StatusCode request(uint8_t unit, uint8_t func, const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
     Modbus::StatusCode process();
     friend class ModbusClient;
 };

@@ -36,7 +36,7 @@ ModbusAscPort::~ModbusAscPort()
     delete d_ModbusSerialPort(d_ptr)->buff;
 }
 
-StatusCode ModbusAscPort::writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff)
+StatusCode ModbusAscPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff)
 {
     ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
     const uint16_t szIBuff = MB_ASC_IO_BUFF_SZ/2;

@@ -138,6 +138,11 @@ const uint8_t *ModbusSerialPort::readBufferData() const
     return d_ModbusSerialPort(d_ptr)->buff;
 }
 
+uint16_t ModbusSerialPort::readBufferMaxSize() const
+{
+    return d_ModbusSerialPort(d_ptr)->c_buffSz;
+}
+
 uint16_t ModbusSerialPort::readBufferSize() const
 {
     return d_ModbusSerialPort(d_ptr)->sz;
@@ -148,7 +153,22 @@ const uint8_t *ModbusSerialPort::writeBufferData() const
     return d_ModbusSerialPort(d_ptr)->buff;
 }
 
+uint16_t ModbusSerialPort::writeBufferMaxSize() const
+{
+    return d_ModbusSerialPort(d_ptr)->c_buffSz;
+}
+
 uint16_t ModbusSerialPort::writeBufferSize() const
 {
     return d_ModbusSerialPort(d_ptr)->sz;
+}
+
+uint8_t *ModbusSerialPort::writeBufferDataInner()
+{
+    return d_ModbusSerialPort(d_ptr)->buff;
+}
+
+void ModbusSerialPort::setWriteBufferSizeInner(uint16_t sz)
+{
+    d_ModbusSerialPort(d_ptr)->sz = sz;
 }

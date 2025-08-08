@@ -36,7 +36,7 @@ ModbusRtuPort::~ModbusRtuPort()
     delete d_ModbusSerialPort(d_ptr)->buff;
 }
 
-StatusCode ModbusRtuPort::writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff)
+StatusCode ModbusRtuPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff)
 {
     ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
     uint16_t crc;

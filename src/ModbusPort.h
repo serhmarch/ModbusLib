@@ -77,8 +77,15 @@ public: // errors
     const Modbus::Char *lastErrorText() const;
 
 public:
+    /// \details The function places a raw packet in the buffer for further sending. Returns the status of the operation.
+    Modbus::StatusCode writeRawBuffer(const uint8_t *buff, uint16_t szInBuff);
+
+    /// \details The function copies input packet that the `read()` function puts into the inner buffer to the output `buff` 
+    /// and set it size into the output varaible `szOutBuff`. Returns the status of the operation.
+    Modbus::StatusCode readRawBuffer(uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+    
     /// \details The function directly generates a packet and places it in the buffer for further sending. Returns the status of the operation.
-    virtual Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff) = 0;
+    virtual Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff) = 0;
 
     /// \details The function parses the packet that the `read()` function puts into the buffer, checks it for correctness, extracts its parameters, and returns the status of the operation.
     virtual Modbus::StatusCode readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff) = 0;
@@ -93,14 +100,27 @@ public: // buffer
     /// \details Returns pointer to data of read buffer.
     virtual const uint8_t *readBufferData() const = 0;
 
-    /// \details Returns size of data of read buffer.
+    /// \details Returns maximum size of read buffer.
+    virtual uint16_t readBufferMaxSize() const = 0;
+
+    /// \details Returns current size of read buffer.
     virtual uint16_t readBufferSize() const = 0;
 
     /// \details Returns pointer to data of write buffer.
     virtual const uint8_t *writeBufferData() const = 0;
 
+    /// \details Returns maximum size of write buffer.
+    virtual uint16_t writeBufferMaxSize() const = 0;
+
     /// \details Returns size of data of write buffer.
     virtual uint16_t writeBufferSize() const = 0;
+
+protected: // buffer
+    /// \details Returns pointer to data of read buffer.
+    virtual uint8_t *writeBufferDataInner() = 0;
+
+    /// \details Sets current size of read buffer.
+    virtual void setWriteBufferSizeInner(uint16_t sz) = 0;
 
 protected:
     /// \details Sets the error parameters of the last operation performed.

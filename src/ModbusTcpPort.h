@@ -78,14 +78,20 @@ public:
 
 public:
     const uint8_t *readBufferData() const override;
+    uint16_t readBufferMaxSize() const override;
     uint16_t readBufferSize() const override;
     const uint8_t *writeBufferData() const override;
+    uint16_t writeBufferMaxSize() const override;
     uint16_t writeBufferSize() const override;
 
 protected:
+    uint8_t *writeBufferDataInner();
+    void setWriteBufferSizeInner(uint16_t sz);
+    
+protected:
     Modbus::StatusCode write() override;
     Modbus::StatusCode read() override;
-    Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff) override;
+    Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff) override;
     Modbus::StatusCode readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff) override;
 
 protected:
