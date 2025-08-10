@@ -311,9 +311,14 @@ enum ProtocolType
 typedef enum _ProtocolType
 #endif
 {
-    ASC, ///< ASCII version of Modbus communication protocol.
-    RTU, ///< RTU version of Modbus communication protocol.
-    TCP  ///< TCP version of Modbus communication protocol.
+    ASC    , ///< ASCII version of Modbus communication protocol.
+    RTU    , ///< RTU version of Modbus communication protocol.
+    TCP    , ///< TCP version of Modbus communication protocol.
+    UDP    , ///< UDP version of Modbus communication protocol.
+    ASCvTCP, ///< ASCII over TCP version of Modbus communication protocol.
+    RTUvTCP, ///< RTU over TCP version of Modbus communication protocol.
+    ASCvUDP, ///< ASCII over UDP version of Modbus communication protocol.
+    RTUvUDP, ///< RTU over UDP version of Modbus communication protocol.
 }
 #ifdef __cplusplus
 ;
@@ -404,7 +409,7 @@ typedef struct
     uint16_t    port   ; ///< Value for the TCP port number of the remote device
     uint32_t    timeout; ///< Value for connection timeout (milliseconds)
     uint32_t    maxconn; ///< Maximum number of simultaneous connections to the server (for server side only)
-} TcpSettings;
+} NetworkSettings;
 
 #ifdef __cplusplus
 extern "C" {

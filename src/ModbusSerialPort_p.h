@@ -2,44 +2,36 @@
 #define MODBUSSERIALPORT_P_H
 
 #include "ModbusPort_p.h"
-#include "ModbusSerialPort.h"
 
 class ModbusSerialPortPrivate : public ModbusPortPrivate
 {
 public:
-    static ModbusSerialPortPrivate *create(bool blocking);
+    static ModbusSerialPortPrivate *create(uint16_t maxBuffSize, bool blocking);
 
 public:
-    ModbusSerialPortPrivate(bool blocking) :
-        ModbusPortPrivate(blocking)
+    ModbusSerialPortPrivate(uint16_t maxBuffSize, bool blocking) :
+        ModbusPortPrivate(maxBuffSize, blocking)
     {
-        const ModbusSerialPort::Defaults &d = ModbusSerialPort::Defaults::instance();
+        const Modbus::SerialDefaults &d = Modbus::SerialDefaults::instance();
 
-        settings.portName         = d.portName;
-        settings.baudRate         = d.baudRate;
-        settings.dataBits         = d.dataBits;
-        settings.stopBits         = d.stopBits;
-        settings.parity           = d.parity  ;
-        settings.flowControl      = d.flowControl;
-        settingsBase.timeout      = d.timeoutFirstByte;
+        settings.hostOrPortName   = d.portName        ;
+        settings.baudRate         = d.baudRate        ;
+        settings.dataBits         = d.dataBits        ;
+        settings.stopBits         = d.stopBits        ;
+        settings.parity           = d.parity          ;
+        settings.flowControl      = d.flowControl     ;
+        settings.timeout          = d.timeoutFirstByte;
         settings.timeoutInterByte = d.timeoutInterByte;
     }
 
-public:
-    struct
-    {
-        String portName;
-        int32_t baudRate;
-        int8_t dataBits;
-        Parity parity;
-        StopBits stopBits;
-        FlowControl flowControl;
-        uint32_t timeoutInterByte;
-    } settings;
-
-    uint8_t *buff;
-    uint16_t c_buffSz;
-    uint16_t sz;
+    inline auto portName        () const { return settings.hostOrPortName  ; }
+    inline auto baudRate        () const { return settings.baudRate        ; }
+    inline auto dataBits        () const { return settings.dataBits        ; }
+    inline auto stopBits        () const { return settings.stopBits        ; }
+    inline auto parity          () const { return settings.parity          ; }
+    inline auto flowControl     () const { return settings.flowControl     ; }
+    inline auto timeoutFirstByte() const { return settings.timeout         ; }
+    inline auto timeoutInterByte() const { return settings.timeoutInterByte; }
 
 };
 

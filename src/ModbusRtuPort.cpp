@@ -24,16 +24,8 @@
 #include "ModbusSerialPort_p.h"
 
 ModbusRtuPort::ModbusRtuPort(bool blocking) :
-    ModbusSerialPort(ModbusSerialPortPrivate::create(blocking))
+    ModbusPort(ModbusSerialPortPrivate::create(MB_RTU_IO_BUFF_SZ, blocking))
 {
-    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
-    d->c_buffSz = MB_RTU_IO_BUFF_SZ;
-    d->buff = new uint8_t[MB_RTU_IO_BUFF_SZ];
-}
-
-ModbusRtuPort::~ModbusRtuPort()
-{
-    delete d_ModbusSerialPort(d_ptr)->buff;
 }
 
 StatusCode ModbusRtuPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff)
@@ -47,7 +39,7 @@ StatusCode ModbusRtuPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t 
     d->buff[1] = func;
     memcpy(&d->buff[2], buff, szInBuff);
     d->sz = szInBuff + 2;
-    crc = Modbus::crc16(d->buff, d->sz);
+    crc = crc16(d->buff, d->sz);
     d->buff[d->sz  ] = reinterpret_cast<uint8_t*>(&crc)[0];
     d->buff[d->sz+1] = reinterpret_cast<uint8_t*>(&crc)[1];
     d->sz += 2;
@@ -62,7 +54,7 @@ StatusCode ModbusRtuPort::readBuffer(uint8_t& unit, uint8_t& func, uint8_t *buff
         return d->setError(Status_BadNotCorrectRequest, StringLiteral("RTU. Not correct input. Input data length to small"));
 
     crc = d->buff[d->sz-2] | (d->buff[d->sz-1] << 8);
-    if (Modbus::crc16(d->buff, d->sz-2) != crc)
+    if (crc16(d->buff, d->sz-2) != crc)
         return d->setError(Status_BadCrc, StringLiteral("RTU. Wrong CRC"));
 
     unit = d->buff[0];

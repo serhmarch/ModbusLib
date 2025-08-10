@@ -20,7 +20,6 @@ HEADERS +=                          \
     $$PWD/ModbusObject.h            \
     $$PWD/ModbusPort.h              \
     $$PWD/ModbusPort_p.h            \
-    $$PWD/ModbusSerialPort.h        \
     $$PWD/ModbusRtuPort.h           \
     $$PWD/ModbusAscPort.h           \
     $$PWD/ModbusTcpPort.h           \
@@ -43,7 +42,6 @@ SOURCES +=                          \
     $$PWD/cModbus.cpp               \
     $$PWD/ModbusObject.cpp          \
     $$PWD/ModbusPort.cpp            \
-    $$PWD/ModbusSerialPort.cpp      \
     $$PWD/ModbusRtuPort.cpp         \
     $$PWD/ModbusAscPort.cpp         \
     $$PWD/ModbusTcpPort.cpp         \

@@ -10,6 +10,18 @@
 
 namespace Modbus {
 
+SerialDefaults::SerialDefaults() :
+    portName(StringLiteral("/dev/ttyS0")),
+    baudRate(9600),
+    dataBits(8),
+    parity(NoParity),
+    stopBits(OneStop),
+    flowControl(NoFlowControl),
+    timeoutFirstByte(1000),
+    timeoutInterByte(50)
+{
+}
+
 Timer timer()
 {
     struct timespec ts;

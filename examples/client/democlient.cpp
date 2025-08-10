@@ -5,7 +5,6 @@
 #include <ModbusClientPort.h>
 #include <ModbusClient.h>
 #include <ModbusTcpPort.h>
-#include <ModbusSerialPort.h>
 
 const char* help_options =
 "Usage: democlient [options]\n"
@@ -66,15 +65,15 @@ struct Options
 {
     Modbus::ProtocolType        type  ;
     uint8_t                     unit  ;
-    Modbus::SerialSettings  ser   ;
-    Modbus::TcpSettings         tcp   ; 
+    Modbus::SerialSettings      ser   ;
+    Modbus::NetworkSettings     tcp   ; 
     uint16_t                    offset;
     uint16_t                    count ;
 
     Options()
     {
-        const ModbusTcpPort   ::Defaults &dTcp = ModbusTcpPort   ::Defaults::instance();
-        const ModbusSerialPort::Defaults &dSer = ModbusSerialPort::Defaults::instance();
+        const Modbus::NetworkDefaults &dTcp = Modbus::NetworkDefaults::instance();
+        const Modbus::SerialDefaults  &dSer = Modbus::SerialDefaults ::instance();
 
         type                 = Modbus::TCP               ;
         unit                 = 1                         ;

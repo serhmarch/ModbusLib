@@ -13,6 +13,18 @@
 
 namespace Modbus {
 
+SerialDefaults::SerialDefaults() :
+    portName(StringLiteral("COM1")),
+    baudRate(9600),
+    dataBits(8),
+    parity(NoParity),
+    stopBits(OneStop),
+    flowControl(NoFlowControl),
+    timeoutFirstByte(1000),
+    timeoutInterByte(50)
+{
+}
+
 Timer timer()
 {
     return GetTickCount();

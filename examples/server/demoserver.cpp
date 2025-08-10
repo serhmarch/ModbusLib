@@ -168,13 +168,13 @@ struct Options
     Modbus::ProtocolType        type  ;
     uint8_t                     unit  ;
     Modbus::SerialSettings      ser   ;
-    Modbus::TcpSettings         tcp   ; 
+    Modbus::NetworkSettings         tcp   ; 
     uint16_t                    count ;
 
     Options()
     {
         const ModbusTcpServer ::Defaults &dTcp = ModbusTcpServer ::Defaults::instance();
-        const ModbusSerialPort::Defaults &dSer = ModbusSerialPort::Defaults::instance();
+        const Modbus::SerialDefaults &dSer = Modbus::SerialDefaults::instance();
 
         type                 = Modbus::TCP               ;
         unit                 = 1                         ;

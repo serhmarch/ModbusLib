@@ -223,6 +223,41 @@ public:
 /// Main Modbus namespace. Contains classes, functions and constants to work with Modbus-protocol.
 namespace Modbus {
 
+/*! \brief `Defaults` class constain default settings values for `ModbusTcpPort`.
+*/
+struct MODBUS_EXPORT NetworkDefaults
+{
+    const Modbus::Char *host   ; ///< Default setting 'TCP host name (DNS or IP address)'
+    const uint16_t      port   ; ///< Default setting 'TCP port number' for the listening server
+    const uint32_t      timeout; ///< Default setting for the read timeout of every single conncetion
+
+    ///  \details Constructor of the class.
+    NetworkDefaults();
+
+    /// \details Returns a reference to the global default value object.
+    static const NetworkDefaults &instance();
+};
+
+/*! \brief Holds the default values of the settings.
+*/
+struct MODBUS_EXPORT SerialDefaults
+{
+    const Modbus::Char       *portName        ; ///< Default value for the serial port name 
+    const int32_t             baudRate        ; ///< Default value for the serial port's baud rate
+    const int8_t              dataBits        ; ///< Default value for the serial port's data bits
+    const Modbus::Parity      parity          ; ///< Default value for the serial port's patiry
+    const Modbus::StopBits    stopBits        ; ///< Default value for the serial port's stop bits
+    const Modbus::FlowControl flowControl     ; ///< Default value for the serial port's flow control
+    const uint32_t            timeoutFirstByte; ///< Default value for the serial port's timeout waiting first byte of packet
+    const uint32_t            timeoutInterByte; ///< Default value for the serial port's timeout waiting next byte of packet
+
+    /// \details Constructor ot the class.
+    SerialDefaults();
+    
+    /// \details Returns a reference to the global `ModbusSerialPort::Defaults` object.
+    static const SerialDefaults &instance();
+};
+
 /// \brief Modbus::String class for strings
 typedef std::string String;
 
@@ -411,14 +446,14 @@ MODBUS_EXPORT List<FlowControl> availableFlowControl();
 
 /// \details Function for creation `ModbusPort` with defined parameters:
 /// \param[in]  type        Protocol type: TCP, RTU, ASC.
-/// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
+/// \param[in]  settings    For TCP must be pointer: `NetworkSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking);
 
 #ifndef MB_CLIENT_DISABLE
 /// \details Function for creation `ModbusClientPort` with defined parameters:
 /// \param[in]  type        Protocol type: TCP, RTU, ASC.
-/// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
+/// \param[in]  settings    For TCP must be pointer: `NetworkSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking);
 #endif // MB_CLIENT_DISABLE
@@ -427,7 +462,7 @@ MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *
 /// \details Function for creation `ModbusServerPort` with defined parameters:
 /// \param[in]  device      Pointer to the `ModbusInterface` implementation to which all requests for Modbus functions are forwarded.
 /// \param[in]  type        Protocol type: TCP, RTU, ASC.
-/// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
+/// \param[in]  settings    For TCP must be pointer: `NetworkSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking);
 #endif // MB_SERVER_DISABLE

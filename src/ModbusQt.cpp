@@ -1,7 +1,6 @@
 #include "ModbusQt.h"
 
 #include "ModbusTcpPort.h"
-#include "ModbusSerialPort.h"
 #include "ModbusClientPort.h"
 #include "ModbusServerPort.h"
 #include "ModbusServerResource.h"
@@ -489,7 +488,7 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
             {
                 const ModbusTcpPort::Defaults &d = ModbusTcpPort::Defaults::instance();
                 QByteArray host = settings.value(s.host, d.host).toString().toLatin1();
-                Modbus::TcpSettings tc;
+                Modbus::NetworkSettings tc;
                 tc.host = host.data();
                 tc.port = settings.value(s.port, d.port).toUInt();
                 tc.timeout = settings.value(s.timeout, d.timeout).toUInt();

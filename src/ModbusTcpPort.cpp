@@ -1,97 +1,14 @@
 #include "ModbusTcpPort.h"
 #include "ModbusTcpPort_p.h"
 
-ModbusTcpPort::Defaults::Defaults() :
-    host   (StringLiteral("localhost")),
-    port   (STANDARD_TCP_PORT),
-    timeout(3000)
+ModbusTcpPort::ModbusTcpPort(ModbusTcpSocket *socket, bool blocking) :
+    ModbusPort(ModbusTcpPortPrivate::create(socket, blocking))
 {
 }
 
-const ModbusTcpPort::Defaults &ModbusTcpPort::Defaults::instance()
+ModbusTcpPort::ModbusTcpPort(bool blocking) :
+    ModbusPort(ModbusTcpPortPrivate::create(nullptr, blocking))
 {
-    static const Defaults d;
-    return d;
-}
-
-const Char *ModbusTcpPort::host() const
-{
-    return d_ModbusTcpPort(d_ptr)->settings.host.data();
-}
-
-void ModbusTcpPort::setHost(const Char *host)
-{
-    ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
-    if (d->settings.host != host)
-    {
-        d->settings.host = host;
-        d->setChanged(true);
-    }
-}
-
-uint16_t ModbusTcpPort::port() const
-{
-    return d_ModbusTcpPort(d_ptr)->settings.port;
-}
-
-void ModbusTcpPort::setPort(uint16_t port)
-{
-    ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
-    if (d->settings.port != port)
-    {
-        d->settings.port = port;
-        d->setChanged(true);
-    }
-}
-
-void ModbusTcpPort::setNextRequestRepeated(bool v)
-{
-    d_ModbusTcpPort(d_ptr)->autoIncrement = !v;
-}
-
-bool ModbusTcpPort::autoIncrement() const
-{
-    return d_ModbusTcpPort(d_ptr)->autoIncrement;
-}
-
-const uint8_t *ModbusTcpPort::readBufferData() const
-{
-    return d_ModbusTcpPort(d_ptr)->buff;
-}
-
-uint16_t ModbusTcpPort::readBufferMaxSize() const
-{
-    return MBCLIENTTCP_BUFF_SZ;
-}
-
-uint16_t ModbusTcpPort::readBufferSize() const
-{
-    return d_ModbusTcpPort(d_ptr)->sz;
-}
-
-const uint8_t *ModbusTcpPort::writeBufferData() const
-{
-    return d_ModbusTcpPort(d_ptr)->buff;
-}
-
-uint16_t ModbusTcpPort::writeBufferMaxSize() const
-{
-    return MBCLIENTTCP_BUFF_SZ;
-}
-
-uint16_t ModbusTcpPort::writeBufferSize() const
-{
-    return d_ModbusTcpPort(d_ptr)->sz;
-}
-
-uint8_t *ModbusTcpPort::writeBufferDataInner()
-{
-    return d_ModbusTcpPort(d_ptr)->buff;
-}
-
-void ModbusTcpPort::setWriteBufferSizeInner(uint16_t sz)
-{
-    d_ModbusTcpPort(d_ptr)->sz = sz;
 }
 
 StatusCode ModbusTcpPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff)

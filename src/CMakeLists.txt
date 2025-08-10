@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13) # 2.2 - case insensitive syntax
                                      # 3.13 included policy CMP0077
 
-project(ModbusLib VERSION 0.4.4 LANGUAGES C CXX)
+project(ModbusLib VERSION 0.5.0 LANGUAGES C CXX)
 
 set(MB_LIBRARY_NAME modbus CACHE INTERNAL "Name of the modbus library")
 
@@ -52,7 +52,6 @@ set(HEADERS ${HEADERS}
     ModbusObject.h          
     ModbusPort.h            
     ModbusPort_p.h          
-    ModbusSerialPort.h      
     ModbusRtuPort.h         
     ModbusAscPort.h         
     ModbusTcpPort.h         
@@ -65,7 +64,6 @@ set(SOURCES ${SOURCES}
     Modbus.cpp              
     ModbusObject.cpp        
     ModbusPort.cpp          
-    ModbusSerialPort.cpp    
     ModbusRtuPort.cpp       
     ModbusAscPort.cpp       
     ModbusTcpPort.cpp       

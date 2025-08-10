@@ -5,7 +5,6 @@
 
 #include <Modbus.h>
 #include <ModbusTcpPort.h>
-#include <ModbusSerialPort.h>
 
 using namespace testing;
 using namespace Modbus;
@@ -131,7 +130,7 @@ TEST(Modbus, asciiToString)
 
 TEST(Modbus, createPortTcp)
 {
-    TcpSettings tcp;
+    NetworkSettings tcp;
     tcp.host    = "localhost";
     tcp.port    = STANDARD_TCP_PORT;
     tcp.timeout = 5000;
@@ -159,15 +158,16 @@ TEST(Modbus, createPortRtu)
 
     ModbusPort *port = createPort(RTU, &ser, false);
     ASSERT_NE(port, nullptr);
-    EXPECT_EQ(port->type(), RTU);
-    EXPECT_STREQ(reinterpret_cast<ModbusSerialPort*>(port)->portName(), ser.portName);
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->baudRate        (), ser.baudRate        );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->dataBits        (), ser.dataBits        );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->parity          (), ser.parity          );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->stopBits        (), ser.stopBits        );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->flowControl     (), ser.flowControl     );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->timeoutFirstByte(), ser.timeoutFirstByte);
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->timeoutInterByte(), ser.timeoutInterByte);
+
+    EXPECT_EQ   (port->type            (), RTU                 );
+    EXPECT_STREQ(port->portName        (), ser.portName        );
+    EXPECT_EQ   (port->baudRate        (), ser.baudRate        );
+    EXPECT_EQ   (port->dataBits        (), ser.dataBits        );
+    EXPECT_EQ   (port->parity          (), ser.parity          );
+    EXPECT_EQ   (port->stopBits        (), ser.stopBits        );
+    EXPECT_EQ   (port->flowControl     (), ser.flowControl     );
+    EXPECT_EQ   (port->timeoutFirstByte(), ser.timeoutFirstByte);
+    EXPECT_EQ   (port->timeoutInterByte(), ser.timeoutInterByte);
     delete port;
 }
 
@@ -186,14 +186,15 @@ TEST(Modbus, createPortAsc)
 
     ModbusPort *port = createPort(ASC, &ser, false);
     ASSERT_NE(port, nullptr);
-    EXPECT_EQ(port->type(), ASC);
-    EXPECT_STREQ(reinterpret_cast<ModbusSerialPort*>(port)->portName(), ser.portName);
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->baudRate        (), ser.baudRate        );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->dataBits        (), ser.dataBits        );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->parity          (), ser.parity          );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->stopBits        (), ser.stopBits        );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->flowControl     (), ser.flowControl     );
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->timeoutFirstByte(), ser.timeoutFirstByte);
-    EXPECT_EQ(reinterpret_cast<ModbusSerialPort*>(port)->timeoutInterByte(), ser.timeoutInterByte);
+
+    EXPECT_EQ   (port->type            (), ASC                 );
+    EXPECT_STREQ(port->portName        (), ser.portName        );
+    EXPECT_EQ   (port->baudRate        (), ser.baudRate        );
+    EXPECT_EQ   (port->dataBits        (), ser.dataBits        );
+    EXPECT_EQ   (port->parity          (), ser.parity          );
+    EXPECT_EQ   (port->stopBits        (), ser.stopBits        );
+    EXPECT_EQ   (port->flowControl     (), ser.flowControl     );
+    EXPECT_EQ   (port->timeoutFirstByte(), ser.timeoutFirstByte);
+    EXPECT_EQ   (port->timeoutInterByte(), ser.timeoutInterByte);
     delete port;
 }

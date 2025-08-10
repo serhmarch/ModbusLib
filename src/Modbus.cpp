@@ -28,6 +28,25 @@ const Char* modbusLibVersionStr()
     return MODBUSLIB_VERSION_STR;
 }
 
+NetworkDefaults::NetworkDefaults() :
+    host   (StringLiteral("localhost")),
+    port   (STANDARD_TCP_PORT),
+    timeout(3000)
+{
+}
+
+const NetworkDefaults &NetworkDefaults::instance()
+{
+    static const NetworkDefaults d;
+    return d;
+}
+
+const SerialDefaults &SerialDefaults::instance()
+{
+    static const SerialDefaults d;
+    return d;
+}
+
 uint16_t crc16(const uint8_t *bytes, uint32_t count)
 {
     uint16_t crc = 0xFFFF;
@@ -502,7 +521,7 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
     case TCP:
     {
         ModbusTcpPort *tcp = new ModbusTcpPort(blocking);
-        const TcpSettings *s = reinterpret_cast<const TcpSettings*>(settings);
+        const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
         tcp->setHost   (s->host   );
         tcp->setPort   (s->port   );
         tcp->setTimeout(s->timeout);
@@ -538,7 +557,7 @@ ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, c
     case TCP:
     {
         ModbusTcpServer *tcp = new ModbusTcpServer(device);
-        const TcpSettings *s = reinterpret_cast<const TcpSettings*>(settings);
+        const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
         tcp->setPort          (s->port   );
         tcp->setTimeout       (s->timeout);
         tcp->setMaxConnections(s->maxconn);
