@@ -130,7 +130,7 @@ TEST(Modbus, asciiToString)
 
 TEST(Modbus, createPortTcp)
 {
-    NetworkSettings tcp;
+    NetSettings tcp;
     tcp.host    = "localhost";
     tcp.port    = STANDARD_TCP_PORT;
     tcp.timeout = 5000;

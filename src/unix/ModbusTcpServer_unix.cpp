@@ -24,8 +24,8 @@
 
 #include "ModbusTcpServer_p_unix.h"
 
-ModbusTcpServer::ModbusTcpServer(ModbusInterface *device) :
-    ModbusServerPort(new ModbusTcpServerPrivateUnix(device))
+ModbusTcpServer::ModbusTcpServer(Modbus::ProtocolType type, ModbusInterface *device) :
+    ModbusServerPort(new ModbusTcpServerPrivateUnix(type, device))
 {
 }
 

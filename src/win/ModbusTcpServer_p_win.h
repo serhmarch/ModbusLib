@@ -17,8 +17,8 @@ using namespace ModbusTcpServerPrivateNS;
 class ModbusTcpServerPrivateWin : public ModbusTcpServerPrivate
 {
 public:
-    ModbusTcpServerPrivateWin(ModbusInterface *device) :
-        ModbusTcpServerPrivate(device)
+    ModbusTcpServerPrivateWin(Modbus::ProtocolType type, ModbusInterface *device) :
+        ModbusTcpServerPrivate(type, device)
     {
         WSADATA data;
         WSAStartup(0x202, &data);

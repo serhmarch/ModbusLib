@@ -17,8 +17,8 @@ using namespace ModbusTcpServerPrivateNS;
 class ModbusTcpServerPrivateUnix : public ModbusTcpServerPrivate
 {
 public:
-    ModbusTcpServerPrivateUnix(ModbusInterface *device) :
-        ModbusTcpServerPrivate(device)
+    ModbusTcpServerPrivateUnix(Modbus::ProtocolType type, ModbusInterface *device) :
+        ModbusTcpServerPrivate(type, device)
     {
         this->socket = new ModbusTcpSocket;
     }

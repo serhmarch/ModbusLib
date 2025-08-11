@@ -24,6 +24,8 @@
 #include "ModbusTcpServer_p.h"
 
 #include "ModbusTcpPort.h"
+#include "ModbusAscOverTcpPort.h"
+#include "ModbusRtuOverTcpPort.h"
 #include "ModbusServerResource.h"
 
 #define MODBUS_TCPSERVER_OPEN_TIMOUT_ms 1000
@@ -77,6 +79,11 @@ void ModbusTcpServer::setMaxConnections(uint32_t maxconn)
         d_ModbusTcpServer(d_ptr)->maxconn = maxconn;
     else
         d_ModbusTcpServer(d_ptr)->maxconn = 1;
+}
+
+ProtocolType ModbusTcpServer::type() const
+{
+    return d_ModbusTcpServer(d_ptr)->type;
 }
 
 void ModbusTcpServer::setBroadcastEnabled(bool enable)
@@ -229,7 +236,15 @@ StatusCode ModbusTcpServer::process()
 
 ModbusPort *ModbusTcpServer::createModbusPort(ModbusTcpSocket *socket)
 {
-    return new ModbusTcpPort(socket);
+    switch (d_ModbusTcpServer(d_ptr)->type)
+    {
+    case Modbus::ASCvTCP:
+        return new ModbusAscOverTcpPort(socket);
+    case Modbus::RTUvTCP:
+        return new ModbusRtuOverTcpPort(socket);
+    default:
+        return new ModbusTcpPort(socket);
+    }
 }
 
 void ModbusTcpServer::signalNewConnection(const Modbus::Char *source)

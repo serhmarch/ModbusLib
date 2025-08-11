@@ -24,8 +24,8 @@
 
 #include "ModbusTcpServer_p_win.h"
 
-ModbusTcpServer::ModbusTcpServer(ModbusInterface *device) :
-    ModbusServerPort(new ModbusTcpServerPrivateWin(device))
+ModbusTcpServer::ModbusTcpServer(Modbus::ProtocolType type, ModbusInterface *device) :
+    ModbusServerPort(new ModbusTcpServerPrivateWin(type, device))
 {
 }
 

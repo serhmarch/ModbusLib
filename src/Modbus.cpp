@@ -3,6 +3,7 @@
 #include "ModbusAscPort.h"
 #include "ModbusRtuPort.h"
 #include "ModbusTcpPort.h"
+#include "ModbusAscOverTcpPort.h"
 #include "ModbusRtuOverTcpPort.h"
 
 #ifndef MB_CLIENT_DISABLE
@@ -11,7 +12,6 @@
 
 #ifndef MB_SERVER_DISABLE
 #include "ModbusTcpServer.h"
-#include "ModbusRtuOverTcpServer.h"
 #include "ModbusServerResource.h"
 #include "ModbusGlobal.h"
 #endif // MB_SERVER_DISABLE
@@ -30,7 +30,7 @@ const Char* modbusLibVersionStr()
     return MODBUSLIB_VERSION_STR;
 }
 
-NetworkDefaults::NetworkDefaults() :
+NetDefaults::NetDefaults() :
     host   (StringLiteral("localhost")),
     port   (STANDARD_TCP_PORT),
     timeout(3000),
@@ -38,9 +38,9 @@ NetworkDefaults::NetworkDefaults() :
 {
 }
 
-const NetworkDefaults &NetworkDefaults::instance()
+const NetDefaults &NetDefaults::instance()
 {
-    static const NetworkDefaults d;
+    static const NetDefaults d;
     return d;
 }
 
@@ -364,7 +364,7 @@ const Char *sprotocolType(ProtocolType type)
     case RTU    : return StringLiteral("RTU"    );
     case TCP    : return StringLiteral("TCP"    );
     //case UDP    : return StringLiteral("UDP"    );
-    //case ASCvTCP: return StringLiteral("ASCvTCP");
+    case ASCvTCP: return StringLiteral("ASCvTCP");
     case RTUvTCP: return StringLiteral("RTUvTCP");
     //case ASCvUDP: return StringLiteral("ASCvUDP");
     //case RTUvUDP: return StringLiteral("RTUvUDP");
@@ -378,7 +378,7 @@ ProtocolType toprotocolType(const Char * s)
     if (strcmp(s, StringLiteral("RTU"    )) == 0) return RTU    ;
     if (strcmp(s, StringLiteral("TCP"    )) == 0) return TCP    ;
     //if (strcmp(s, StringLiteral("UDP"    )) == 0) return UDP    ;
-    //if (strcmp(s, StringLiteral("ASCvTCP")) == 0) return ASCvTCP;
+    if (strcmp(s, StringLiteral("ASCvTCP")) == 0) return ASCvTCP;
     if (strcmp(s, StringLiteral("RTUvTCP")) == 0) return RTUvTCP;
     //if (strcmp(s, StringLiteral("ASCvUDP")) == 0) return ASCvUDP;
     //if (strcmp(s, StringLiteral("RTUvUDP")) == 0) return RTUvUDP;
@@ -513,7 +513,7 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
         rtu->setFlowControl     (s->flowControl     );
         rtu->setTimeoutFirstByte(s->timeoutFirstByte);
         rtu->setTimeoutInterByte(s->timeoutInterByte);
-        port = rtu;
+        return rtu;
     }
         break;
     case ASC:
@@ -528,30 +528,25 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
         asc->setFlowControl     (s->flowControl     );
         asc->setTimeoutFirstByte(s->timeoutFirstByte);
         asc->setTimeoutInterByte(s->timeoutInterByte);
-        port = asc;
+        return asc;
     }
         break;
     case TCP:
-    {
-        ModbusTcpPort *tcp = new ModbusTcpPort(blocking);
-        const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
-        tcp->setHost   (s->host   );
-        tcp->setPort   (s->port   );
-        tcp->setTimeout(s->timeout);
-        port = tcp;
-    }
+        port = new ModbusTcpPort(blocking);
+        break;
+    case ASCvTCP:
+        port = new ModbusAscOverTcpPort(blocking);
         break;
     case RTUvTCP:
-    {
-        ModbusRtuOverTcpPort *tcp = new ModbusRtuOverTcpPort(blocking);
-        const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
-        tcp->setHost   (s->host   );
-        tcp->setPort   (s->port   );
-        tcp->setTimeout(s->timeout);
-        port = tcp;
+        port = new ModbusRtuOverTcpPort(blocking);
+        break;
+    default:
+        return nullptr;
     }
-    break;
-    }
+    const NetSettings *s = reinterpret_cast<const NetSettings*>(settings);
+    port->setHost   (s->host   );
+    port->setPort   (s->port   );
+    port->setTimeout(s->timeout);
     return port;
 }
 
@@ -565,6 +560,16 @@ ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool
 #endif // MB_CLIENT_DISABLE
 
 #ifndef MB_SERVER_DISABLE
+
+ModbusServerPort *createServer(ModbusInterface *device, ProtocolType type, const NetSettings *settings, bool /*blocking*/)
+{
+    ModbusTcpServer *serv = new ModbusTcpServer(type, device);
+    serv->setPort          (settings->port   );
+    serv->setTimeout       (settings->timeout);
+    serv->setMaxConnections(settings->maxconn);
+    return serv;
+}
+
 ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking)
 {
     ModbusServerPort *serv = nullptr;
@@ -577,25 +582,8 @@ ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, c
         serv = new ModbusServerResource(port, device);
     }
         break;
-    case TCP:
-    {
-        ModbusTcpServer *tcp = new ModbusTcpServer(device);
-        const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
-        tcp->setPort          (s->port   );
-        tcp->setTimeout       (s->timeout);
-        tcp->setMaxConnections(s->maxconn);
-        serv = tcp;
-    }
-        break;
-    case RTUvTCP:
-    {
-        ModbusRtuOverTcpServer *tcp = new ModbusRtuOverTcpServer(device);
-        const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
-        tcp->setPort          (s->port   );
-        tcp->setTimeout       (s->timeout);
-        tcp->setMaxConnections(s->maxconn);
-        serv = tcp;
-    }
+    default:
+        serv = createServer(device, type, reinterpret_cast<const NetSettings*>(settings), blocking);
         break;
     }
     return serv;

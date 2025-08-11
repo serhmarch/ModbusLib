@@ -34,7 +34,7 @@ typedef struct _Options
     ProtocolType        type;
     uint8_t             unit;
     SerialSettings  ser ;
-    NetworkSettings         tcp ;
+    NetSettings         tcp ;
     uint32_t            c0  ;
     uint32_t            c1  ;
     uint32_t            c3  ;

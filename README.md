@@ -44,7 +44,7 @@ to work with the library.
 //...
 void main()
 {
-    Modbus::NetworkSettings settings;
+    Modbus::NetSettings settings;
     settings.host = "someadr.plc";
     settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
@@ -131,7 +131,7 @@ public:
 void main()
 {
     MyModbusDevice device;
-    Modbus::NetworkSettings settings;
+    Modbus::NetSettings settings;
     settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
     settings.maxconn = 10;
@@ -212,7 +212,7 @@ void printRx(const Char *source, const uint8_t* buff, uint16_t size)
 
 void main()
 {
-    NetworkSettings settings;
+    NetSettings settings;
     settings.host = "someadr.plc";
     settings.port = STANDARD_TCP_PORT;
     settings.timeout = 3000;

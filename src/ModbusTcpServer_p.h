@@ -20,10 +20,21 @@ public:
     static bool getHostService(ModbusTcpSocket *socket, String &host, String &service);
 
 public:
-    ModbusTcpServerPrivate(ModbusInterface *device) :
+    ModbusTcpServerPrivate(Modbus::ProtocolType type, ModbusInterface *device) :
         ModbusServerPortPrivate(device)
     {
         const ModbusTcpServer::Defaults &d = ModbusTcpServer::Defaults::instance();
+
+        switch(type)
+        {
+        case Modbus::ASCvTCP:
+        case Modbus::RTUvTCP:
+            this->type = type;
+            break;
+        default:
+            this->type = Modbus::TCP;
+            break;
+        }
 
         this->tcpPort = d.port   ;
         this->timeout = d.timeout;
@@ -31,6 +42,7 @@ public:
     }
 
 public:
+    Modbus::ProtocolType type;
     uint16_t tcpPort;
     uint32_t timeout;
     uint32_t maxconn;

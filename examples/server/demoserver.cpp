@@ -168,7 +168,7 @@ struct Options
     Modbus::ProtocolType        type  ;
     uint8_t                     unit  ;
     Modbus::SerialSettings      ser   ;
-    Modbus::NetworkSettings         tcp   ; 
+    Modbus::NetSettings         tcp   ; 
     uint16_t                    count ;
 
     Options()

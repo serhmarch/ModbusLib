@@ -1,11 +1,9 @@
 #include "ModbusQt.h"
 
-#include "ModbusTcpPort.h"
 #include "ModbusClientPort.h"
 #include "ModbusServerPort.h"
 #include "ModbusServerResource.h"
 #include "ModbusTcpServer.h"
-#include "ModbusRtuOverTcpServer.h"
 
 namespace Modbus {
 
@@ -53,18 +51,18 @@ Defaults::Defaults() :
     unit              (1),
     type              (TCP),
     tries             (1), // TODO: initialize by constant from ModbusClientPort
-    host              (Modbus::NetworkDefaults::instance().host            ),
-    port              (Modbus::NetworkDefaults::instance().port            ),
-    timeout           (Modbus::NetworkDefaults::instance().timeout         ),
-    maxconn           (Modbus::NetworkDefaults::instance().maxconn         ),
-    serialPortName    (Modbus::SerialDefaults ::instance().portName        ),
-    baudRate          (Modbus::SerialDefaults ::instance().baudRate        ),
-    dataBits          (Modbus::SerialDefaults ::instance().dataBits        ),
-    parity            (Modbus::SerialDefaults ::instance().parity          ),
-    stopBits          (Modbus::SerialDefaults ::instance().stopBits        ),
-    flowControl       (Modbus::SerialDefaults ::instance().flowControl     ),
-    timeoutFirstByte  (Modbus::SerialDefaults ::instance().timeoutFirstByte),
-    timeoutInterByte  (Modbus::SerialDefaults ::instance().timeoutInterByte),
+    host              (Modbus::NetDefaults   ::instance().host            ),
+    port              (Modbus::NetDefaults   ::instance().port            ),
+    timeout           (Modbus::NetDefaults   ::instance().timeout         ),
+    maxconn           (Modbus::NetDefaults   ::instance().maxconn         ),
+    serialPortName    (Modbus::SerialDefaults::instance().portName        ),
+    baudRate          (Modbus::SerialDefaults::instance().baudRate        ),
+    dataBits          (Modbus::SerialDefaults::instance().dataBits        ),
+    parity            (Modbus::SerialDefaults::instance().parity          ),
+    stopBits          (Modbus::SerialDefaults::instance().stopBits        ),
+    flowControl       (Modbus::SerialDefaults::instance().flowControl     ),
+    timeoutFirstByte  (Modbus::SerialDefaults::instance().timeoutFirstByte),
+    timeoutInterByte  (Modbus::SerialDefaults::instance().timeoutInterByte),
     isBroadcastEnabled(true)
 {
 }
@@ -485,18 +483,6 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
         {
             switch (type)
             {
-            case Modbus::TCP:
-            case Modbus::RTUvTCP:
-            {
-                const Modbus::NetworkDefaults &d = Modbus::NetworkDefaults::instance();
-                QByteArray host = settings.value(s.host, d.host).toString().toLatin1();
-                Modbus::NetworkSettings tc;
-                tc.host = host.data();
-                tc.port = settings.value(s.port, d.port).toUInt();
-                tc.timeout = settings.value(s.timeout, d.timeout).toUInt();
-                return Modbus::createPort(type, &tc, blocking);
-            }
-            break;
             case Modbus::RTU:
             case Modbus::ASC:
             {
@@ -513,9 +499,18 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
                 sl.timeoutInterByte = settings.value(s.timeoutInterByte, d.timeoutInterByte).toUInt();
                 return Modbus::createPort(type, &sl, blocking);
             }
-            break;
+                break;
             default:
-                return nullptr;
+            {
+                const Modbus::NetDefaults &d = Modbus::NetDefaults::instance();
+                QByteArray host = settings.value(s.host, d.host).toString().toLatin1();
+                Modbus::NetSettings nc;
+                nc.host    = host.data();
+                nc.port    = settings.value(s.port, d.port).toUInt();
+                nc.timeout = settings.value(s.timeout, d.timeout).toUInt();
+                return Modbus::createPort(type, &nc, blocking);
+            }
+                break;
             }
         }
     }
@@ -546,35 +541,23 @@ ModbusServerPort *createServerPort(ModbusInterface *device, const Settings &sett
         {
             switch (type)
             {
-            case Modbus::TCP:
-            {
-                const auto &d = ModbusTcpServer::Defaults::instance();
-                ModbusTcpServer *tcp = new ModbusTcpServer(device);
-                tcp->setPort   (settings.value(s.port, d.port).toUInt());
-                tcp->setTimeout(settings.value(s.timeout, d.timeout).toUInt());
-                tcp->setMaxConnections(settings.value(s.maxconn, d.maxconn).toUInt());
-                return tcp;
-            }
-                break;
-            case Modbus::RTUvTCP:
-            {
-                const auto &d = ModbusTcpServer::Defaults::instance();
-                ModbusRtuOverTcpServer *tcp = new ModbusRtuOverTcpServer(device);
-                tcp->setPort   (settings.value(s.port, d.port).toUInt());
-                tcp->setTimeout(settings.value(s.timeout, d.timeout).toUInt());
-                tcp->setMaxConnections(settings.value(s.maxconn, d.maxconn).toUInt());
-                return tcp;
-            }
-            break;
             case Modbus::RTU:
             case Modbus::ASC:
             {
                 ModbusPort *port = createPort(settings, blocking);
                 return new ModbusServerResource(port, device);
             }
-            break;
+                break;
             default:
-                return nullptr;
+            {
+                const auto &d = ModbusTcpServer::Defaults::instance();
+                Modbus::NetSettings net;
+                net.port    = (settings.value(s.port   , d.port   ).toUInt());
+                net.timeout = (settings.value(s.timeout, d.timeout).toUInt());
+                net.maxconn = (settings.value(s.maxconn, d.maxconn).toUInt());
+                return createServer(device, type, &net, blocking);
+            }
+                break;
             }
         }
     }

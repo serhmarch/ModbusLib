@@ -15,7 +15,7 @@ public:
     ModbusTcpPortPrivate(bool blocking) :
         ModbusPortPrivate(MBCLIENTTCP_BUFF_SZ, blocking)
     {
-        const Modbus::NetworkDefaults &d = Modbus::NetworkDefaults::instance();
+        const Modbus::NetDefaults &d = Modbus::NetDefaults::instance();
 
         settings.hostOrPortName = d.host   ;
         settings.port           = d.port   ;

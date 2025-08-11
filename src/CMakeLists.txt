@@ -55,6 +55,7 @@ set(HEADERS ${HEADERS}
     ModbusRtuPort.h         
     ModbusAscPort.h         
     ModbusTcpPort.h         
+    ModbusAscOverTcpPort.h
     ModbusRtuOverTcpPort.h
     ModbusObject_p.h        
     ModbusSerialPort_p.h    
@@ -68,6 +69,7 @@ set(SOURCES ${SOURCES}
     ModbusRtuPort.cpp       
     ModbusAscPort.cpp       
     ModbusTcpPort.cpp       
+    ModbusAscOverTcpPort.cpp
     ModbusRtuOverTcpPort.cpp
     )     
 
@@ -119,7 +121,6 @@ else()
         ModbusServerPort.h
         ModbusServerPort_p.h
         ModbusTcpServer.h
-        ModbusRtuOverTcpServer.h
         ModbusTcpServer_p.h
         ) 
 
@@ -127,7 +128,6 @@ else()
         ModbusServerResource.cpp
         ModbusServerPort.cpp
         ModbusTcpServer.cpp
-        ModbusRtuOverTcpServer.cpp
         )
 endif()
 

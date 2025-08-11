@@ -53,7 +53,7 @@ version of protocol, respectively.
 //...
 void main()
 {
-    Modbus::NetworkSettings settings;
+    Modbus::NetSettings settings;
     settings.host = "someadr.plc";
     settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
@@ -138,7 +138,7 @@ public:
 void main()
 {
     MyModbusDevice device;
-    Modbus::NetworkSettings settings;
+    Modbus::NetSettings settings;
     settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
     ModbusServerPort *port = Modbus::createServerPort(&device, Modbus::TCP, &settings, false);
@@ -257,7 +257,7 @@ void printRx(const Char *source, const uint8_t* buff, uint16_t size)
 
 void main()
 {
-    NetworkSettings settings;
+    NetSettings settings;
     settings.host = "someadr.plc";
     settings.port = STANDARD_TCP_PORT;
     settings.timeout = 3000;
