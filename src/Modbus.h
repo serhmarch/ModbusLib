@@ -230,6 +230,7 @@ struct MODBUS_EXPORT NetworkDefaults
     const Modbus::Char *host   ; ///< Default setting 'TCP host name (DNS or IP address)'
     const uint16_t      port   ; ///< Default setting 'TCP port number' for the listening server
     const uint32_t      timeout; ///< Default setting for the read timeout of every single conncetion
+    const uint32_t      maxconn; ///< Default setting for the maximum number of simultaneous connections to the server
 
     ///  \details Constructor of the class.
     NetworkDefaults();

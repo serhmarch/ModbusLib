@@ -5,6 +5,7 @@
 #include "ModbusServerPort.h"
 #include "ModbusServerResource.h"
 #include "ModbusTcpServer.h"
+#include "ModbusRtuOverTcpServer.h"
 
 namespace Modbus {
 
@@ -52,18 +53,18 @@ Defaults::Defaults() :
     unit              (1),
     type              (TCP),
     tries             (1), // TODO: initialize by constant from ModbusClientPort
-    host              (ModbusTcpPort   ::Defaults::instance().host            ),
-    port              (ModbusTcpPort   ::Defaults::instance().port            ),
-    timeout           (ModbusTcpPort   ::Defaults::instance().timeout         ),
-    maxconn           (ModbusTcpServer ::Defaults::instance().maxconn         ),
-    serialPortName    (ModbusSerialPort::Defaults::instance().portName        ),
-    baudRate          (ModbusSerialPort::Defaults::instance().baudRate        ),
-    dataBits          (ModbusSerialPort::Defaults::instance().dataBits        ),
-    parity            (ModbusSerialPort::Defaults::instance().parity          ),
-    stopBits          (ModbusSerialPort::Defaults::instance().stopBits        ),
-    flowControl       (ModbusSerialPort::Defaults::instance().flowControl     ),
-    timeoutFirstByte  (ModbusSerialPort::Defaults::instance().timeoutFirstByte),
-    timeoutInterByte  (ModbusSerialPort::Defaults::instance().timeoutInterByte),
+    host              (Modbus::NetworkDefaults::instance().host            ),
+    port              (Modbus::NetworkDefaults::instance().port            ),
+    timeout           (Modbus::NetworkDefaults::instance().timeout         ),
+    maxconn           (Modbus::NetworkDefaults::instance().maxconn         ),
+    serialPortName    (Modbus::SerialDefaults ::instance().portName        ),
+    baudRate          (Modbus::SerialDefaults ::instance().baudRate        ),
+    dataBits          (Modbus::SerialDefaults ::instance().dataBits        ),
+    parity            (Modbus::SerialDefaults ::instance().parity          ),
+    stopBits          (Modbus::SerialDefaults ::instance().stopBits        ),
+    flowControl       (Modbus::SerialDefaults ::instance().flowControl     ),
+    timeoutFirstByte  (Modbus::SerialDefaults ::instance().timeoutFirstByte),
+    timeoutInterByte  (Modbus::SerialDefaults ::instance().timeoutInterByte),
     isBroadcastEnabled(true)
 {
 }
@@ -485,8 +486,9 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
             switch (type)
             {
             case Modbus::TCP:
+            case Modbus::RTUvTCP:
             {
-                const ModbusTcpPort::Defaults &d = ModbusTcpPort::Defaults::instance();
+                const Modbus::NetworkDefaults &d = Modbus::NetworkDefaults::instance();
                 QByteArray host = settings.value(s.host, d.host).toString().toLatin1();
                 Modbus::NetworkSettings tc;
                 tc.host = host.data();
@@ -498,7 +500,7 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
             case Modbus::RTU:
             case Modbus::ASC:
             {
-                const ModbusSerialPort::Defaults &d = ModbusSerialPort::Defaults::instance();
+                const Modbus::SerialDefaults &d = Modbus::SerialDefaults::instance();
                 QByteArray portName = settings.value(s.serialPortName, d.portName).toString().toLatin1();
                 Modbus::SerialSettings sl;
                 sl.portName = portName.data();
@@ -548,6 +550,16 @@ ModbusServerPort *createServerPort(ModbusInterface *device, const Settings &sett
             {
                 const auto &d = ModbusTcpServer::Defaults::instance();
                 ModbusTcpServer *tcp = new ModbusTcpServer(device);
+                tcp->setPort   (settings.value(s.port, d.port).toUInt());
+                tcp->setTimeout(settings.value(s.timeout, d.timeout).toUInt());
+                tcp->setMaxConnections(settings.value(s.maxconn, d.maxconn).toUInt());
+                return tcp;
+            }
+                break;
+            case Modbus::RTUvTCP:
+            {
+                const auto &d = ModbusTcpServer::Defaults::instance();
+                ModbusRtuOverTcpServer *tcp = new ModbusRtuOverTcpServer(device);
                 tcp->setPort   (settings.value(s.port, d.port).toUInt());
                 tcp->setTimeout(settings.value(s.timeout, d.timeout).toUInt());
                 tcp->setMaxConnections(settings.value(s.maxconn, d.maxconn).toUInt());

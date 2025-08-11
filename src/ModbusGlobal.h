@@ -314,11 +314,11 @@ typedef enum _ProtocolType
     ASC    , ///< ASCII version of Modbus communication protocol.
     RTU    , ///< RTU version of Modbus communication protocol.
     TCP    , ///< TCP version of Modbus communication protocol.
-    UDP    , ///< UDP version of Modbus communication protocol.
-    ASCvTCP, ///< ASCII over TCP version of Modbus communication protocol.
+    //UDP    , ///< UDP version of Modbus communication protocol.
+    //ASCvTCP, ///< ASCII over TCP version of Modbus communication protocol.
     RTUvTCP, ///< RTU over TCP version of Modbus communication protocol.
-    ASCvUDP, ///< ASCII over UDP version of Modbus communication protocol.
-    RTUvUDP, ///< RTU over UDP version of Modbus communication protocol.
+    //ASCvUDP, ///< ASCII over UDP version of Modbus communication protocol.
+    //RTUvUDP, ///< RTU over UDP version of Modbus communication protocol.
 }
 #ifdef __cplusplus
 ;
@@ -402,7 +402,7 @@ typedef struct
     uint32_t    timeoutInterByte; ///< Value for the serial port's timeout waiting next byte of packet
 } SerialSettings;
 
-/// \brief Struct to define settings for TCP connection
+/// \brief Struct to define settings for TCP/UDP connection
 typedef struct 
 {
     const Char *host   ; ///< Value for the IP address or DNS name of the remote device

@@ -101,7 +101,7 @@ void ModbusTcpServer::clearConnections()
     for (auto& c : d->connections)
     {
         signalCloseConnection(c->objectName());
-        deleteTcpPort(c);
+        delete c;
     }
     d->connections.clear();
 }
@@ -173,7 +173,15 @@ StatusCode ModbusTcpServer::process()
             // check up new connection
             if (ModbusTcpSocket *s = this->nextPendingConnection())
             {
-                ModbusServerPort *c = createTcpPort(s);
+                ModbusPort *p = createModbusPort(s);
+                p->setTimeout(timeout());
+                ModbusServerResource *c = new ModbusServerResource(p, device());
+                String host, service;
+                if (ModbusTcpServerPrivate::getHostService(s, host, service))
+                {
+                    String name = host + StringLiteral(":") + service;
+                    c->setObjectName(name.data());
+                }
                 c->connect(&ModbusServerPort::signalTx   , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalTx   );
                 c->connect(&ModbusServerPort::signalRx   , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalRx   );
                 c->connect(&ModbusServerPort::signalError, static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalError);
@@ -191,7 +199,7 @@ StatusCode ModbusTcpServer::process()
                 {
                     signalCloseConnection(c->objectName());
                     it = d->connections.erase(it);
-                    deleteTcpPort(c);
+                    delete c;
                     continue;
                 }
                 ++it;
@@ -219,23 +227,9 @@ StatusCode ModbusTcpServer::process()
     return Status_Processing;
 }
 
-ModbusServerPort *ModbusTcpServer::createTcpPort(ModbusTcpSocket *socket)
+ModbusPort *ModbusTcpServer::createModbusPort(ModbusTcpSocket *socket)
 {
-    ModbusTcpPort *tcp = new ModbusTcpPort(socket);
-    tcp->setTimeout(timeout());
-    ModbusServerResource *c = new ModbusServerResource(tcp, device());
-    String host, service;
-    if (ModbusTcpServerPrivate::getHostService(socket, host, service))
-    {
-        String name = host + StringLiteral(":") + service;
-        c->setObjectName(name.data());
-    }
-    return c;
-}
-
-void ModbusTcpServer::deleteTcpPort(ModbusServerPort *port)
-{
-    delete port;
+    return new ModbusTcpPort(socket);
 }
 
 void ModbusTcpServer::signalNewConnection(const Modbus::Char *source)

@@ -29,7 +29,7 @@ public:
         const uint32_t timeout; ///< Default setting for the read timeout of every single conncetion
         const uint32_t maxconn; ///< Default setting for the maximum number of simultaneous connections to the server
 
-        ///  \details Constructor of the class.
+        /// \details Constructor of the class.
         Defaults();
 
         /// \details Returns a reference to the global default value object.
@@ -97,13 +97,9 @@ public:
     Modbus::StatusCode process() override;
     
 public:
-    /// \details Creates `ModbusServerPort` for new incoming connection defined by `ModbusTcpSocket` pointer
+    /// \details Creates `ModbusPort` for new incoming connection defined by `ModbusTcpSocket` pointer
     /// May be reimplemented in subclasses.
-    virtual ModbusServerPort *createTcpPort(ModbusTcpSocket *socket);
-    
-    /// \details Deletes `ModbusServerPort` by default. 
-    /// May be reimplemented in subclasses.
-    virtual void deleteTcpPort(ModbusServerPort *port);
+    virtual ModbusPort *createModbusPort(ModbusTcpSocket *socket);
     
 public: // SIGNALS
     /// \details Signal occured when new TCP connection was accepted. `source` - name of the current connection.

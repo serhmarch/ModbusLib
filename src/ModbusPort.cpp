@@ -270,6 +270,7 @@ StatusCode ModbusPort::readRawBuffer(uint8_t *buff, uint16_t maxSzBuff, uint16_t
     if (sz > maxSzBuff)
         return d_ptr->setError(Status_BadReadBufferOverflow, StringLiteral("Read-buffer overflow"));
     memcpy(buff, d_ptr->buff, sz);
+    *szOutBuff = sz;
     return Status_Good;
 }
 

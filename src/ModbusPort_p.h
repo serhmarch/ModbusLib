@@ -66,7 +66,7 @@ public:
     virtual bool isOpen() const = 0;
     virtual Modbus::StatusCode write() = 0;
     virtual Modbus::StatusCode read() = 0;
-    virtual void setNextRequestRepeated(bool v) {}
+    virtual void setNextRequestRepeated(bool) {}
 
 public:
     State state;

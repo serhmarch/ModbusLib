@@ -35,7 +35,9 @@ HEADERS +=                          \
     $$PWD/ModbusServerPort_p.h      \
     $$PWD/ModbusServerResource_p.h  \
     $$PWD/ModbusTcpPort_p.h         \
-    $$PWD/ModbusTcpServer_p.h       \
+    $$PWD/ModbusTcpServer_p.h \
+    ModbusRtuOverTcpPort.h \
+    ModbusRtuOverTcpServer.h
 
 SOURCES +=                          \
     $$PWD/Modbus.cpp                \
@@ -49,7 +51,9 @@ SOURCES +=                          \
     $$PWD/ModbusClient.cpp          \
     $$PWD/ModbusServerPort.cpp      \
     $$PWD/ModbusServerResource.cpp  \
-    $$PWD/ModbusTcpServer.cpp       \
+    $$PWD/ModbusTcpServer.cpp \
+    ModbusRtuOverTcpPort.cpp \
+    ModbusRtuOverTcpServer.cpp
 
 contains(CONFIG, qt) {
 #    message("Qt support is enabled.")

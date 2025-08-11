@@ -3,6 +3,7 @@
 #include "ModbusAscPort.h"
 #include "ModbusRtuPort.h"
 #include "ModbusTcpPort.h"
+#include "ModbusRtuOverTcpPort.h"
 
 #ifndef MB_CLIENT_DISABLE
 #include "ModbusClientPort.h"
@@ -10,6 +11,7 @@
 
 #ifndef MB_SERVER_DISABLE
 #include "ModbusTcpServer.h"
+#include "ModbusRtuOverTcpServer.h"
 #include "ModbusServerResource.h"
 #include "ModbusGlobal.h"
 #endif // MB_SERVER_DISABLE
@@ -31,7 +33,8 @@ const Char* modbusLibVersionStr()
 NetworkDefaults::NetworkDefaults() :
     host   (StringLiteral("localhost")),
     port   (STANDARD_TCP_PORT),
-    timeout(3000)
+    timeout(3000),
+    maxconn(10)
 {
 }
 
@@ -357,18 +360,28 @@ const Char *sprotocolType(ProtocolType type)
 {
     switch (type)
     {
-    case ASC: return StringLiteral("ASC");
-    case RTU: return StringLiteral("RTU");
-    case TCP: return StringLiteral("TCP");
+    case ASC    : return StringLiteral("ASC"    );
+    case RTU    : return StringLiteral("RTU"    );
+    case TCP    : return StringLiteral("TCP"    );
+    //case UDP    : return StringLiteral("UDP"    );
+    //case ASCvTCP: return StringLiteral("ASCvTCP");
+    case RTUvTCP: return StringLiteral("RTUvTCP");
+    //case ASCvUDP: return StringLiteral("ASCvUDP");
+    //case RTUvUDP: return StringLiteral("RTUvUDP");
     default: return nullptr;
     }
 }
 
 ProtocolType toprotocolType(const Char * s)
 {
-    if (strcmp(s, StringLiteral("ASC")) == 0) return ASC;
-    if (strcmp(s, StringLiteral("RTU")) == 0) return RTU;
-    if (strcmp(s, StringLiteral("TCP")) == 0) return TCP;
+    if (strcmp(s, StringLiteral("ASC"    )) == 0) return ASC    ;
+    if (strcmp(s, StringLiteral("RTU"    )) == 0) return RTU    ;
+    if (strcmp(s, StringLiteral("TCP"    )) == 0) return TCP    ;
+    //if (strcmp(s, StringLiteral("UDP"    )) == 0) return UDP    ;
+    //if (strcmp(s, StringLiteral("ASCvTCP")) == 0) return ASCvTCP;
+    if (strcmp(s, StringLiteral("RTUvTCP")) == 0) return RTUvTCP;
+    //if (strcmp(s, StringLiteral("ASCvUDP")) == 0) return ASCvUDP;
+    //if (strcmp(s, StringLiteral("RTUvUDP")) == 0) return RTUvUDP;
     return static_cast<ProtocolType>(-1);
 }   
 
@@ -528,6 +541,16 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
         port = tcp;
     }
         break;
+    case RTUvTCP:
+    {
+        ModbusRtuOverTcpPort *tcp = new ModbusRtuOverTcpPort(blocking);
+        const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
+        tcp->setHost   (s->host   );
+        tcp->setPort   (s->port   );
+        tcp->setTimeout(s->timeout);
+        port = tcp;
+    }
+    break;
     }
     return port;
 }
@@ -557,6 +580,16 @@ ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, c
     case TCP:
     {
         ModbusTcpServer *tcp = new ModbusTcpServer(device);
+        const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
+        tcp->setPort          (s->port   );
+        tcp->setTimeout       (s->timeout);
+        tcp->setMaxConnections(s->maxconn);
+        serv = tcp;
+    }
+        break;
+    case RTUvTCP:
+    {
+        ModbusRtuOverTcpServer *tcp = new ModbusRtuOverTcpServer(device);
         const NetworkSettings *s = reinterpret_cast<const NetworkSettings*>(settings);
         tcp->setPort          (s->port   );
         tcp->setTimeout       (s->timeout);
