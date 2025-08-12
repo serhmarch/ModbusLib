@@ -14,17 +14,17 @@ typedef int SOCKET;
 #define INVALID_SOCKET (-1)
 #define SOCKET_ERROR (-1)
 
-class ModbusTcpSocket
+class ModbusSocket
 {
 public:
-    ModbusTcpSocket(SOCKET socket = INVALID_SOCKET) : m_socket(socket) {}
+    ModbusSocket(SOCKET socket = INVALID_SOCKET) : m_socket(socket) {}
 
 public:
     inline bool isValid() const { return m_socket != INVALID_SOCKET; }
     inline bool isInvalid() const { return m_socket == INVALID_SOCKET; }
     inline SOCKET socket() const { return m_socket; }
     inline void setSocket(SOCKET socket) { m_socket = socket; }
-    inline ModbusTcpSocket &operator=(SOCKET socket) { setSocket(socket); return *this; }
+    inline ModbusSocket &operator=(SOCKET socket) { setSocket(socket); return *this; }
     inline void setBlocking(bool block) { int flags = fcntl(m_socket, F_GETFL, 0); fcntl(m_socket, F_SETFL, block ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK)); }
     inline void setTimeout(uint32_t timeout)
     {

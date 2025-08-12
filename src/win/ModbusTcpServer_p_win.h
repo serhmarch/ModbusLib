@@ -2,7 +2,7 @@
 #define MODBUSTCPSERVER_P_WIN_H
 
 #include "../ModbusTcpServer_p.h"
-#include "ModbusTCP_win.h"
+#include "Modbus_win.h"
 
 namespace Modbus {
 
@@ -23,7 +23,7 @@ public:
         WSADATA data;
         WSAStartup(0x202, &data);
 
-        this->socket = new ModbusTcpSocket;
+        this->socket = new ModbusSocket;
     }
 
     ~ModbusTcpServerPrivateWin()
@@ -33,7 +33,7 @@ public:
     }
 
 public:
-    ModbusTcpSocket *socket;
+    ModbusSocket *socket;
 };
 
 inline ModbusTcpServerPrivateWin *d_win(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpServerPrivateWin*>(d_ptr); }

@@ -3,12 +3,12 @@
 
 #include "../ModbusTcpPort_p.h"
 
-#include "ModbusTCP_win.h"
+#include "Modbus_win.h"
 
 class ModbusTcpPortPrivateWin : public ModbusTcpPortPrivate
 {
 public:
-    ModbusTcpPortPrivateWin(ModbusTcpSocket *socket, bool blocking) :
+    ModbusTcpPortPrivateWin(ModbusSocket *socket, bool blocking) :
         ModbusTcpPortPrivate(blocking)
     {
         WSADATA data;
@@ -24,7 +24,7 @@ public:
         }
         else
         {
-            this->socket = new ModbusTcpSocket();
+            this->socket = new ModbusSocket();
         }
     }
 
@@ -58,7 +58,7 @@ public:
     Modbus::StatusCode read() override;
 
 public:
-    ModbusTcpSocket *socket;
+    ModbusSocket *socket;
     DWORD timestamp;
     void *addr;
 };

@@ -543,6 +543,7 @@ ModbusServerPort *createServerPort(ModbusInterface *device, const Settings &sett
             {
             case Modbus::RTU:
             case Modbus::ASC:
+            case Modbus::UDP:
             {
                 ModbusPort *port = createPort(settings, blocking);
                 return new ModbusServerResource(port, device);

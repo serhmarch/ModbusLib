@@ -9,7 +9,7 @@
 class ModbusTcpPortPrivate : public ModbusPortPrivate
 {
 public:
-    static ModbusTcpPortPrivate *create(ModbusTcpSocket *socket, bool blocking);
+    static ModbusTcpPortPrivate *create(ModbusSocket *socket, bool blocking);
 
 public:
     ModbusTcpPortPrivate(bool blocking) :

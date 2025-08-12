@@ -178,7 +178,7 @@ StatusCode ModbusTcpServer::process()
                 break;
             }
             // check up new connection
-            if (ModbusTcpSocket *s = this->nextPendingConnection())
+            if (ModbusSocket *s = this->nextPendingConnection())
             {
                 ModbusPort *p = createModbusPort(s);
                 p->setTimeout(timeout());
@@ -234,7 +234,7 @@ StatusCode ModbusTcpServer::process()
     return Status_Processing;
 }
 
-ModbusPort *ModbusTcpServer::createModbusPort(ModbusTcpSocket *socket)
+ModbusPort *ModbusTcpServer::createModbusPort(ModbusSocket *socket)
 {
     switch (d_ModbusTcpServer(d_ptr)->type)
     {

@@ -127,7 +127,7 @@ bool ModbusTcpServer::isOpen() const
     return d_unix(d_ptr)->socket->isValid();
 }
 
-ModbusTcpSocket *ModbusTcpServer::nextPendingConnection()
+ModbusSocket *ModbusTcpServer::nextPendingConnection()
 {
     ModbusTcpServerPrivateUnix *d = d_unix(d_ptr);
     // Accept the incoming connection
@@ -149,11 +149,11 @@ ModbusTcpSocket *ModbusTcpServer::nextPendingConnection()
         return nullptr;
     }
 
-    ModbusTcpSocket *tcp = new ModbusTcpSocket(clientSocket);
+    ModbusSocket *tcp = new ModbusSocket(clientSocket);
     return tcp;
 }
 
-bool ModbusTcpServerPrivate::getHostService(ModbusTcpSocket *socket, String &host, String &service)
+bool ModbusTcpServerPrivate::getHostService(ModbusSocket *socket, String &host, String &service)
 {
     sockaddr_storage clientAddr;
     socklen_t clientAddrSize = sizeof(clientAddr);

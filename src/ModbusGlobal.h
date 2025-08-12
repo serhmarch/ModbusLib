@@ -297,6 +297,13 @@ typedef enum _StatusCode
     Status_BadTcpAccept,                                  ///< Error. Unable accept bind a TCP socket (server side)
     Status_BadTcpDisconnect,                              ///< Error. Bad disconnection result
     //---_ Modbus TCP specified errors end ---
+
+    //--_ Modbus TCP specified errors begin --            
+    Status_BadUdpCreate             = Status_Bad | 0x601, ///< Error. Unable to create a UDP socket
+    Status_BadUdpWrite,                                   ///< Error. Unable to send a UDP packet
+    Status_BadUdpRead,                                    ///< Error. Unable to receive a UDP packet
+    Status_BadUdpBind,                                    ///< Error. Unable to bind a UDP socket (server side)
+    //---_ Modbus TCP specified errors end ---
 }
 #ifdef __cplusplus
 ;
@@ -314,7 +321,7 @@ typedef enum _ProtocolType
     ASC    , ///< ASCII version of Modbus communication protocol.
     RTU    , ///< RTU version of Modbus communication protocol.
     TCP    , ///< TCP version of Modbus communication protocol.
-    //UDP    , ///< UDP version of Modbus communication protocol.
+    UDP    , ///< UDP version of Modbus communication protocol.
     ASCvTCP, ///< ASCII over TCP version of Modbus communication protocol.
     RTUvTCP, ///< RTU over TCP version of Modbus communication protocol.
     //ASCvUDP, ///< ASCII over UDP version of Modbus communication protocol.

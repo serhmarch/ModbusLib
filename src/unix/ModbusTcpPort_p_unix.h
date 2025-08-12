@@ -10,7 +10,7 @@
 class ModbusTcpPortPrivateUnix : public ModbusTcpPortPrivate
 {
 public:
-    ModbusTcpPortPrivateUnix(ModbusTcpSocket *socket, bool blocking) :
+    ModbusTcpPortPrivateUnix(ModbusSocket *socket, bool blocking) :
         ModbusTcpPortPrivate(blocking)
     {
         this->timestamp = 0;
@@ -23,7 +23,7 @@ public:
         }
         else
         {
-            this->socket = new ModbusTcpSocket();
+            this->socket = new ModbusSocket();
         }
     }
 
@@ -56,7 +56,7 @@ public:
     Modbus::StatusCode read() override;
 
 public:
-    ModbusTcpSocket *socket;
+    ModbusSocket *socket;
     Timer timestamp;
     struct addrinfo *addr;
 };

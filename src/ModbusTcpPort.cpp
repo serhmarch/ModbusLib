@@ -1,7 +1,7 @@
 #include "ModbusTcpPort.h"
 #include "ModbusTcpPort_p.h"
 
-ModbusTcpPort::ModbusTcpPort(ModbusTcpSocket *socket, bool blocking) :
+ModbusTcpPort::ModbusTcpPort(ModbusSocket *socket, bool blocking) :
     ModbusPort(ModbusTcpPortPrivate::create(socket, blocking))
 {
 }

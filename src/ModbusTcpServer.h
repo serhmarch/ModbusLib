@@ -10,7 +10,7 @@
 
 #include "ModbusServerPort.h"
 
-class ModbusTcpSocket;
+class ModbusSocket;
 
 /*! \brief The `ModbusTcpServer` class implements TCP server part of the Modbus protocol.
 
@@ -97,9 +97,9 @@ public:
     Modbus::StatusCode process() override;
     
 public:
-    /// \details Creates `ModbusPort` for new incoming connection defined by `ModbusTcpSocket` pointer
+    /// \details Creates `ModbusPort` for new incoming connection defined by `ModbusSocket` pointer
     /// May be reimplemented in subclasses.
-    virtual ModbusPort *createModbusPort(ModbusTcpSocket *socket);
+    virtual ModbusPort *createModbusPort(ModbusSocket *socket);
     
 public: // SIGNALS
     /// \details Signal occured when new TCP connection was accepted. `source` - name of the current connection.
@@ -109,8 +109,8 @@ public: // SIGNALS
     void signalCloseConnection(const Modbus::Char *source);
 
 protected:
-    /// \details Checks for incoming connections and returns pointer `ModbusTcpSocket` if new connection established, `nullptr` otherwise.
-    ModbusTcpSocket *nextPendingConnection();
+    /// \details Checks for incoming connections and returns pointer `ModbusSocket` if new connection established, `nullptr` otherwise.
+    ModbusSocket *nextPendingConnection();
 
     /// \details Clear all allocated memory for previously established connections.
     void clearConnections();

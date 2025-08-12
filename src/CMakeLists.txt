@@ -44,7 +44,7 @@ endif()
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h)
 
-set(HEADERS ${HEADERS} 
+set(MB_HEADERS ${MB_HEADERS} 
     Modbus_config.h         
     ModbusPlatform.h        
     ModbusGlobal.h          
@@ -55,20 +55,23 @@ set(HEADERS ${HEADERS}
     ModbusRtuPort.h         
     ModbusAscPort.h         
     ModbusTcpPort.h         
+    ModbusUdpPort.h         
     ModbusAscOverTcpPort.h
     ModbusRtuOverTcpPort.h
     ModbusObject_p.h        
     ModbusSerialPort_p.h    
     ModbusTcpPort_p.h       
+    ModbusUdpPort_p.h       
     )
 
-set(SOURCES ${SOURCES} 
+set(MB_SOURCES ${MB_SOURCES} 
     Modbus.cpp              
     ModbusObject.cpp        
     ModbusPort.cpp          
     ModbusRtuPort.cpp       
     ModbusAscPort.cpp       
     ModbusTcpPort.cpp       
+    ModbusUdpPort.cpp         
     ModbusAscOverTcpPort.cpp
     ModbusRtuOverTcpPort.cpp
     )     
@@ -81,11 +84,11 @@ if (MB_QT_ENABLED)
     find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 
-    set(HEADERS ${HEADERS}
+    set(MB_HEADERS ${MB_HEADERS}
         ModbusQt.h         
         ) 
 
-    set(SOURCES ${SOURCES}
+    set(MB_SOURCES ${MB_SOURCES}
         ModbusQt.cpp
         )
 else()
@@ -97,14 +100,14 @@ if (MB_CLIENT_DISABLE)
     message("MB: client is disabled!")
 else()
     message("MB: client is enabled!")
-    set(HEADERS ${HEADERS}
+    set(MB_HEADERS ${MB_HEADERS}
         ModbusClient.h
         ModbusClient_p.h
         ModbusClientPort.h
         ModbusClientPort_p.h
         ) 
 
-    set(SOURCES ${SOURCES}
+    set(MB_SOURCES ${MB_SOURCES}
         ModbusClient.cpp
         ModbusClientPort.cpp
         )
@@ -115,7 +118,7 @@ if (MB_SERVER_DISABLE)
     message("MB: server is disabled!")
 else()
     message("MB: server is enabled!")
-    set(HEADERS ${HEADERS}
+    set(MB_HEADERS ${MB_HEADERS}
         ModbusServerResource.h
         ModbusServerResource_p.h
         ModbusServerPort.h
@@ -124,7 +127,7 @@ else()
         ModbusTcpServer_p.h
         ) 
 
-    set(SOURCES ${SOURCES}
+    set(MB_SOURCES ${MB_SOURCES}
         ModbusServerResource.cpp
         ModbusServerPort.cpp
         ModbusTcpServer.cpp
@@ -136,58 +139,59 @@ if (MB_C_SUPPORT_DISABLE)
     message("MB: C support is disabled!")
 else()
     message("MB: C support is enabled!")
-    set(HEADERS ${HEADERS}
+    set(MB_HEADERS ${MB_HEADERS}
         cModbus.h
         ) 
 
-    set(SOURCES ${SOURCES}
+    set(MB_SOURCES ${MB_SOURCES}
         cModbus.cpp
         )
 endif()
 
 
 if (WIN32)
-    set(HEADERS ${HEADERS}
+    set(MB_HEADERS ${MB_HEADERS}
         win/Modbus_win.h         
-        win/ModbusTCP_win.h         
         win/ModbusSerialPort_p_win.h
         win/ModbusTcpPort_p_win.h   
+        win/ModbusUdpPort_p_win.h   
         ) 
 
-    set(SOURCES ${SOURCES}
+    set(MB_SOURCES ${MB_SOURCES}
         win/Modbus_win.cpp           
         win/ModbusTcpPort_win.cpp    
+        win/ModbusUdpPort_win.cpp   
         win/ModbusSerialPort_win.cpp
         )
 
     if (NOT MB_SERVER_DISABLE)
-        set(HEADERS ${HEADERS}
+        set(MB_HEADERS ${MB_HEADERS}
             win/ModbusTcpServer_p_win.h
             ) 
 
-        set(SOURCES ${SOURCES}
+        set(MB_SOURCES ${MB_SOURCES}
             win/ModbusTcpServer_win.cpp  
             )
     endif()
 
 else()
-    set(HEADERS ${HEADERS}
+    set(MB_HEADERS ${MB_HEADERS}
         unix/ModbusTCP_unix.h         
         unix/ModbusSerialPort_p_unix.h
         unix/ModbusTcpPort_p_unix.h   
         ) 
-    set(SOURCES ${SOURCES}
+    set(MB_SOURCES ${MB_SOURCES}
         unix/Modbus_unix.cpp           
         unix/ModbusTcpPort_unix.cpp    
         unix/ModbusSerialPort_unix.cpp
         )
 
     if (NOT MB_SERVER_DISABLE)
-        set(HEADERS ${HEADERS}
+        set(MB_HEADERS ${MB_HEADERS}
             unix/ModbusTcpServer_p_unix.h
             ) 
 
-        set(SOURCES ${SOURCES}
+        set(MB_SOURCES ${MB_SOURCES}
             unix/ModbusTcpServer_unix.cpp  
             )
     endif()
@@ -197,24 +201,24 @@ set(RESOURCES
     )     
 
 if (WIN32)
-    set(MODBUSLIB_WIN_RESOURCE_FILE win_resource.rc)
-    message("MB: ${PROJECT_NAME} resource file for Windows: '${MODBUSLIB_WIN_RESOURCE_FILE}'")
+    set(MB_WIN_RESOURCE_FILE win_resource.rc)
+    message("MB: ${PROJECT_NAME} resource file for Windows: '${MB_WIN_RESOURCE_FILE}'")
 
-    set(MODBUSLIB_WIN_FILE "${MB_LIBRARY_NAME}")
-    set(MODBUSLIB_WIN_OUTFILE "${MODBUSLIB_WIN_FILE}.dll")
-    configure_file(${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE}.in 
-                   ${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE})
+    set(MB_WIN_FILE "${MB_LIBRARY_NAME}")
+    set(MB_WIN_OUTFILE "${MB_WIN_FILE}.dll")
+    configure_file(${CMAKE_CURRENT_LIST_DIR}/${MB_WIN_RESOURCE_FILE}.in 
+                   ${CMAKE_CURRENT_LIST_DIR}/${MB_WIN_RESOURCE_FILE})
 
     set(RESOURCES ${RESOURCES}
-        ${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE}           
+        ${CMAKE_CURRENT_LIST_DIR}/${MB_WIN_RESOURCE_FILE}           
     )     
 endif()
 
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # Rely type of library into BUILD_SHARED_LIBS option
-#add_library(${MB_LIBRARY_NAME} SHARED ${HEADERS} ${SOURCES} ${RESOURCES})
-add_library(${MB_LIBRARY_NAME} ${HEADERS} ${SOURCES} ${RESOURCES})
+#add_library(${MB_LIBRARY_NAME} SHARED ${MB_HEADERS} ${MB_SOURCES} ${RESOURCES})
+add_library(${MB_LIBRARY_NAME} ${MB_HEADERS} ${MB_SOURCES} ${RESOURCES})
 
 target_compile_definitions(${MB_LIBRARY_NAME} PRIVATE MODBUS_EXPORTS)
 
@@ -242,7 +246,7 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     message(STATUS "No install directory specified, set it to ${CMAKE_INSTALL_PREFIX} as default")
 endif ()
 
-set_target_properties(${MB_LIBRARY_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
+set_target_properties(${MB_LIBRARY_NAME} PROPERTIES PUBLIC_HEADER "${MB_HEADERS}")
 
 # Specify where header and built files should be copied
 install(TARGETS ${MB_LIBRARY_NAME}

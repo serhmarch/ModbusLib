@@ -3,6 +3,7 @@
 #include "ModbusAscPort.h"
 #include "ModbusRtuPort.h"
 #include "ModbusTcpPort.h"
+#include "ModbusUdpPort.h"
 #include "ModbusAscOverTcpPort.h"
 #include "ModbusRtuOverTcpPort.h"
 
@@ -363,7 +364,7 @@ const Char *sprotocolType(ProtocolType type)
     case ASC    : return StringLiteral("ASC"    );
     case RTU    : return StringLiteral("RTU"    );
     case TCP    : return StringLiteral("TCP"    );
-    //case UDP    : return StringLiteral("UDP"    );
+    case UDP    : return StringLiteral("UDP"    );
     case ASCvTCP: return StringLiteral("ASCvTCP");
     case RTUvTCP: return StringLiteral("RTUvTCP");
     //case ASCvUDP: return StringLiteral("ASCvUDP");
@@ -377,7 +378,7 @@ ProtocolType toprotocolType(const Char * s)
     if (strcmp(s, StringLiteral("ASC"    )) == 0) return ASC    ;
     if (strcmp(s, StringLiteral("RTU"    )) == 0) return RTU    ;
     if (strcmp(s, StringLiteral("TCP"    )) == 0) return TCP    ;
-    //if (strcmp(s, StringLiteral("UDP"    )) == 0) return UDP    ;
+    if (strcmp(s, StringLiteral("UDP"    )) == 0) return UDP    ;
     if (strcmp(s, StringLiteral("ASCvTCP")) == 0) return ASCvTCP;
     if (strcmp(s, StringLiteral("RTUvTCP")) == 0) return RTUvTCP;
     //if (strcmp(s, StringLiteral("ASCvUDP")) == 0) return ASCvUDP;
@@ -534,6 +535,9 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
     case TCP:
         port = new ModbusTcpPort(blocking);
         break;
+    case UDP:
+        port = new ModbusUdpPort(blocking);
+        break;
     case ASCvTCP:
         port = new ModbusAscOverTcpPort(blocking);
         break;
@@ -577,6 +581,7 @@ ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, c
     {
     case RTU:
     case ASC:
+    case UDP:
     {
         ModbusPort *port = createPort(type, settings, blocking);
         serv = new ModbusServerResource(port, device);

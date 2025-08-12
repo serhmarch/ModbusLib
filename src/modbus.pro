@@ -23,6 +23,7 @@ HEADERS +=                          \
     $$PWD/ModbusRtuPort.h           \
     $$PWD/ModbusAscPort.h           \
     $$PWD/ModbusTcpPort.h           \
+    $$PWD/ModbusUdpPort.h           \
     $$PWD/ModbusAscOverTcpPort.h    \
     $$PWD/ModbusRtuOverTcpPort.h    \
     $$PWD/ModbusClientPort.h        \
@@ -37,6 +38,7 @@ HEADERS +=                          \
     $$PWD/ModbusServerPort_p.h      \
     $$PWD/ModbusServerResource_p.h  \
     $$PWD/ModbusTcpPort_p.h         \
+    $$PWD/ModbusUdpPort_p.h         \
     $$PWD/ModbusTcpServer_p.h       \
 
 SOURCES +=                          \
@@ -47,6 +49,7 @@ SOURCES +=                          \
     $$PWD/ModbusAscPort.cpp         \
     $$PWD/ModbusRtuPort.cpp         \
     $$PWD/ModbusTcpPort.cpp         \
+    $$PWD/ModbusUdpPort.cpp         \
     $$PWD/ModbusAscOverTcpPort.cpp  \
     $$PWD/ModbusRtuOverTcpPort.cpp  \
     $$PWD/ModbusClientPort.cpp      \
@@ -73,14 +76,15 @@ win32 {
 
 HEADERS +=                              \
     $$PWD/win/Modbus_win.h              \
-    $$PWD/win/ModbusTCP_win.h           \
     $$PWD/win/ModbusSerialPort_p_win.h  \
     $$PWD/win/ModbusTcpPort_p_win.h     \
+    $$PWD/win/ModbusUdpPort_p_win.h     \
     $$PWD/win/ModbusTcpServer_p_win.h   \
 
 SOURCES +=                              \
     $$PWD/win/Modbus_win.cpp            \
     $$PWD/win/ModbusTcpPort_win.cpp     \
+    $$PWD/win/ModbusUdpPort_win.cpp     \
     $$PWD/win/ModbusTcpServer_win.cpp   \
     $$PWD/win/ModbusSerialPort_win.cpp  \
 

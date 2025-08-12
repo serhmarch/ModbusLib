@@ -21,8 +21,8 @@ VS_VERSION_INFO VERSIONINFO
 				VALUE "FileDescription", "\0"
 				VALUE "FileVersion", "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@.0\0"
 				VALUE "LegalCopyright", "\0"
-				VALUE "OriginalFilename", "@MODBUSLIB_WIN_OUTFILE@\0"
-				VALUE "ProductName", "@MODBUSLIB_WIN_FILE@\0"
+				VALUE "OriginalFilename", "@MB_WIN_OUTFILE@\0"
+				VALUE "ProductName", "@MB_WIN_FILE@\0"
 				VALUE "ProductVersion", "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@.0\0"
 			END
 		END

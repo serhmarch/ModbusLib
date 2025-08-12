@@ -10,7 +10,7 @@
 
 #include "ModbusPort.h"
 
-class ModbusTcpSocket;
+class ModbusSocket;
 
 /*! \brief Class `ModbusTcpPort` implements TCP version of Modbus protocol.
 
@@ -22,7 +22,7 @@ class MODBUS_EXPORT ModbusTcpPort : public ModbusPort
 {
 public:
     /// \details Constructor of the class.
-    ModbusTcpPort(ModbusTcpSocket *socket, bool blocking = false);
+    ModbusTcpPort(ModbusSocket *socket, bool blocking = false);
 
     /// \details Constructor of the class.
     ModbusTcpPort(bool blocking = false);

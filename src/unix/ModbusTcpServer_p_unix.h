@@ -20,7 +20,7 @@ public:
     ModbusTcpServerPrivateUnix(Modbus::ProtocolType type, ModbusInterface *device) :
         ModbusTcpServerPrivate(type, device)
     {
-        this->socket = new ModbusTcpSocket;
+        this->socket = new ModbusSocket;
     }
 
     ~ModbusTcpServerPrivateUnix()
@@ -29,7 +29,7 @@ public:
     }
 
 public:
-    ModbusTcpSocket *socket;
+    ModbusSocket *socket;
 };
 
 inline ModbusTcpServerPrivateUnix *d_unix(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpServerPrivateUnix*>(d_ptr); }

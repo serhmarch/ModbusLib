@@ -10,7 +10,7 @@
 
 #include "ModbusRtuPort.h"
 
-class ModbusTcpSocket;
+class ModbusSocket;
 
 /*! \brief Implements RTU over TCP version of the Modbus communication protocol.
 
@@ -24,7 +24,7 @@ public:
     /// \details Constructor of the class.
     /// `socket` is a pointer to the previously created socket. It's useful for server-side class.
     /// if `blocking = true` then defines blocking mode, non blocking otherwise.
-    ModbusRtuOverTcpPort(ModbusTcpSocket *socket, bool blocking = false);
+    ModbusRtuOverTcpPort(ModbusSocket *socket, bool blocking = false);
 
     ///  \details Constructor of the class. if `blocking = true` then defines blocking mode, non blocking otherwise.
     ModbusRtuOverTcpPort(bool blocking = false);

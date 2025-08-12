@@ -1,7 +1,7 @@
 #include "ModbusAscOverTcpPort.h"
 #include "ModbusTcpPort_p.h"
 
-ModbusAscOverTcpPort::ModbusAscOverTcpPort(ModbusTcpSocket *socket, bool blocking) :
+ModbusAscOverTcpPort::ModbusAscOverTcpPort(ModbusSocket *socket, bool blocking) :
     ModbusAscPort(ModbusTcpPortPrivate::create(socket, blocking))
 {
 }

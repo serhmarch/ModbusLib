@@ -17,7 +17,7 @@ using namespace ModbusTcpServerPrivateNS;
 class ModbusTcpServerPrivate : public ModbusServerPortPrivate
 {
 public:
-    static bool getHostService(ModbusTcpSocket *socket, String &host, String &service);
+    static bool getHostService(ModbusSocket *socket, String &host, String &service);
 
 public:
     ModbusTcpServerPrivate(Modbus::ProtocolType type, ModbusInterface *device) :
