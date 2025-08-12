@@ -271,7 +271,7 @@ typedef enum _StatusCode
     //--_ Modbus serial specified errors begin --         
     Status_BadSerialOpen            = Status_Bad | 0x201, ///< Error. Serial port cannot be opened
     Status_BadSerialWrite           ,                     ///< Error. Cannot send a parcel to the serial port
-    Status_BadSerialRead            ,                     ///< Error. Reading the serial port (timeout)
+    Status_BadSerialRead            ,                     ///< Error. Reading the serial port (common error)
     Status_BadSerialReadTimeout     ,                     ///< Error. Reading the serial port (timeout)
     Status_BadSerialWriteTimeout    ,                     ///< Error. Writing the serial port (timeout)
     //---_ Modbus serial specified errors end ---
@@ -289,21 +289,23 @@ typedef enum _StatusCode
                                                           
     //--_ Modbus TCP specified errors begin --            
     Status_BadTcpCreate             = Status_Bad | 0x501, ///< Error. Unable to create a TCP socket
-    Status_BadTcpConnect,                                 ///< Error. Unable to create a TCP connection
-    Status_BadTcpWrite,                                   ///< Error. Unable to send a TCP packet
-    Status_BadTcpRead,                                    ///< Error. Unable to receive a TCP packet
-    Status_BadTcpBind,                                    ///< Error. Unable to bind a TCP socket (server side)
-    Status_BadTcpListen,                                  ///< Error. Unable to listen a TCP socket (server side)
-    Status_BadTcpAccept,                                  ///< Error. Unable accept bind a TCP socket (server side)
-    Status_BadTcpDisconnect,                              ///< Error. Bad disconnection result
+    Status_BadTcpConnect            ,                     ///< Error. Unable to create a TCP connection
+    Status_BadTcpWrite              ,                     ///< Error. Unable to send a TCP packet
+    Status_BadTcpRead               ,                     ///< Error. Unable to receive a TCP packet
+    Status_BadTcpBind               ,                     ///< Error. Unable to bind a TCP socket (server side)
+    Status_BadTcpListen             ,                     ///< Error. Unable to listen a TCP socket (server side)
+    Status_BadTcpAccept             ,                     ///< Error. Unable accept bind a TCP socket (server side)
+    Status_BadTcpDisconnect         ,                     ///< Error. Bad disconnection result
+    Status_BadTcpReadTimeout        ,                     ///< Error. TCP socket read timeout
     //---_ Modbus TCP specified errors end ---
 
-    //--_ Modbus TCP specified errors begin --            
+    //--_ Modbus UDP specified errors begin --            
     Status_BadUdpCreate             = Status_Bad | 0x601, ///< Error. Unable to create a UDP socket
-    Status_BadUdpWrite,                                   ///< Error. Unable to send a UDP packet
-    Status_BadUdpRead,                                    ///< Error. Unable to receive a UDP packet
-    Status_BadUdpBind,                                    ///< Error. Unable to bind a UDP socket (server side)
-    //---_ Modbus TCP specified errors end ---
+    Status_BadUdpWrite              ,                     ///< Error. Unable to send a UDP packet
+    Status_BadUdpRead               ,                     ///< Error. Unable to receive a UDP packet
+    Status_BadUdpBind               ,                     ///< Error. Unable to bind a UDP socket (server side)
+    Status_BadUdpReadTimeout        ,                     ///< Error. UDP socket read timeout
+    //---_ Modbus UDP specified errors end ---
 }
 #ifdef __cplusplus
 ;
@@ -324,8 +326,8 @@ typedef enum _ProtocolType
     UDP    , ///< UDP version of Modbus communication protocol.
     ASCvTCP, ///< ASCII over TCP version of Modbus communication protocol.
     RTUvTCP, ///< RTU over TCP version of Modbus communication protocol.
-    //ASCvUDP, ///< ASCII over UDP version of Modbus communication protocol.
-    //RTUvUDP, ///< RTU over UDP version of Modbus communication protocol.
+    ASCvUDP, ///< ASCII over UDP version of Modbus communication protocol.
+    RTUvUDP, ///< RTU over UDP version of Modbus communication protocol.
 }
 #ifdef __cplusplus
 ;

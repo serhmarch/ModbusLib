@@ -73,144 +73,140 @@ void ModbusPort::setNextRequestRepeated(bool v)
 
 const Char *ModbusPort::host() const
 {
-    return d_ptr->settings.hostOrPortName.data();
+    return d_ptr->host().data();
 }
 
 void ModbusPort::setHost(const Char *host)
 {
-    if (d_ptr->settings.hostOrPortName != host)
+    if (d_ptr->host() != host)
     {
-        d_ptr->settings.hostOrPortName = host;
+        d_ptr->setHost(host);
         d_ptr->setChanged(true);
     }
 }
 
 uint16_t ModbusPort::port() const
 {
-    return d_ptr->settings.port;
+    return d_ptr->port();
 }
 
 void ModbusPort::setPort(uint16_t port)
 {
-    if (d_ptr->settings.port != port)
+    if (d_ptr->port() != port)
     {
-        d_ptr->settings.port = port;
+        d_ptr->setPort(port);
         d_ptr->setChanged(true);
     }
 }
 
 uint32_t ModbusPort::timeout() const
 {
-    return d_ptr->settings.timeout;
+    return d_ptr->timeout();
 }
 
 void ModbusPort::setTimeout(uint32_t timeout)
 {
-    if (d_ptr->settings.timeout != timeout)
+    if (d_ptr->timeout() != timeout)
     {
-        d_ptr->settings.timeout = timeout;
+        d_ptr->setTimeout(timeout);
         d_ptr->setChanged(true);
     }
 }
 
 const Char *ModbusPort::portName() const
 {
-    return d_ptr->settings.hostOrPortName.data();
+    return d_ptr->portName().data();
 }
 
 void ModbusPort::setPortName(const Char *portName)
 {
-    ModbusPortPrivate *d = d_ptr;
-    if (d->settings.hostOrPortName != portName)
+    if (d_ptr->portName() != portName)
     {
-        d->settings.hostOrPortName = portName;
-        d->setChanged(true);
+        d_ptr->setPortName(portName);
+        d_ptr->setChanged(true);
     }
 }
 
 int32_t ModbusPort::baudRate() const
 {
-    return d_ptr->settings.baudRate;
+    return d_ptr->baudRate();
 }
 
 void ModbusPort::setBaudRate(int32_t baudRate)
 {
-    ModbusPortPrivate *d = d_ptr;
-    if (d->settings.baudRate != baudRate)
+    if (d_ptr->baudRate() != baudRate)
     {
-        d->settings.baudRate = baudRate;
-        d->setChanged(true);
+        d_ptr->setBaudRate(baudRate);
+        d_ptr->setChanged(true);
     }
 }
 
 int8_t ModbusPort::dataBits() const
 {
-    return d_ptr->settings.dataBits;
+    return d_ptr->dataBits();
 }
 
 void ModbusPort::setDataBits(int8_t dataBits)
 {
-    ModbusPortPrivate *d = d_ptr;
-    if (d->settings.dataBits != dataBits)
+    if (d_ptr->dataBits() != dataBits)
     {
-        d->settings.dataBits = dataBits;
-        d->setChanged(true);
+        d_ptr->setDataBits(dataBits);
+        d_ptr->setChanged(true);
     }
 }
 
 Parity ModbusPort::parity() const
 {
-    return d_ptr->settings.parity;
+    return d_ptr->parity();
 }
 
 void ModbusPort::setStopBits(StopBits stopBits)
 {
-    ModbusPortPrivate *d = d_ptr;
-    if (d->settings.stopBits != stopBits)
+    if (d_ptr->stopBits() != stopBits)
     {
-        d->settings.stopBits = stopBits;
-        d->setChanged(true);
+        d_ptr->setStopBits(stopBits);
+        d_ptr->setChanged(true);
     }
 }
 
 FlowControl ModbusPort::flowControl() const
 {
-    return d_ptr->settings.flowControl;
+    return d_ptr->flowControl();
 }
 
 void ModbusPort::setParity(Parity parity)
 {
-    ModbusPortPrivate *d = d_ptr;
-    if (d->settings.parity != parity)
+    if (d_ptr->parity() != parity)
     {
-        d->settings.parity = parity;
-        d->setChanged(true);
+        d_ptr->setParity(parity);
+        d_ptr->setChanged(true);
     }
 }
 
 StopBits ModbusPort::stopBits() const
 {
-    return d_ptr->settings.stopBits;
+    return d_ptr->stopBits();
 }
 
 void ModbusPort::setFlowControl(FlowControl flowControl)
 {
-    if (d_ptr->settings.flowControl != flowControl)
+    if (d_ptr->flowControl() != flowControl)
     {
-        d_ptr->settings.flowControl = flowControl;
+        d_ptr->setFlowControl(flowControl);
         d_ptr->setChanged(true);
     }
 }
 
 uint32_t ModbusPort::timeoutInterByte() const
-{    return d_ptr->settings.timeoutInterByte;
+{
+    return d_ptr->timeoutInterByte();
 }
 
 void ModbusPort::setTimeoutInterByte(uint32_t timeout)
 {
-    if (d_ptr->settings.timeoutInterByte != timeout)
+    if (d_ptr->timeoutInterByte() != timeout)
     {
-        d_ptr->settings.timeoutInterByte = timeout;
+        d_ptr->setTimeoutInterByte(timeout);
         d_ptr->setChanged(true);
     }
 }

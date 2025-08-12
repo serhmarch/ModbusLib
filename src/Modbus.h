@@ -446,14 +446,14 @@ MODBUS_EXPORT List<StopBits> availableStopBits();
 MODBUS_EXPORT List<FlowControl> availableFlowControl();
 
 /// \details Function for creation `ModbusPort` with defined parameters:
-/// \param[in]  type        Protocol type: TCP, RTU, ASC.
+/// \param[in]  type        Protocol type: ASC, RTU, TCP, UDP, ASCvTCP, RTUvTCP, ASCvUDP, ASCvUDP.
 /// \param[in]  settings    For TCP must be pointer: `NetSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking);
 
 #ifndef MB_CLIENT_DISABLE
 /// \details Function for creation `ModbusClientPort` with defined parameters:
-/// \param[in]  type        Protocol type: TCP, RTU, ASC.
+/// \param[in]  type        Protocol type: ASC, RTU, TCP, UDP, ASCvTCP, RTUvTCP, ASCvUDP, ASCvUDP.
 /// \param[in]  settings    For TCP must be pointer: `NetSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *settings, bool blocking);
@@ -463,14 +463,14 @@ MODBUS_EXPORT ModbusClientPort *createClientPort(ProtocolType type, const void *
 
 /// \details Function for creation `ModbusServerPort` for network (server) with defined parameters:
 /// \param[in]  device      Pointer to the `ModbusInterface` implementation to which all requests for Modbus functions are forwarded.
-/// \param[in]  type        Protocol type: TCP, UDP, ASCvTCP, RTUvTCP, ASCvUDP, RTUvUDP.
+/// \param[in]  type        Protocol type: TCP, ASCvTCP, RTUvTCP.
 /// \param[in]  settings    Pointer to the `NetSettings` structure.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusServerPort *createServer(ModbusInterface *device, ProtocolType type, const NetSettings *settings, bool blocking);
 
 /// \details Function for creation `ModbusServerPort` with defined parameters:
 /// \param[in]  device      Pointer to the `ModbusInterface` implementation to which all requests for Modbus functions are forwarded.
-/// \param[in]  type        Protocol type: TCP, RTU, ASC.
+/// \param[in]  type        Protocol type: ASC, RTU, TCP, UDP, ASCvTCP, RTUvTCP, ASCvUDP, ASCvUDP.
 /// \param[in]  settings    For TCP must be pointer: `NetSettings*`, `SerialSettings*` otherwise.
 /// \param[in]  blocking    If true blocking will be set, non blocking otherwise.
 MODBUS_EXPORT ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, const void *settings, bool blocking);

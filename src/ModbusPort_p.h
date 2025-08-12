@@ -48,6 +48,34 @@ public:
         delete[] this->buff;
     }
 
+public: //settings
+    inline const String& host            () const { return settings.hostOrPortName  ; }
+    inline auto          port            () const { return settings.port            ; }
+    inline auto          timeout         () const { return settings.timeout         ; }
+    inline const String& portName        () const { return settings.hostOrPortName  ; }
+    inline auto          baudRate        () const { return settings.baudRate        ; }
+    inline auto          dataBits        () const { return settings.dataBits        ; }
+    inline auto          stopBits        () const { return settings.stopBits        ; }
+    inline auto          parity          () const { return settings.parity          ; }
+    inline auto          flowControl     () const { return settings.flowControl     ; }
+    inline auto          timeoutFirstByte() const { return settings.timeout         ; }
+    inline auto          timeoutInterByte() const { return settings.timeoutInterByte; }
+
+    inline void setHost            (const String& v) { settings.hostOrPortName   = v; }
+    inline void setPort            (uint16_t      v) { settings.port             = v; }
+    inline void setTimeout         (uint32_t      v) { settings.timeout          = v; }
+    inline void setPortName        (const String& v) { settings.hostOrPortName   = v; }
+    inline void setBaudRate        (int32_t       v) { settings.baudRate         = v; }
+    inline void setDataBits        (int8_t        v) { settings.dataBits         = v; }
+    inline void setStopBits        (StopBits      v) { settings.stopBits         = v; }
+    inline void setParity          (Parity        v) { settings.parity           = v; }
+    inline void setFlowControl     (FlowControl   v) { settings.flowControl      = v; }
+    inline void setTimeoutFirstByte(uint32_t      v) { settings.timeout          = v; }
+    inline void setTimeoutInterByte(uint32_t      v) { settings.timeoutInterByte = v; }
+
+    inline void setHost    (const Char* v) { settings.hostOrPortName = v; }
+    inline void setPortName(const Char* v) { settings.hostOrPortName = v; }
+
 public:
     inline bool isBlocking() const { return modeBlocking; }
     inline bool isNonBlocking() const { return !modeBlocking; }

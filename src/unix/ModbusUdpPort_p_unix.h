@@ -1,31 +1,29 @@
-#ifndef MODBUSUDPPORT_P_WIN_H
-#define MODBUSUDPPORT_P_WIN_H
+#ifndef MODBUSUDPPORT_P_UNIX_H
+#define MODBUSUDPPORT_P_UNIX_H
+
+#include <netdb.h>
 
 #include "../ModbusUdpPort_p.h"
 
-#include "Modbus_win.h"
+#include "Modbus_unix.h"
 
-class ModbusUdpPortPrivateWin : public ModbusUdpPortPrivate
+class ModbusUdpPortPrivateUnix : public ModbusUdpPortPrivate
 {
 public:
-    ModbusUdpPortPrivateWin(bool blocking) :
+    ModbusUdpPortPrivateUnix(bool blocking) :
         ModbusUdpPortPrivate(blocking)
     {
-        WSADATA data;
-        WSAStartup(0x202, &data);
-
         this->timestamp = 0;
         this->socket = new ModbusSocket();
     }
 
-    ~ModbusUdpPortPrivateWin()
+    ~ModbusUdpPortPrivateUnix()
     {
         if (!this->socket->isInvalid())
         {
             this->socket->shutdown();
             this->socket->close();
         }
-        WSACleanup();
     }
 
 public:
@@ -42,16 +40,16 @@ public:
 
 public:
     ModbusSocket *socket;
-    DWORD timestamp;
+    Timer timestamp;
     sockaddr_in sockadr;
 };
 
-Handle ModbusUdpPortPrivateWin::handle() const
+Handle ModbusUdpPortPrivateUnix::handle() const
 {
     return reinterpret_cast<Handle>(this->socket->socket());
 }
 
-StatusCode ModbusUdpPortPrivateWin::open()
+StatusCode ModbusUdpPortPrivateUnix::open()
 {
     bool fRepeatAgain;
     do
@@ -73,10 +71,9 @@ StatusCode ModbusUdpPortPrivateWin::open()
                 this->socket->create(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                 if (this->socket->isInvalid())
                 {
-                    int err = WSAGetLastError();
-                    return this->setError(Status_BadUdpCreate, StringLiteral("UDP. Error while creating socket for '") + this->host() + StringLiteral(":") + toModbusString(this->settings.port) +
-                                                            StringLiteral("'. Error code: ") + toModbusString(err) +
-                                                            StringLiteral(". ") + getLastErrorText());
+                    return this->setError(Status_BadUdpCreate, StringLiteral("UDP. Error while creating socket for '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
+                                                               StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                               StringLiteral(". ") + getLastErrorText());
                 }
                 sockadr.sin_family = AF_INET;
                 sockadr.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any available interface
@@ -86,35 +83,33 @@ StatusCode ModbusUdpPortPrivateWin::open()
                 {
                     this->socket->close();
                     this->state = STATE_CLOSED;
-                    int err = WSAGetLastError();
                     return this->setError(Status_BadUdpBind, (StringLiteral("UDP. Bind error for port '") + toModbusString(this->port()) +
-                                                           StringLiteral("'. Error code: ") + toModbusString(err) +
-                                                           StringLiteral(". ") + getLastErrorText()).data());
+                                                              StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                              StringLiteral(". ") + getLastErrorText()).data());
                 }
             }
             else
             {
-                ADDRINFO hints;
-                ZeroMemory(&hints, sizeof(hints));
+                struct addrinfo hints;
+                memset(&hints, 0, sizeof hints);
                 hints.ai_family = AF_INET;
                 hints.ai_socktype = SOCK_DGRAM;
                 hints.ai_protocol = IPPROTO_UDP;
 
-                ADDRINFO* addr = nullptr;
-                DWORD status = getaddrinfo(this->host().data(), NULL, &hints, &addr);
+                struct addrinfo* addr = nullptr;
+                int status = getaddrinfo(this->host().data(), NULL, &hints, &addr);
                 if (status != 0)
-                    return this->setError(Status_BadUdpCreate, StringLiteral("UDP. Error while getting address info for '") + this->host() + StringLiteral(":") + toModbusString(this->settings.port) +
-                                                            StringLiteral("'. Error code: ") + toModbusString(status) +
-                                                            StringLiteral(". ") + getLastErrorText());
+                    return this->setError(Status_BadUdpCreate, StringLiteral("UDP. Error while getting address info for '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
+                                                               StringLiteral("'. Error code: ") + toModbusString(status) +
+                                                               StringLiteral(". ") + getLastErrorText());
                 memcpy(p_sockaddr(), addr->ai_addr ,sizeof(sockaddr));
                 freeaddrinfo(addr);
                 this->socket->create(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                 if (this->socket->isInvalid())
                 {
-                    int err = WSAGetLastError();
-                    return this->setError(Status_BadUdpCreate, StringLiteral("UDP. Error while creating socket for '") + this->host() + StringLiteral(":") + toModbusString(this->settings.port) +
-                                                            StringLiteral("'. Error code: ") + toModbusString(err) +
-                                                            StringLiteral(". ") + getLastErrorText());
+                    return this->setError(Status_BadUdpCreate, StringLiteral("UDP. Error while creating socket for '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
+                                                               StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                               StringLiteral(". ") + getLastErrorText());
                 }
                 this->p_sockaddr_in()->sin_port = htons(this->port());
             }
@@ -137,7 +132,7 @@ StatusCode ModbusUdpPortPrivateWin::open()
     return Status_Processing;
 }
 
-StatusCode ModbusUdpPortPrivateWin::close()
+StatusCode ModbusUdpPortPrivateUnix::close()
 {
     if (!this->socket->isInvalid())
     {
@@ -148,19 +143,19 @@ StatusCode ModbusUdpPortPrivateWin::close()
     return Status_Good;
 }
 
-bool ModbusUdpPortPrivateWin::isOpen() const
+bool ModbusUdpPortPrivateUnix::isOpen() const
 {
     if (this->socket->isInvalid())
         return false;
     int error = 0;
-    int error_len = sizeof(error);
-    int r = this->socket->getsockopt(SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &error_len);
+    socklen_t error_len = sizeof(error);
+    int r = this->socket->getsockopt(SOL_SOCKET, SO_ERROR, &error, &error_len);
     if (r != 0)
         return false;
     return (error == 0);
 }
 
-StatusCode ModbusUdpPortPrivateWin::write()
+StatusCode ModbusUdpPortPrivateUnix::write()
 {
     switch (this->state)
     {
@@ -183,10 +178,9 @@ StatusCode ModbusUdpPortPrivateWin::write()
         else
         {
             this->close();
-            DWORD err = WSAGetLastError();
-            return this->setError(Status_BadUdpWrite, StringLiteral("UDP. Error while writing to '") + this->host() + StringLiteral(":") + toModbusString(this->settings.port) +
-                                                   StringLiteral("'. Error code: ") + toModbusString(err) +
-                                                   StringLiteral(". ") + getLastErrorText());
+            return this->setError(Status_BadUdpWrite, StringLiteral("UDP. Error while writing to '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
+                                                      StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                      StringLiteral(". ") + getLastErrorText());
         }
     }
         break;
@@ -196,20 +190,20 @@ StatusCode ModbusUdpPortPrivateWin::write()
     return Status_Processing;
 }
 
-StatusCode ModbusUdpPortPrivateWin::read()
+StatusCode ModbusUdpPortPrivateUnix::read()
 {
     const uint16_t size = this->c_buffSz;
     switch (this->state)
     {
     case STATE_BEGIN:
     case STATE_PREPARE_TO_READ:
-        this->timestamp = GetTickCount();
+        this->timestamp = timer();
         this->state = STATE_WAIT_FOR_READ;
         // no need break
     case STATE_WAIT_FOR_READ:
     case STATE_WAIT_FOR_READ_ALL:
     {
-        int addrsz = sizeof(sockaddr);
+        socklen_t addrsz = sizeof(sockaddr);
         int c = recvfrom(this->socket->socket(),
                          reinterpret_cast<char*>(this->buff),
                          size,
@@ -229,24 +223,23 @@ StatusCode ModbusUdpPortPrivateWin::read()
             if (this->modeServer)
                 return Status_Uncertain;
             else
-                return this->setError(Status_BadUdpRead, StringLiteral("UDP. Error while reading from '") + this->host() + StringLiteral(":") + toModbusString(this->settings.port) +
+                return this->setError(Status_BadUdpRead, StringLiteral("UDP. Error while reading from '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                          StringLiteral("'. Remote connection closed") );
         }
-        else if (isNonBlocking() && (GetTickCount() - this->timestamp >= this->timeout())) // waiting timeout read first byte elapsed
+        else if (isNonBlocking() && (timer() - this->timestamp >= this->settings.timeout)) // waiting timeout read first byte elapsed
         {
             //close();
             this->state = STATE_BEGIN;
-            return this->setError(Status_BadUdpReadTimeout, StringLiteral("UDP. Error while reading from '") + this->host() + StringLiteral(":") + toModbusString(this->settings.port) +
+            return this->setError(Status_BadUdpReadTimeout, StringLiteral("UDP. Error while reading from '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                             StringLiteral("'. Timeout") );
         }
         else
         {
-            int err = WSAGetLastError();
-            if (err != WSAEWOULDBLOCK)
+            if (errno != EWOULDBLOCK)
             {
                 close();
-                return this->setError(Status_BadUdpRead, StringLiteral("UDP. Error while reading from '") + this->host() + StringLiteral(":") + toModbusString(this->settings.port) +
-                                                      StringLiteral("'. Error code: ") + toModbusString(err) +
+                return this->setError(Status_BadUdpRead, StringLiteral("UDP. Error while reading from '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
+                                                      StringLiteral("'. Error code: ") + toModbusString(errno) +
                                                       StringLiteral(". ") + getLastErrorText());
             }
         }
@@ -258,6 +251,6 @@ StatusCode ModbusUdpPortPrivateWin::read()
     return Status_Processing;
 }
 
-inline ModbusUdpPortPrivateWin *d_win(ModbusPortPrivate *d_ptr) { return static_cast<ModbusUdpPortPrivateWin*>(d_ptr); }
+inline ModbusUdpPortPrivateUnix *d_win(ModbusPortPrivate *d_ptr) { return static_cast<ModbusUdpPortPrivateUnix*>(d_ptr); }
 
-#endif // MODBUSUDPPORT_P_WIN_H
+#endif // MODBUSUDPPORT_P_UNIX_H

@@ -14,7 +14,6 @@
 #include "Modbus.h"
 
 class ModbusPortPrivate;
-class ModbusTransport;
 
 /*! \brief The abstract class `ModbusPort` is the base class for a specific implementation of the Modbus communication protocol.
 
@@ -183,7 +182,6 @@ protected:
 
 protected:
     /// \cond
-    friend class ModbusTransport;
     ModbusPortPrivate *d_ptr;
     ModbusPort(ModbusPortPrivate *d);
     /// \endcond

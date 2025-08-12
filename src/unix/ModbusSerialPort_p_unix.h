@@ -72,12 +72,11 @@ Handle ModbusSerialPortPrivateUnix::handle() const
 
 StatusCode ModbusSerialPortPrivateUnix::open()
 {
-    ModbusSerialPortPrivateUnix *d = this;
     bool fRepeatAgain;
     do
     {
         fRepeatAgain = false;
-        switch (d->state)
+        switch (this->state)
         {
         case STATE_UNKNOWN:
         case STATE_CLOSED:
@@ -85,11 +84,11 @@ StatusCode ModbusSerialPortPrivateUnix::open()
         {
             if (isOpen())
             {
-                d->state = STATE_BEGIN;
+                this->state = STATE_BEGIN;
                 return Status_Good;
             }
 
-            d->clearChanged();
+            this->clearChanged();
             struct termios options;
             speed_t sp;
             int flags = O_RDWR | O_NOCTTY;
@@ -101,25 +100,25 @@ StatusCode ModbusSerialPortPrivateUnix::open()
             {
                 flags |= O_NONBLOCK;
             }
-            d->serialPort = ::open(d->portName().c_str(),  flags);
+            this->serialPort = ::open(this->portName().c_str(),  flags);
 
-            if (d->serialPortIsInvalid())
+            if (this->serialPortIsInvalid())
             {
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open '") + d->portName() +
+                return this->setError(Status_BadSerialOpen, StringLiteral("Failed to open '") + this->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
             }
 
-            //fcntl(d->serialPort, F_SETFL, 0); // Note: change file (serial port) flags
+            //fcntl(this->serialPort, F_SETFL, 0); // Note: change file (serial port) flags
 
             // Configuring serial port
             int r;
-            r = tcgetattr(d->serialPort, &options);
+            r = tcgetattr(this->serialPort, &options);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get attributes for '") + d->portName() +
+                return this->setError(Status_BadSerialOpen, StringLiteral("Failed to get attributes for '") + this->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
-            switch(d->settings.baudRate)
+            switch(this->settings.baudRate)
             {
             case 1200:  sp = B1200;  break;
             case 2400:  sp = B2400;  break;
@@ -134,12 +133,12 @@ StatusCode ModbusSerialPortPrivateUnix::open()
 
             r = cfsetispeed(&options, sp);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set input baud rate for '") + d->portName() +
+                return this->setError(Status_BadSerialOpen, StringLiteral("Failed to set input baud rate for '") + this->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
             r = cfsetospeed(&options, sp);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set output baud rate for '") + d->portName() +
+                return this->setError(Status_BadSerialOpen, StringLiteral("Failed to set output baud rate for '") + this->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
 
@@ -147,7 +146,7 @@ StatusCode ModbusSerialPortPrivateUnix::open()
 
             // data bits
             options.c_cflag &= ~CSIZE;
-            switch (d->settings.dataBits)
+            switch (this->settings.dataBits)
             {
             case 5: options.c_cflag |= CS5; break;
             case 6: options.c_cflag |= CS6; break;
@@ -158,7 +157,7 @@ StatusCode ModbusSerialPortPrivateUnix::open()
             // parity
             options.c_cflag &= ~PARENB;
             options.c_cflag &= ~PARODD;
-            switch (d->settings.parity)
+            switch (this->settings.parity)
             {
             case EvenParity: options.c_cflag |= PARENB; break;
             case OddParity:  options.c_cflag |= PARENB; options.c_cflag |= PARODD; break;
@@ -166,7 +165,7 @@ StatusCode ModbusSerialPortPrivateUnix::open()
             }
 
             // stop bits
-            switch (d->settings.stopBits)
+            switch (this->settings.stopBits)
             {
             case OneStop:
                 options.c_cflag &= ~CSTOPB;  // Clear CSTOPB flag for 1 stop bit
@@ -201,7 +200,7 @@ StatusCode ModbusSerialPortPrivateUnix::open()
             if (isBlocking())
             {
                 options.c_cc[VMIN]  = 0;
-                options.c_cc[VTIME] = d->timeoutFirstByte() / 100;
+                options.c_cc[VTIME] = this->timeoutFirstByte() / 100;
             }
             else
             {
@@ -209,9 +208,9 @@ StatusCode ModbusSerialPortPrivateUnix::open()
                 options.c_cc[VTIME] = 0;
             }
 
-            r = tcsetattr(d->serialPort, TCSANOW, &options);
+            r = tcsetattr(this->serialPort, TCSANOW, &options);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set attributes for '") + d->portName() +
+                return this->setError(Status_BadSerialOpen, StringLiteral("Failed to set attributes for '") + this->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
 
@@ -220,7 +219,7 @@ StatusCode ModbusSerialPortPrivateUnix::open()
         default:
             if (!isOpen())
             {
-                d->state = STATE_CLOSED;
+                this->state = STATE_CLOSED;
                 fRepeatAgain = true;
                 break;
             }
@@ -233,13 +232,12 @@ StatusCode ModbusSerialPortPrivateUnix::open()
 
 StatusCode ModbusSerialPortPrivateUnix::close()
 {
-    ModbusSerialPortPrivateUnix *d = this;
-    if (d->serialPortIsOpen())
+    if (this->serialPortIsOpen())
     {
-        d->serialPortClose();
+        this->serialPortClose();
         //setMessage(QString("Serial port '%1' is closed").arg(serialPortName()));
     }
-    d->state = STATE_CLOSED;
+    this->state = STATE_CLOSED;
     return Status_Good;
 }
 

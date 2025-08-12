@@ -6,6 +6,8 @@
 #include "ModbusUdpPort.h"
 #include "ModbusAscOverTcpPort.h"
 #include "ModbusRtuOverTcpPort.h"
+#include "ModbusAscOverUdpPort.h"
+#include "ModbusRtuOverUdpPort.h"
 
 #ifndef MB_CLIENT_DISABLE
 #include "ModbusClientPort.h"
@@ -367,8 +369,8 @@ const Char *sprotocolType(ProtocolType type)
     case UDP    : return StringLiteral("UDP"    );
     case ASCvTCP: return StringLiteral("ASCvTCP");
     case RTUvTCP: return StringLiteral("RTUvTCP");
-    //case ASCvUDP: return StringLiteral("ASCvUDP");
-    //case RTUvUDP: return StringLiteral("RTUvUDP");
+    case ASCvUDP: return StringLiteral("ASCvUDP");
+    case RTUvUDP: return StringLiteral("RTUvUDP");
     default: return nullptr;
     }
 }
@@ -381,8 +383,8 @@ ProtocolType toprotocolType(const Char * s)
     if (strcmp(s, StringLiteral("UDP"    )) == 0) return UDP    ;
     if (strcmp(s, StringLiteral("ASCvTCP")) == 0) return ASCvTCP;
     if (strcmp(s, StringLiteral("RTUvTCP")) == 0) return RTUvTCP;
-    //if (strcmp(s, StringLiteral("ASCvUDP")) == 0) return ASCvUDP;
-    //if (strcmp(s, StringLiteral("RTUvUDP")) == 0) return RTUvUDP;
+    if (strcmp(s, StringLiteral("ASCvUDP")) == 0) return ASCvUDP;
+    if (strcmp(s, StringLiteral("RTUvUDP")) == 0) return RTUvUDP;
     return static_cast<ProtocolType>(-1);
 }   
 
@@ -543,6 +545,12 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
         break;
     case RTUvTCP:
         port = new ModbusRtuOverTcpPort(blocking);
+        break;
+    case ASCvUDP:
+        port = new ModbusAscOverUdpPort(blocking);
+        break;
+    case RTUvUDP:
+        port = new ModbusRtuOverUdpPort(blocking);
         break;
     default:
         return nullptr;

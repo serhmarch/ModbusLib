@@ -17,9 +17,9 @@ public:
     {
         const Modbus::NetDefaults &d = Modbus::NetDefaults::instance();
 
-        settings.hostOrPortName = d.host   ;
-        settings.port           = d.port   ;
-        settings.timeout        = d.timeout;
+        setHost   (d.host   );
+        setPort   (d.port   );
+        setTimeout(d.timeout);
 
         autoIncrement = true;
         transaction = 0;
@@ -28,11 +28,6 @@ public:
 public:
     void setNextRequestRepeated(bool v) override { autoIncrement = !v; }
 
-public:
-    inline auto host   () { return settings.hostOrPortName; }
-    inline auto port   () { return settings.port          ; }
-    inline auto timeout() { return settings.timeout       ; }
-       
 public:
     bool autoIncrement;
     uint16_t transaction;

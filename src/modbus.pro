@@ -26,6 +26,8 @@ HEADERS +=                          \
     $$PWD/ModbusUdpPort.h           \
     $$PWD/ModbusAscOverTcpPort.h    \
     $$PWD/ModbusRtuOverTcpPort.h    \
+    $$PWD/ModbusAscOverUdpPort.h    \
+    $$PWD/ModbusRtuOverUdpPort.h    \
     $$PWD/ModbusClientPort.h        \
     $$PWD/ModbusClient_p.h          \
     $$PWD/ModbusClient.h            \
@@ -52,6 +54,8 @@ SOURCES +=                          \
     $$PWD/ModbusUdpPort.cpp         \
     $$PWD/ModbusAscOverTcpPort.cpp  \
     $$PWD/ModbusRtuOverTcpPort.cpp  \
+    $$PWD/ModbusAscOverUdpPort.cpp  \
+    $$PWD/ModbusRtuOverUdpPort.cpp  \
     $$PWD/ModbusClientPort.cpp      \
     $$PWD/ModbusClient.cpp          \
     $$PWD/ModbusServerPort.cpp      \
@@ -98,14 +102,15 @@ unix {
 
 HEADERS +=                                \
     $$PWD/unix/Modbus_unix.h              \
-    $$PWD/unix/ModbusTCP_unix.h           \
     $$PWD/unix/ModbusSerialPort_p_unix.h  \
     $$PWD/unix/ModbusTcpPort_p_unix.h     \
+    $$PWD/unix/ModbusUppPort_p_unix.h     \
     $$PWD/unix/ModbusTcpServer_p_unix.h   \
 
 SOURCES +=                                \
     $$PWD/unix/Modbus_unix.cpp            \
     $$PWD/unix/ModbusTcpPort_unix.cpp     \
+    $$PWD/unix/ModbusUdpPort_unix.cpp     \
     $$PWD/unix/ModbusTcpServer_unix.cpp   \
     $$PWD/unix/ModbusSerialPort_unix.cpp  \
 

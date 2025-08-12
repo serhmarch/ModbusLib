@@ -2,7 +2,7 @@
 #define MODBUSTCPSERVER_P_UNIX_H
 
 #include "../ModbusTcpServer_p.h"
-#include "ModbusTCP_unix.h"
+#include "Modbus_unix.h"
 
 namespace Modbus {
 

@@ -30,40 +30,38 @@ ModbusRtuPort::ModbusRtuPort(bool blocking) :
 
 StatusCode ModbusRtuPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff)
 {
-    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
     uint16_t crc;
     // 2 is unit and function bytes + 2 bytes CRC16
     if (szInBuff > MB_RTU_IO_BUFF_SZ-(sizeof(crc)+2))
-        return d->setError(Status_BadWriteBufferOverflow, StringLiteral("RTU. Write-buffer overflow"));
-    d->buff[0] = unit;
-    d->buff[1] = func;
-    memcpy(&d->buff[2], buff, szInBuff);
-    d->sz = szInBuff + 2;
-    crc = crc16(d->buff, d->sz);
-    d->buff[d->sz  ] = reinterpret_cast<uint8_t*>(&crc)[0];
-    d->buff[d->sz+1] = reinterpret_cast<uint8_t*>(&crc)[1];
-    d->sz += 2;
+        return this->setError(Status_BadWriteBufferOverflow, StringLiteral("RTU. Write-buffer overflow"));
+    d_ptr->buff[0] = unit;
+    d_ptr->buff[1] = func;
+    memcpy(&d_ptr->buff[2], buff, szInBuff);
+    d_ptr->sz = szInBuff + 2;
+    crc = crc16(d_ptr->buff, d_ptr->sz);
+    d_ptr->buff[d_ptr->sz  ] = reinterpret_cast<uint8_t*>(&crc)[0];
+    d_ptr->buff[d_ptr->sz+1] = reinterpret_cast<uint8_t*>(&crc)[1];
+    d_ptr->sz += 2;
     return Status_Good;
 }
 
 StatusCode ModbusRtuPort::readBuffer(uint8_t& unit, uint8_t& func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
-    ModbusSerialPortPrivate *d = d_ModbusSerialPort(d_ptr);
     uint16_t crc;
-    if (d->sz < 4) // Note: Unit + Func + 2 bytes CRC
-        return d->setError(Status_BadNotCorrectRequest, StringLiteral("RTU. Not correct input. Input data length to small"));
+    if (d_ptr->sz < 4) // Note: Unit + Func + 2 bytes CRC
+        return this->setError(Status_BadNotCorrectRequest, StringLiteral("RTU. Not correct input. Input data length to small"));
 
-    crc = d->buff[d->sz-2] | (d->buff[d->sz-1] << 8);
-    if (crc16(d->buff, d->sz-2) != crc)
-        return d->setError(Status_BadCrc, StringLiteral("RTU. Wrong CRC"));
+    crc = d_ptr->buff[d_ptr->sz-2] | (d_ptr->buff[d_ptr->sz-1] << 8);
+    if (crc16(d_ptr->buff, d_ptr->sz-2) != crc)
+        return this->setError(Status_BadCrc, StringLiteral("RTU. Wrong CRC"));
 
-    unit = d->buff[0];
-    func = d->buff[1];
+    unit = d_ptr->buff[0];
+    func = d_ptr->buff[1];
 
-    d->sz -= 4;
-    if (d->sz > maxSzBuff)
-        return d->setError(Status_BadReadBufferOverflow, StringLiteral("RTU. Read-buffer overflow"));
-    memcpy(buff, &d->buff[2], d->sz);
-    *szOutBuff = d->sz;
+    d_ptr->sz -= 4;
+    if (d_ptr->sz > maxSzBuff)
+        return d_ptr->setError(Status_BadReadBufferOverflow, StringLiteral("RTU. Read-buffer overflow"));
+    memcpy(buff, &d_ptr->buff[2], d_ptr->sz);
+    *szOutBuff = d_ptr->sz;
     return Status_Good;
 }

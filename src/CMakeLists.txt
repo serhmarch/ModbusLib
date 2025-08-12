@@ -58,6 +58,8 @@ set(MB_HEADERS ${MB_HEADERS}
     ModbusUdpPort.h         
     ModbusAscOverTcpPort.h
     ModbusRtuOverTcpPort.h
+    ModbusAscOverUdpPort.h
+    ModbusRtuOverUdpPort.h
     ModbusObject_p.h        
     ModbusSerialPort_p.h    
     ModbusTcpPort_p.h       
@@ -74,6 +76,8 @@ set(MB_SOURCES ${MB_SOURCES}
     ModbusUdpPort.cpp         
     ModbusAscOverTcpPort.cpp
     ModbusRtuOverTcpPort.cpp
+    ModbusAscOverUdpPort.cpp
+    ModbusRtuOverUdpPort.cpp
     )     
 
 if (MB_QT_ENABLED)
@@ -176,13 +180,15 @@ if (WIN32)
 
 else()
     set(MB_HEADERS ${MB_HEADERS}
-        unix/ModbusTCP_unix.h         
+        unix/Modbus_unix.h         
         unix/ModbusSerialPort_p_unix.h
         unix/ModbusTcpPort_p_unix.h   
+        unix/ModbusUdpPort_p_unix.h    
         ) 
     set(MB_SOURCES ${MB_SOURCES}
         unix/Modbus_unix.cpp           
         unix/ModbusTcpPort_unix.cpp    
+        unix/ModbusUdpPort_unix.cpp    
         unix/ModbusSerialPort_unix.cpp
         )
 

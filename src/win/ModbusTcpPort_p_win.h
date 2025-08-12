@@ -70,20 +70,19 @@ Handle ModbusTcpPortPrivateWin::handle() const
 
 StatusCode ModbusTcpPortPrivateWin::open()
 {
-    ModbusTcpPortPrivateWin *d = this;
     bool fRepeatAgain;
     do
     {
         fRepeatAgain = false;
-        switch (d->state)
+        switch (this->state)
         {
         case STATE_BEGIN:
         case STATE_CLOSED:
         {
-            d->clearChanged();
+            this->clearChanged();
             if (isOpen())
             {
-                d->state = STATE_OPENED;
+                this->state = STATE_OPENED;
                 return Status_Good;
             }
             ADDRINFO hints;
@@ -92,69 +91,69 @@ StatusCode ModbusTcpPortPrivateWin::open()
             hints.ai_socktype = SOCK_STREAM;
             hints.ai_protocol = IPPROTO_TCP;
 
-            d->freeAddr();
+            this->freeAddr();
 
             ADDRINFO* addr = nullptr;
-            DWORD status = getaddrinfo(d->settings.hostOrPortName.data(), NULL, &hints, &addr);
+            DWORD status = getaddrinfo(this->settings.hostOrPortName.data(), NULL, &hints, &addr);
             if (status != 0)
-                return d->setError(Status_BadTcpCreate, StringLiteral("TCP. Error while getting address info for '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
+                return this->setError(Status_BadTcpCreate, StringLiteral("TCP. Error while getting address info for '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                         StringLiteral("'. Error code: ") + toModbusString(status) +
                                                         StringLiteral(". ") + getLastErrorText());
-            d->addr = addr;
-            d->socket->create(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-            if (d->socket->isInvalid())
+            this->addr = addr;
+            this->socket->create(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            if (this->socket->isInvalid())
             {
-                d->freeAddr();
+                this->freeAddr();
                 int err = WSAGetLastError();
-                return d->setError(Status_BadTcpCreate, StringLiteral("TCP. Error while creating socket for '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
+                return this->setError(Status_BadTcpCreate, StringLiteral("TCP. Error while creating socket for '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                         StringLiteral("'. Error code: ") + toModbusString(err) +
                                                         StringLiteral(". ") + getLastErrorText());
             }
-            d->socket->setBlocking(false); // Note: in case of block-socket it will be set after connect
+            this->socket->setBlocking(false); // Note: in case of block-socket it will be set after connect
             if (isBlocking())
-                d->socket->setTimeout(this->settings.timeout);
-            reinterpret_cast<sockaddr_in*>(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addr)->sin_port = htons(d->settings.port);
-            d->timestamp = GetTickCount();
-            d->state = STATE_WAIT_FOR_OPEN;
+                this->socket->setTimeout(this->settings.timeout);
+            reinterpret_cast<sockaddr_in*>(reinterpret_cast<ADDRINFO*>(this->addr)->ai_addr)->sin_port = htons(this->settings.port);
+            this->timestamp = GetTickCount();
+            this->state = STATE_WAIT_FOR_OPEN;
         }
         // no need break
         case STATE_WAIT_FOR_OPEN:
         {
             if (isNonBlocking())
             {
-                int r = d->socket->connect(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addr, static_cast<int>(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addrlen));
+                int r = this->socket->connect(reinterpret_cast<ADDRINFO*>(this->addr)->ai_addr, static_cast<int>(reinterpret_cast<ADDRINFO*>(this->addr)->ai_addrlen));
                 DWORD err = WSAGetLastError();
                 if ((r == 0) || (err == WSAEISCONN))
                 {
-                    d->state = STATE_BEGIN;
+                    this->state = STATE_BEGIN;
                     return Status_Good;
                 }
-                else if (GetTickCount() - d->timestamp >= this->settings.timeout)
+                else if (GetTickCount() - this->timestamp >= this->settings.timeout)
                 {
-                    d->socket->close();
-                    d->state = STATE_CLOSED;
-                    return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
+                    this->socket->close();
+                    this->state = STATE_CLOSED;
+                    return this->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                             StringLiteral("'. Timeout") );
                 }
             }
             else if (isBlocking())
             {
-                int r = d->socket->connect(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addr, static_cast<int>(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addrlen));
+                int r = this->socket->connect(reinterpret_cast<ADDRINFO*>(this->addr)->ai_addr, static_cast<int>(reinterpret_cast<ADDRINFO*>(this->addr)->ai_addrlen));
                 if (r != 0)
                 {
                     int err = WSAGetLastError();
                     if (err != WSAEWOULDBLOCK && err != WSAEINPROGRESS)
                     {
-                        d->socket->close();
-                        d->state = STATE_CLOSED;
-                        return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
+                        this->socket->close();
+                        this->state = STATE_CLOSED;
+                        return this->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                                 StringLiteral("'. Error code: ") + toModbusString(err) +
                                                                 StringLiteral(". ") + getLastErrorText());
                     }
                     // Use select() to wait for writability (i.e., successful connect)
                     fd_set writefds;
                     FD_ZERO(&writefds);
-                    FD_SET(d->socket->socket(), &writefds);
+                    FD_SET(this->socket->socket(), &writefds);
 
                     TIMEVAL tv;
                     tv.tv_sec = this->settings.timeout / 1000;
@@ -163,15 +162,15 @@ StatusCode ModbusTcpPortPrivateWin::open()
                     r = select(0, NULL, &writefds, NULL, &tv);
                     if (r <= 0)
                     {
-                        d->socket->close();
-                        d->state = STATE_CLOSED;
+                        this->socket->close();
+                        this->state = STATE_CLOSED;
                         if (r == 0)
-                            return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
+                            return this->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                                     StringLiteral("'. Timeout") );
                         else
                         {
                             int err = WSAGetLastError();
-                            return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
+                            return this->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                                     StringLiteral("'. Error code: ") + toModbusString(err) +
                                                                     StringLiteral(". ") + getLastErrorText());
                         }
@@ -180,19 +179,19 @@ StatusCode ModbusTcpPortPrivateWin::open()
                     // Check for errors after select
                     int sockErr = 0;
                     socklen_t len = sizeof(sockErr);
-                    getsockopt(d->socket->socket(), SOL_SOCKET, SO_ERROR, (char*)&sockErr, &len);
+                    getsockopt(this->socket->socket(), SOL_SOCKET, SO_ERROR, (char*)&sockErr, &len);
                     if (sockErr != 0)
                     {
-                        d->socket->close();
-                        d->state = STATE_CLOSED;
-                        return d->setError(Status_BadTcpConnect, StringLiteral("TCP. Error while connecting to '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
+                        this->socket->close();
+                        this->state = STATE_CLOSED;
+                        return this->setError(Status_BadTcpConnect, StringLiteral("TCP. Error while connecting to '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                                 StringLiteral("'. Error code: ") + toModbusString(sockErr) +
                                                                 StringLiteral(". ") + getLastErrorText());
                     }
                 }
                 // Success - set blocking mode
-                d->socket->setBlocking(true);
-                d->state = STATE_BEGIN;
+                this->socket->setBlocking(true);
+                this->state = STATE_BEGIN;
                 return Status_Good;
             }
         }
@@ -200,7 +199,7 @@ StatusCode ModbusTcpPortPrivateWin::open()
         default:
             if (!isOpen())
             {
-                d->state = STATE_CLOSED;
+                this->state = STATE_CLOSED;
                 fRepeatAgain = true;
                 break;
             }
@@ -213,24 +212,22 @@ StatusCode ModbusTcpPortPrivateWin::open()
 
 StatusCode ModbusTcpPortPrivateWin::close()
 {
-    ModbusTcpPortPrivateWin *d = this;
-    if (!d->socket->isInvalid())
+    if (!this->socket->isInvalid())
     {
-        d->socket->shutdown();
-        d->socket->close();
+        this->socket->shutdown();
+        this->socket->close();
     }
-    d->state = STATE_CLOSED;
+    this->state = STATE_CLOSED;
     return Status_Good;
 }
 
 bool ModbusTcpPortPrivateWin::isOpen() const
 {
-    const ModbusTcpPortPrivateWin *d = this;
-    if (d->socket->isInvalid())
+    if (this->socket->isInvalid())
         return false;
     int error = 0;
     int error_len = sizeof(error);
-    int r = d->socket->getsockopt(SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &error_len);
+    int r = this->socket->getsockopt(SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &error_len);
     if (r != 0)
         return false;
     return (error == 0);
@@ -238,25 +235,24 @@ bool ModbusTcpPortPrivateWin::isOpen() const
 
 StatusCode ModbusTcpPortPrivateWin::write()
 {
-    ModbusTcpPortPrivateWin *d = this;
-    switch (d->state)
+    switch (this->state)
     {
     case STATE_BEGIN:
     case STATE_PREPARE_TO_WRITE:
     case STATE_WAIT_FOR_WRITE:
     case STATE_WAIT_FOR_WRITE_ALL:
     {
-        int c = d->socket->send(reinterpret_cast<char*>(d->buff), d->sz, 0);
+        int c = this->socket->send(reinterpret_cast<char*>(this->buff), this->sz, 0);
         if (c > 0)
         {
-            d->state = STATE_BEGIN;
+            this->state = STATE_BEGIN;
             return Status_Good;
         }
         else
         {
             close();
             DWORD err = WSAGetLastError();
-            return d->setError(Status_BadTcpWrite, StringLiteral("TCP. Error while writing to '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
+            return this->setError(Status_BadTcpWrite, StringLiteral("TCP. Error while writing to '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
                                                     StringLiteral("'. Error code: ") + toModbusString(err) +
                                                     StringLiteral(". ") + getLastErrorText());
         }
@@ -270,40 +266,39 @@ StatusCode ModbusTcpPortPrivateWin::write()
 
 StatusCode ModbusTcpPortPrivateWin::read()
 {
-    ModbusTcpPortPrivateWin *d = this;
-    const uint16_t size = d->c_buffSz;
-    switch (d->state)
+    const uint16_t size = this->c_buffSz;
+    switch (this->state)
     {
     case STATE_BEGIN:
     case STATE_PREPARE_TO_READ:
-        d->timestamp = GetTickCount();
-        d->state = STATE_WAIT_FOR_READ;
+        this->timestamp = GetTickCount();
+        this->state = STATE_WAIT_FOR_READ;
         // no need break
     case STATE_WAIT_FOR_READ:
     case STATE_WAIT_FOR_READ_ALL:
     {
-        int c = d->socket->recv(reinterpret_cast<char*>(d->buff), size, 0);
+        int c = this->socket->recv(reinterpret_cast<char*>(this->buff), size, 0);
         if (c > 0)
         {
-            d->sz = static_cast<uint16_t>(c);
-            d->state = STATE_BEGIN;
+            this->sz = static_cast<uint16_t>(c);
+            this->state = STATE_BEGIN;
             return Status_Good;
         }
         else if (c == 0)
         {
             close();
             // Note: When connection is remotely closed is not error for server side
-            if (d->modeServer)
+            if (this->modeServer)
                 return Status_Uncertain;
             else
-                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
-                                                        StringLiteral("'. Remote connection closed") );
+                return this->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
+                                                         StringLiteral("'. Remote connection closed") );
         }
-        else if (isNonBlocking() && (GetTickCount() - d->timestamp >= this->settings.timeout)) // waiting timeout read first byte elapsed
+        else if (isNonBlocking() && (GetTickCount() - this->timestamp >= this->settings.timeout)) // waiting timeout read first byte elapsed
         {
             close();
-            return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
-                                                    StringLiteral("'. Timeout") );
+            return this->setError(Modbus::Status_BadTcpReadTimeout, StringLiteral("TCP. Error while reading from '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
+                                                                    StringLiteral("'. Timeout") );
         }
         else
         {
@@ -311,9 +306,9 @@ StatusCode ModbusTcpPortPrivateWin::read()
             if (err != WSAEWOULDBLOCK)
             {
                 close();
-                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->settings.hostOrPortName + StringLiteral(":") + toModbusString(d->settings.port) +
-                                                        StringLiteral("'. Error code: ") + toModbusString(err) +
-                                                        StringLiteral(". ") + getLastErrorText());
+                return this->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
+                                                         StringLiteral("'. Error code: ") + toModbusString(err) +
+                                                         StringLiteral(". ") + getLastErrorText());
             }
         }
     }

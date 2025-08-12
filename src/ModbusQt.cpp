@@ -483,8 +483,8 @@ ModbusPort *createPort(const Settings &settings, bool blocking)
         {
             switch (type)
             {
-            case Modbus::RTU:
             case Modbus::ASC:
+            case Modbus::RTU:
             {
                 const Modbus::SerialDefaults &d = Modbus::SerialDefaults::instance();
                 QByteArray portName = settings.value(s.serialPortName, d.portName).toString().toLatin1();
@@ -541,15 +541,9 @@ ModbusServerPort *createServerPort(ModbusInterface *device, const Settings &sett
         {
             switch (type)
             {
-            case Modbus::RTU:
-            case Modbus::ASC:
-            case Modbus::UDP:
-            {
-                ModbusPort *port = createPort(settings, blocking);
-                return new ModbusServerResource(port, device);
-            }
-                break;
-            default:
+            case Modbus::TCP:
+            case Modbus::ASCvTCP:
+            case Modbus::RTUvTCP:
             {
                 const auto &d = ModbusTcpServer::Defaults::instance();
                 Modbus::NetSettings net;
@@ -557,6 +551,12 @@ ModbusServerPort *createServerPort(ModbusInterface *device, const Settings &sett
                 net.timeout = (settings.value(s.timeout, d.timeout).toUInt());
                 net.maxconn = (settings.value(s.maxconn, d.maxconn).toUInt());
                 return createServer(device, type, &net, blocking);
+            }
+                break;
+            default:
+            {
+                ModbusPort *port = createPort(settings, blocking);
+                return new ModbusServerResource(port, device);
             }
                 break;
             }
