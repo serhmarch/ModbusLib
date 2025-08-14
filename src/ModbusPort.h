@@ -145,11 +145,11 @@ public: // errors
 
 public:
     /// \details The function places a raw packet in the buffer for further sending. Returns the status of the operation.
-    Modbus::StatusCode writeRawBuffer(const uint8_t *buff, uint16_t szInBuff);
+    Modbus::StatusCode writeRawBuffer(const void *buff, uint16_t szInBuff);
 
     /// \details The function copies input packet that the `read()` function puts into the inner buffer to the output `buff` 
     /// and set it size into the output varaible `szOutBuff`. Returns the status of the operation.
-    Modbus::StatusCode readRawBuffer(uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+    Modbus::StatusCode readRawBuffer(void *buff, uint16_t maxSzBuff, uint16_t *szOutBuff);
     
     /// \details The function directly generates a packet and places it in the buffer for further sending. Returns the status of the operation.
     virtual Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff) = 0;

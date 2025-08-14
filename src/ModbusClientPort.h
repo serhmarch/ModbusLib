@@ -322,7 +322,7 @@ public:
     /// \param[in]  outBuff   Pointer to the output buffer where read data is stored.
     /// \param[in]  maxSzBuff Maximum size of the output buffer.
     /// \param[out] szOutBuff Pointer to the size of read data.
-    Modbus::StatusCode rawRequest(const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+    Modbus::StatusCode rawRequest(const void *inBuff, uint16_t szInBuff, void *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
 
 public: // SIGNALS
     /// \details Calls each callback of the port when the port is opened. `source` - current port's name

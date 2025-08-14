@@ -1125,7 +1125,7 @@ void ModbusClientPort::signalError(const Modbus::Char *source, Modbus::StatusCod
     emitSignal(__func__, &ModbusClientPort::signalError, source, status, text);
 }
 
-StatusCode ModbusClientPort::rawRequest(const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
+StatusCode ModbusClientPort::rawRequest(const void *inBuff, uint16_t szInBuff, void *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
     RequestStatus rs = getRequestStatus(this);
     if (rs == Disable)

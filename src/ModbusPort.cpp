@@ -251,7 +251,7 @@ const Modbus::Char *ModbusPort::lastErrorText() const
     return d_ptr->lastErrorText();
 }
 
-StatusCode ModbusPort::writeRawBuffer(const uint8_t *buff, uint16_t szInBuff)
+StatusCode ModbusPort::writeRawBuffer(const void *buff, uint16_t szInBuff)
 {
     if (szInBuff > d_ptr->c_buffSz)
         return d_ptr->setError(Status_BadWriteBufferOverflow, StringLiteral("Write-buffer overflow"));
@@ -260,7 +260,7 @@ StatusCode ModbusPort::writeRawBuffer(const uint8_t *buff, uint16_t szInBuff)
     return Status_Good;
 }
 
-StatusCode ModbusPort::readRawBuffer(uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff)
+StatusCode ModbusPort::readRawBuffer(void *buff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
     uint16_t sz = d_ptr->sz;
     if (sz > maxSzBuff)
