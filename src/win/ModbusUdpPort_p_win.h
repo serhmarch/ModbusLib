@@ -59,7 +59,7 @@ StatusCode ModbusUdpPortPrivateWin::open()
         fRepeatAgain = false;
         switch (this->state)
         {
-        case STATE_BEGIN:
+        case STATE_UNKNOWN:
         case STATE_CLOSED:
         case STATE_WAIT_FOR_OPEN:
             this->clearChanged();
@@ -121,7 +121,7 @@ StatusCode ModbusUdpPortPrivateWin::open()
             this->socket->setBlocking(isBlocking());
             if (isBlocking())
                 this->socket->setTimeout(this->timeout());
-            this->state = STATE_BEGIN;
+            this->state = STATE_OPENED;
             return Status_Good;
         default:
             if (!isOpen())
@@ -164,7 +164,7 @@ StatusCode ModbusUdpPortPrivateWin::write()
 {
     switch (this->state)
     {
-    case STATE_BEGIN:
+    case STATE_OPENED:
     case STATE_PREPARE_TO_WRITE:
     case STATE_WAIT_FOR_WRITE:
     case STATE_WAIT_FOR_WRITE_ALL:
@@ -177,7 +177,7 @@ StatusCode ModbusUdpPortPrivateWin::write()
                        sizeof(sockaddr));
         if (c > 0)
         {
-            this->state = STATE_BEGIN;
+            this->state = STATE_OPENED;
             return Status_Good;
         }
         else
@@ -201,7 +201,7 @@ StatusCode ModbusUdpPortPrivateWin::read()
     const uint16_t size = this->c_buffSz;
     switch (this->state)
     {
-    case STATE_BEGIN:
+    case STATE_OPENED:
     case STATE_PREPARE_TO_READ:
         this->timestamp = GetTickCount();
         this->state = STATE_WAIT_FOR_READ;
@@ -219,7 +219,7 @@ StatusCode ModbusUdpPortPrivateWin::read()
         if (c > 0)
         {
             this->sz = static_cast<uint16_t>(c);
-            this->state = STATE_BEGIN;
+            this->state = STATE_OPENED;
             return Status_Good;
         }
         else if (c == 0)
@@ -235,7 +235,7 @@ StatusCode ModbusUdpPortPrivateWin::read()
         else if (isNonBlocking() && (GetTickCount() - this->timestamp >= this->timeout())) // waiting timeout read first byte elapsed
         {
             //close();
-            this->state = STATE_BEGIN;
+            this->state = STATE_OPENED;
             return this->setError(Status_BadUdpReadTimeout, StringLiteral("UDP. Error while reading from '") + this->host() + StringLiteral(":") + toModbusString(this->settings.port) +
                                                             StringLiteral("'. Timeout") );
         }

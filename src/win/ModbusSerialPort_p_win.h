@@ -151,7 +151,7 @@ StatusCode ModbusSerialPortPrivateWin::open()
             this->clearChanged();
             if (isOpen())
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 return Status_Good;
             }
 
@@ -288,7 +288,7 @@ StatusCode ModbusSerialPortPrivateWin::read()
 StatusCode ModbusSerialPortPrivateWin::blockingWrite()
 {
     BOOL r;
-    this->state = STATE_BEGIN;
+    this->state = STATE_OPENED;
     PurgeComm(this->serialPort, PURGE_TXCLEAR|PURGE_RXCLEAR);
     r =  WriteFile(this->serialPort, this->buff, this->sz, NULL, NULL);
     if (!r)
@@ -305,7 +305,7 @@ StatusCode ModbusSerialPortPrivateWin::blockingRead()
 {
     BOOL r;
     DWORD c;
-    this->state = STATE_BEGIN;
+    this->state = STATE_OPENED;
     r = ReadFile(this->serialPort, this->buff, this->c_buffSz, &c, NULL);
     if (!r)
     {
@@ -327,7 +327,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingWrite()
         fRepeatAgain = false;
         switch (this->state)
         {
-        case STATE_BEGIN:
+        case STATE_OPENED:
         case STATE_PREPARE_TO_WRITE:
             // Note: clean read buffer from garbage before write
             PurgeComm(this->serialPort, PURGE_TXCLEAR|PURGE_RXCLEAR);
@@ -335,7 +335,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingWrite()
             this->oWrite.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
             if (this->oWrite.hEvent == NULL)
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 DWORD err = GetLastError();
                 return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->portName() +
                                                              StringLiteral("' serial port (CreateEvent). Error code: ") + toModbusString(err) +
@@ -352,20 +352,20 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingWrite()
                 DWORD err = GetLastError();
                 if (err != ERROR_IO_PENDING)
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     closeEventHandle(this->oWrite);
                     return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->portName() +
                                                                  StringLiteral("' serial port (WriteFile). Error code: ") + toModbusString(err) +
                                                                  StringLiteral(". ") + getLastErrorText());
                 }
             }
-            this->state = STATE_BEGIN;
+            this->state = STATE_OPENED;
             closeEventHandle(this->oWrite);
             return Status_Good;
         default:
             if (this->serialPortIsOpen())
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 fRepeatAgain = true;
             }
             break;
@@ -385,13 +385,13 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
         fRepeatAgain = false;
         switch(this->state)
         {
-        case STATE_BEGIN:
+        case STATE_OPENED:
         case STATE_PREPARE_TO_READ:
             zeroOverlapped(this->oRead);
             this->oRead.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
             if (this->oRead.hEvent == NULL)
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 DWORD err = GetLastError();
                 return this->setError(Status_BadSerialWrite, StringLiteral("Error while reading '") + this->portName() +
                                                              StringLiteral("' serial port (CreateEvent). Error code: ") + toModbusString(err) +
@@ -409,7 +409,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
                 DWORD err = GetLastError();
                 if (err != ERROR_IO_PENDING)
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     closeEventHandle(this->oRead);
                     return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->portName() +
                                                                 StringLiteral("' serial port (ReadFile). Error code: ") + toModbusString(err) +
@@ -422,12 +422,12 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
                 if ((this->settings.timeoutInterByte == 0) || // timeoutInterByte = 0 means no need to wait next bytes
                     (this->sz == this->c_buffSz))             // input buffer is full. Try to handle it
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return Status_Good;
                 }
                 if (this->sz > this->c_buffSz)
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     closeEventHandle(this->oRead);
                     return this->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading '") + this->portName() +
                                                                         StringLiteral("' serial port. Read buffer overflow"));
@@ -435,7 +435,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
             }
             else if (GetTickCount() - this->timestamp >= this->timeoutFirstByte()) // waiting timeout read first byte elapsed
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 closeEventHandle(this->oRead);
                 return this->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading '") + this->portName() +
                                                                    StringLiteral("' serial port. Timeout"));
@@ -455,7 +455,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
                 DWORD err = GetLastError();
                 if (err != ERROR_IO_PENDING)
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     closeEventHandle(this->oRead);
                     return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->portName() +
                                                                 StringLiteral("' serial port. Error code: ") + toModbusString(err) +
@@ -467,7 +467,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
                 this->sz += static_cast<uint16_t>(c);
                 if (this->sz == this->c_buffSz) // input buffer is full. Try to handle it
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return Status_Good;
                 }
                 if (this->sz > this->c_buffSz)
@@ -480,7 +480,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
             }
             else if (GetTickCount() - this->timestamp >= this->settings.timeoutInterByte) // waiting timeout read next byte elapsed
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 closeEventHandle(this->oRead);
                 return Status_Good;
             }
@@ -488,7 +488,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
         default:
             if (this->serialPortIsOpen())
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 fRepeatAgain = true;
             }
             break;

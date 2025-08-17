@@ -1133,6 +1133,9 @@ StatusCode ModbusClientPort::rawRequest(const void *inBuff, uint16_t szInBuff, v
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
     if (!d->isWriteBufferBlocked())
     {
+        // TODO: set `d->unit = 0` and find reason of the crash
+        d->unit = 1; // Note: prevent broadcast false recognition
+        d->func = 0;
         d->lastTries = 0;
         StatusCode s = d->port->writeRawBuffer(inBuff, szInBuff);
         if (StatusIsBad(s))

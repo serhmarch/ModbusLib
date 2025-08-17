@@ -104,7 +104,7 @@ HEADERS +=                                \
     $$PWD/unix/Modbus_unix.h              \
     $$PWD/unix/ModbusSerialPort_p_unix.h  \
     $$PWD/unix/ModbusTcpPort_p_unix.h     \
-    $$PWD/unix/ModbusUppPort_p_unix.h     \
+    $$PWD/unix/ModbusUpdPort_p_unix.h     \
     $$PWD/unix/ModbusTcpServer_p_unix.h   \
 
 SOURCES +=                                \

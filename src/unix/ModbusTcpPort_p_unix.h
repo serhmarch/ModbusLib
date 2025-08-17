@@ -20,6 +20,8 @@ public:
         {
             socket->setBlocking(isBlocking());
             this->socket = socket;
+            if (socket->isValid())
+                this->state = STATE_OPENED;
         }
         else
         {
@@ -68,14 +70,13 @@ Handle ModbusTcpPortPrivateUnix::handle() const
 
 StatusCode ModbusTcpPortPrivateUnix::open()
 {
-    ModbusTcpPortPrivateUnix *d = this;
     bool fRepeatAgain;
     do
     {
         fRepeatAgain = false;
         switch (this->state)
         {
-        case STATE_BEGIN:
+        case STATE_UNKNOWN:
         case STATE_CLOSED:
         {
             this->clearChanged();
@@ -122,7 +123,7 @@ StatusCode ModbusTcpPortPrivateUnix::open()
                 int r = this->socket->connect(this->addr->ai_addr, static_cast<int>(this->addr->ai_addrlen));
                 if ((r == 0) || (errno == EISCONN))
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return Status_Good;
                 }
                 else if (timer() - this->timestamp >= this->timeout())
@@ -187,7 +188,7 @@ StatusCode ModbusTcpPortPrivateUnix::open()
                 }
                 // Success - set blocking mode
                 this->socket->setBlocking(true);
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 return Status_Good;
             }
         }
@@ -208,7 +209,6 @@ StatusCode ModbusTcpPortPrivateUnix::open()
 
 StatusCode ModbusTcpPortPrivateUnix::close()
 {
-    ModbusTcpPortPrivateUnix *d = this;
     if (!this->socket->isInvalid())
     {
         this->socket->shutdown();
@@ -220,7 +220,6 @@ StatusCode ModbusTcpPortPrivateUnix::close()
 
 bool ModbusTcpPortPrivateUnix::isOpen() const
 {
-    const ModbusTcpPortPrivateUnix *d = this;
     if (this->socket->isInvalid())
         return false;
     int error = 0;
@@ -233,10 +232,9 @@ bool ModbusTcpPortPrivateUnix::isOpen() const
 
 StatusCode ModbusTcpPortPrivateUnix::write()
 {
-    ModbusTcpPortPrivateUnix *d = this;
     switch (this->state)
     {
-    case STATE_BEGIN:
+    case STATE_OPENED:
     case STATE_PREPARE_TO_WRITE:
     case STATE_WAIT_FOR_WRITE:
     case STATE_WAIT_FOR_WRITE_ALL:
@@ -244,7 +242,7 @@ StatusCode ModbusTcpPortPrivateUnix::write()
         ssize_t c = this->socket->send(reinterpret_cast<char*>(this->buff), this->sz, 0);
         if (c > 0)
         {
-            this->state = STATE_BEGIN;
+            this->state = STATE_OPENED;
             return Status_Good;
         }
         else
@@ -264,11 +262,10 @@ StatusCode ModbusTcpPortPrivateUnix::write()
 
 StatusCode ModbusTcpPortPrivateUnix::read()
 {
-    ModbusTcpPortPrivateUnix *d = this;
     const uint16_t size = MBCLIENTTCP_BUFF_SZ;
     switch (this->state)
     {
-    case STATE_BEGIN:
+    case STATE_OPENED:
     case STATE_PREPARE_TO_READ:
         this->timestamp = timer();
         this->state = STATE_WAIT_FOR_READ;
@@ -280,7 +277,7 @@ StatusCode ModbusTcpPortPrivateUnix::read()
         if (c > 0)
         {
             this->sz = static_cast<uint16_t>(c);
-            this->state = STATE_BEGIN;
+            this->state = STATE_OPENED;
             return Status_Good;
         }
         else if (c == 0)
