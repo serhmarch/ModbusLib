@@ -21,6 +21,8 @@ public:
         {
             socket->setBlocking(isBlocking());
             this->socket = socket;
+            if (socket->isValid())
+                this->state = STATE_OPENED;
         }
         else
         {

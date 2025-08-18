@@ -9,8 +9,7 @@ namespace ModbusPortPrivateNS {
 
 enum State
 {
-    STATE_BEGIN = 0,
-    STATE_UNKNOWN = STATE_BEGIN,
+    STATE_UNKNOWN = 0,
     STATE_WAIT_FOR_OPEN,
     STATE_OPENED,
     STATE_PREPARE_TO_READ,

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13) # 2.2 - case insensitive syntax
                                      # 3.13 included policy CMP0077
 
-project(ModbusLib VERSION 0.4.4 LANGUAGES C CXX)
+project(ModbusLib VERSION 0.4.5 LANGUAGES C CXX)
 
 set(MB_LIBRARY_NAME modbus CACHE INTERNAL "Name of the modbus library")
 
@@ -232,65 +232,65 @@ if (MB_QT_ENABLED)
     target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 endif()
 
-# --------------------- Install pipeline ---------------------
-
-# Set the default install directory within the build directory under an "install" subdirectory
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "install prefix" FORCE)
-    message(STATUS "No install directory specified, set it to ${CMAKE_INSTALL_PREFIX} as default")
-endif ()
-
-set_target_properties(${MB_LIBRARY_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
-
+## --------------------- Install pipeline ---------------------
+#
+## Set the default install directory within the build directory under an "install" subdirectory
+#if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "install prefix" FORCE)
+#    message(STATUS "No install directory specified, set it to ${CMAKE_INSTALL_PREFIX} as default")
+#endif ()
+#
+#set_target_properties(${MB_LIBRARY_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
+#
 # Specify where header and built files should be copied
-install(TARGETS ${MB_LIBRARY_NAME}
-    EXPORT ${MB_LIBRARY_NAME}-targets
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/${MB_LIBRARY_NAME}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin  # For DLLs on Windows
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/${MB_LIBRARY_NAME}
-    COMPONENT Runtime
-    )
-
-# Specify where headers should be found for installed target
-target_include_directories(
-    ${MB_LIBRARY_NAME}
-    PUBLIC
-    $<INSTALL_INTERFACE:include>
-    )   
-
-# Create the config file X-targets.cmake
-# which will be referenced in config.cmake.in
-# Put it in build directory for now to avoid
-# having temporary files in the installation directory
-install(
-    EXPORT ${MB_LIBRARY_NAME}-targets
-    FILE "${MB_LIBRARY_NAME}-targets.cmake"
-    NAMESPACE ${MB_LIBRARY_NAME}::
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/${MB_LIBRARY_NAME}"
-    )
-
-include(CMakePackageConfigHelpers) # Helper to create basic config files
-
-# Write ${MB_LIBRARY_NAME}ConfigVersion.cmake in build directory
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}ConfigVersion.cmake"
-    VERSION "${CMAKE_PROJECT_VERSION}"
-    COMPATIBILITY SameMajorVersion
-    )
-
-# Write MB_LIBRARY_NAMEConfig.cmake in build directory
-# (based on config.cmake.in template for dependencies)
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}Config.cmake"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${MB_LIBRARY_NAME}"
-    )
-
-# Move config files to install directory
-install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}Config.cmake"
-          "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}ConfigVersion.cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/${MB_LIBRARY_NAME}"
-    )
+#install(TARGETS ${MB_LIBRARY_NAME}
+#    EXPORT ${MB_LIBRARY_NAME}-targets
+#    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/${MB_LIBRARY_NAME}
+#    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+#    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+#    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin  # For DLLs on Windows
+#    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/${MB_LIBRARY_NAME}
+#    COMPONENT Runtime
+#    )
+#
+## Specify where headers should be found for installed target
+#target_include_directories(
+#    ${MB_LIBRARY_NAME}
+#    PUBLIC
+#    $<INSTALL_INTERFACE:include>
+#    )   
+#
+## Create the config file X-targets.cmake
+## which will be referenced in config.cmake.in
+## Put it in build directory for now to avoid
+## having temporary files in the installation directory
+#install(
+#    EXPORT ${MB_LIBRARY_NAME}-targets
+#    FILE "${MB_LIBRARY_NAME}-targets.cmake"
+#    NAMESPACE ${MB_LIBRARY_NAME}::
+#    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/${MB_LIBRARY_NAME}"
+#    )
+#
+#include(CMakePackageConfigHelpers) # Helper to create basic config files
+#
+## Write ${MB_LIBRARY_NAME}ConfigVersion.cmake in build directory
+#write_basic_package_version_file(
+#    "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}ConfigVersion.cmake"
+#    VERSION "${CMAKE_PROJECT_VERSION}"
+#    COMPATIBILITY SameMajorVersion
+#    )
+#
+## Write MB_LIBRARY_NAMEConfig.cmake in build directory
+## (based on config.cmake.in template for dependencies)
+#configure_package_config_file(
+#    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in"
+#    "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}Config.cmake"
+#    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${MB_LIBRARY_NAME}"
+#    )
+#
+## Move config files to install directory
+#install(
+#    FILES "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}Config.cmake"
+#          "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}ConfigVersion.cmake"
+#    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/${MB_LIBRARY_NAME}"
+#    )

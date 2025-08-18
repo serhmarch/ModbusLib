@@ -56,12 +56,11 @@ inline ModbusSerialPortPrivateUnix *d_unix(ModbusPortPrivate *this_ptr) { return
 StatusCode ModbusSerialPortPrivateUnix::blockingWrite()
 {
     int c;
-    this->state = STATE_BEGIN;
+    this->state = STATE_OPENED;
     tcflush(this->serialPort, TCIFLUSH);
     c = ::write(this->serialPort, this->buff, this->sz);
     if (c < 0)
     {
-        this->state = STATE_BEGIN;
         return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->settings.portName +
                                                      StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                      StringLiteral(". ") + getLastErrorText());
@@ -72,11 +71,10 @@ StatusCode ModbusSerialPortPrivateUnix::blockingWrite()
 StatusCode ModbusSerialPortPrivateUnix::blockingRead()
 {
     int c;
-    this->state = STATE_BEGIN;
+    this->state = STATE_OPENED;
     c = ::read(this->serialPort, this->buff, this->c_buffSz);
     if (c < 0)
     {
-        this->state = STATE_BEGIN;
         return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->settings.portName +
                                                     StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                     StringLiteral(". ") + getLastErrorText());
@@ -94,7 +92,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
         fRepeatAgain = false;
         switch (this->state)
         {
-        case STATE_BEGIN:
+        case STATE_OPENED:
         case STATE_PREPARE_TO_WRITE:
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_WRITE;
@@ -106,14 +104,14 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
             c = ::write(this->serialPort, this->buff, this->sz);
             if (c >= 0)
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 return Status_Good;
             }
             else
             {
                 if (errno != EWOULDBLOCK)
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->settings.portName +
                                                                  StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                                  StringLiteral(". ") + getLastErrorText());
@@ -123,9 +121,11 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
         default:
             if (this->serialPortIsOpen())
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 fRepeatAgain = true;
             }
+            else
+                return this->setError(Status_BadSerialWrite, StringLiteral("Internal error"));
             break;
         }
     }
@@ -142,7 +142,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
         fRepeatAgain = false;
         switch(this->state)
         {
-        case STATE_BEGIN:
+        case STATE_OPENED:
         case STATE_PREPARE_TO_READ:
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_READ;
@@ -155,7 +155,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             {
                 if (errno != EWOULDBLOCK)
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->settings.portName +
                                                                 StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                                 StringLiteral(". ") + getLastErrorText());
@@ -167,19 +167,19 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
                 if ((this->settings.timeoutInterByte == 0) || // timeoutInterByte = 0 means no need to wait next bytes
                     (this->sz == this->c_buffSz))             // input buffer is full. Try to handle it
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return Status_Good;
                 }
                 if (this->sz > this->c_buffSz)
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return this->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading '") + this->settings.portName +
                                                                         StringLiteral("' serial port. Read buffer overflow"));
                 }
             }
             else if (timer() - this->timestamp >= this->settingsBase.timeout) // waiting timeout read first byte elapsed
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 return this->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading '") + this->settings.portName +
                                                                    StringLiteral("' serial port. Timeout"));
             }
@@ -197,7 +197,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             {
                 if (errno != EWOULDBLOCK)
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->settings.portName +
                                                                 StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                                 StringLiteral(". ") + getLastErrorText());
@@ -209,7 +209,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
                 this->sz += static_cast<uint16_t>(c);
                 if (this->sz == this->c_buffSz) // input buffer is full. Try to handle it
                 {
-                    this->state = STATE_BEGIN;
+                    this->state = STATE_OPENED;
                     return Status_Good;
                 }
                 if (this->sz > this->c_buffSz)
@@ -219,16 +219,18 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             }
             else if (timer() - this->timestamp >= this->settings.timeoutInterByte) // waiting timeout read next byte elapsed
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 return Status_Good;
             }
             return Status_Processing;
         default:
             if (this->serialPortIsOpen())
             {
-                this->state = STATE_BEGIN;
+                this->state = STATE_OPENED;
                 fRepeatAgain = true;
             }
+            else
+                return this->setError(Status_BadSerialRead, StringLiteral("Internal error"));
             break;
         }
     }

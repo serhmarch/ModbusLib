@@ -91,3 +91,7 @@
 * If serial port `timeoutInterByte = 0` that means no need to wait next bytes
 * Fixed issue with `writeCount` registers for `ReadWriteMultipleRegisters` Modbus func
 * Fixed issue with blocking TCP sockets
+
+# 0.4.5
+
+* Minor internal improvements

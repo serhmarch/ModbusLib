@@ -36,7 +36,7 @@ Modbus::StatusCode ModbusTcpPort::open()
         fRepeatAgain = false;
         switch (d->state)
         {
-        case STATE_BEGIN:
+        case STATE_UNKNOWN:
         case STATE_CLOSED:
         {
             d->clearChanged();
@@ -85,7 +85,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                 DWORD err = WSAGetLastError();
                 if ((r == 0) || (err == WSAEISCONN))
                 {
-                    d->state = STATE_BEGIN;
+                    d->state = STATE_OPENED;
                     return Status_Good;
                 }
                 else if (GetTickCount() - d->timestamp >= this->timeout())
@@ -151,7 +151,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                 }
                 // Success - set blocking mode
                 d->socket->setBlocking(true);
-                d->state = STATE_BEGIN;
+                d->state = STATE_OPENED;
                 return Status_Good;
             }
         }
@@ -163,6 +163,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                 fRepeatAgain = true;
                 break;
             }
+            d->state = STATE_OPENED;
             return Status_Good;
         }
     }
@@ -200,7 +201,7 @@ StatusCode ModbusTcpPort::write()
     ModbusTcpPortPrivateWin *d = d_win(d_ptr);
     switch (d->state)
     {
-    case STATE_BEGIN:
+    case STATE_OPENED:
     case STATE_PREPARE_TO_WRITE:
     case STATE_WAIT_FOR_WRITE:
     case STATE_WAIT_FOR_WRITE_ALL:
@@ -208,7 +209,7 @@ StatusCode ModbusTcpPort::write()
         int c = d->socket->send(reinterpret_cast<char*>(d->buff), d->sz, 0);
         if (c > 0)
         {
-            d->state = STATE_BEGIN;
+            d->state = STATE_OPENED;
             return Status_Good;
         }
         else
@@ -233,7 +234,7 @@ StatusCode ModbusTcpPort::read()
     const uint16_t size = MBCLIENTTCP_BUFF_SZ;
     switch (d->state)
     {
-    case STATE_BEGIN:
+    case STATE_OPENED:
     case STATE_PREPARE_TO_READ:
         d->timestamp = GetTickCount();
         d->state = STATE_WAIT_FOR_READ;
@@ -245,7 +246,7 @@ StatusCode ModbusTcpPort::read()
         if (c > 0)
         {
             d->sz = static_cast<uint16_t>(c);
-            d->state = STATE_BEGIN;
+            d->state = STATE_OPENED;
             return Status_Good;
         }
         else if (c == 0)

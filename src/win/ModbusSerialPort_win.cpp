@@ -91,7 +91,7 @@ StatusCode ModbusSerialPort::open()
             d->clearChanged();
             if (isOpen())
             {
-                d->state = STATE_BEGIN;
+                d->state = STATE_OPENED;
                 return Status_Good;
             }
 
@@ -192,6 +192,7 @@ StatusCode ModbusSerialPort::open()
                 fRepeatAgain = true;
                 break;
             }
+            d->state = STATE_OPENED;
             return Status_Good;
         }
     }
