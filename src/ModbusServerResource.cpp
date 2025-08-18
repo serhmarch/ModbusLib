@@ -221,7 +221,7 @@ StatusCode ModbusServerResource::process()
         case STATE_TIMEOUT:
             if (timer() - d->timestamp < d->port->timeout())
                 return Status_Processing;
-            d->state = STATE_BEGIN;
+            d->state = STATE_UNKNOWN;
             fRepeatAgain = true;
             break;
         default:

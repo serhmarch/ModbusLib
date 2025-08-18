@@ -1037,7 +1037,7 @@ void ModbusClientPort::setPort(ModbusPort *port)
         ModbusPort *old = d->port;
         old->close();
         d->currentClient = nullptr;
-        d->state = STATE_BEGIN;
+        d->state = STATE_UNKNOWN;
         d->port = port;
         delete old;
     }
@@ -1226,7 +1226,7 @@ StatusCode ModbusClientPort::process()
         fRepeatAgain = false;
         switch (d->state)
         {
-        case STATE_BEGIN:
+        case STATE_UNKNOWN:
             if (d->port->isOpen())
             {
                 d->state = STATE_OPENED;
@@ -1345,7 +1345,7 @@ StatusCode ModbusClientPort::process()
                 else
                     return Status_Processing;
             }
-            d->state = STATE_BEGIN;
+            d->state = STATE_UNKNOWN;
             fRepeatAgain = true;
         }
             break;

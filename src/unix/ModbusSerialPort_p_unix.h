@@ -223,6 +223,7 @@ StatusCode ModbusSerialPortPrivateUnix::open()
                 fRepeatAgain = true;
                 break;
             }
+            this->state = STATE_OPENED;
             return Status_Good;
         }
     }
@@ -264,7 +265,6 @@ StatusCode ModbusSerialPortPrivateUnix::blockingWrite()
     c = ::write(this->serialPort, this->buff, this->sz);
     if (c < 0)
     {
-        this->state = STATE_OPENED;
         return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->portName() +
                                                      StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                      StringLiteral(". ") + getLastErrorText());
@@ -279,7 +279,6 @@ StatusCode ModbusSerialPortPrivateUnix::blockingRead()
     c = ::read(this->serialPort, this->buff, this->c_buffSz);
     if (c < 0)
     {
-        this->state = STATE_OPENED;
         return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->portName() +
                                                     StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                     StringLiteral(". ") + getLastErrorText());
@@ -297,7 +296,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
         fRepeatAgain = false;
         switch (this->state)
         {
-        case STATE_UNKNOWN:
+        case STATE_OPENED:
         case STATE_PREPARE_TO_WRITE:
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_WRITE;
@@ -329,6 +328,8 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
                 this->state = STATE_OPENED;
                 fRepeatAgain = true;
             }
+            else
+                return this->setError(Status_BadSerialWrite, StringLiteral("Internal error"));
             break;
         }
     }
@@ -345,7 +346,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
         fRepeatAgain = false;
         switch(this->state)
         {
-        case STATE_UNKNOWN:
+        case STATE_OPENED:
         case STATE_PREPARE_TO_READ:
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_READ;
@@ -432,6 +433,8 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
                 this->state = STATE_OPENED;
                 fRepeatAgain = true;
             }
+            else
+                return this->setError(Status_BadSerialRead, StringLiteral("Internal error"));
             break;
         }
     }

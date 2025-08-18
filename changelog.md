@@ -92,6 +92,15 @@
 * Fixed issue with `writeCount` registers for `ReadWriteMultipleRegisters` Modbus func
 * Fixed issue with blocking TCP sockets
 
+# 0.4.5
+
+* Minor internal improvements
+
 # 0.5.0
 
-* Added support for Modbus RTU over TCP
+* Added support for Modbus protocol versions:
+    * UDP
+    * RTU over TCP
+    * ASCII over TCP
+    * RTU over UDP
+    * ASCII over UDP
