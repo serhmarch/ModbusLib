@@ -31,12 +31,13 @@ public:
 
     ~ModbusTcpPortPrivateUnix()
     {
-        if (!this->socket->isInvalid())
+        if (this->socket->isValid())
         {
             this->socket->shutdown();
             this->socket->close();
         }
         this->freeAddr();
+        delete this->socket;
     }
 
 public:

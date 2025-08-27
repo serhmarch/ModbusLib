@@ -9,28 +9,32 @@
 class ModbusTcpPortPrivate : public ModbusPortPrivate
 {
 public:
-    static ModbusTcpPortPrivate *create(ModbusSocket *socket, bool blocking);
-
-public:
     ModbusTcpPortPrivate(bool blocking) :
-        ModbusPortPrivate(MBCLIENTTCP_BUFF_SZ, blocking)
+        ModbusPortPrivate(blocking)
     {
-        const Modbus::NetDefaults &d = Modbus::NetDefaults::instance();
+        const ModbusTcpPort::Defaults &d = ModbusTcpPort::Defaults::instance();
 
-        setHost   (d.host   );
-        setPort   (d.port   );
-        setTimeout(d.timeout);
+        settings.host    = d.host   ;
+        settings.port    = d.port   ;
+        settingsBase.timeout = d.timeout;
 
         autoIncrement = true;
         transaction = 0;
+        sz = 0;
     }
 
 public:
-    void setNextRequestRepeated(bool v) override { autoIncrement = !v; }
+    struct
+    {
+        String   host   ;
+        uint16_t port   ;
+    } settings;
 
-public:
     bool autoIncrement;
     uint16_t transaction;
+    uint8_t  buff[MBCLIENTTCP_BUFF_SZ];
+    uint16_t sz;
+
 };
 
 inline ModbusTcpPortPrivate *d_ModbusTcpPort(ModbusPortPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivate*>(d_ptr); }

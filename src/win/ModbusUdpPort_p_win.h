@@ -25,6 +25,7 @@ public:
             this->socket->shutdown();
             this->socket->close();
         }
+        delete this->socket;
         WSACleanup();
     }
 
