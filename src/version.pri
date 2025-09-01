@@ -1,3 +1,3 @@
 CONFIG += skip_target_version_ext
 
-VERSION = "0.4.5.0"
+VERSION = "0.4.6.0"
