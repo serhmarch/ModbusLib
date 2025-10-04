@@ -95,3 +95,8 @@
 # 0.4.5
 
 * Minor internal improvements
+
+# 0.4.6
+
+* Fixed memory leak according to the #6 bug report
+* Change types of in/out buffers of `diagnostics` (0x08) function to `void*`
