@@ -56,6 +56,11 @@ StatusCode ModbusTcpServer::open()
                                                              StringLiteral(". ") + getLastErrorText()).data());
             }
 
+            // This prevents the "Address already in use" error that typically occurs when trying to
+            // bind to a recently closed socket.
+            int opt = 1;
+            setsockopt(d->socket->socket(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
             // Bind the socket
             sockaddr_in serverAddr;
             serverAddr.sin_family = AF_INET;
