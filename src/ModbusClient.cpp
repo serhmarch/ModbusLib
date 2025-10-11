@@ -95,7 +95,7 @@ StatusCode ModbusClient::readExceptionStatus(uint8_t *value)
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-StatusCode ModbusClient::diagnostics(uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+StatusCode ModbusClient::diagnostics(uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
     ModbusClientPrivate *d = d_ModbusClient(d_ptr);
     return d->port->diagnostics(this, d->unit, subfunc, insize, indata, outsize, outdata);

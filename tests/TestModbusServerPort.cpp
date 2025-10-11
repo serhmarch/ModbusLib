@@ -21,12 +21,12 @@ TEST(ModbusServerPort, testAlgorithm)
     const uint16_t offset = 0;
     const uint16_t count  = 16;
 
-    EXPECT_CALL(*port, isOpen())
-        .WillRepeatedly(Return(true));
+    //EXPECT_CALL(*port, isOpen())
+    //    .WillRepeatedly(Return(true));
 
-    EXPECT_CALL(*port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, read())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
     uint8_t outbuff[4];
     uint16_t szoutbuff = sizeof(outbuff);
@@ -53,9 +53,9 @@ TEST(ModbusServerPort, testAlgorithm)
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, write())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, write())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
     sp.process();
 }

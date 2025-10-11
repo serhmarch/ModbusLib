@@ -83,12 +83,12 @@ public:
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-    /// \details Same as `ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
-    Modbus::StatusCode diagnostics(uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+    /// \details Same as `ModbusClientPort::diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode diagnostics(uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
-    /// \details Same as `ModbusClientPort::getCommEventCounter(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    /// \details Same as `ModbusClientPort::getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode getCommEventCounter(uint16_t *status, uint16_t *eventCount);
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 

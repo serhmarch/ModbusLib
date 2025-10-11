@@ -708,7 +708,7 @@ Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t /*unit*/, uint8_
 #endif
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-Modbus::StatusCode ModbusInterface::diagnostics(uint8_t /*unit*/, uint16_t /*subfunc*/, uint8_t /*insize*/, const uint8_t * /*indata*/, uint8_t * /*outsize*/, uint8_t * /*outdata*/)
+Modbus::StatusCode ModbusInterface::diagnostics(uint8_t /*unit*/, uint16_t /*subfunc*/, uint8_t /*insize*/, const void * /*indata*/, uint8_t * /*outsize*/, void * /*outdata*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }

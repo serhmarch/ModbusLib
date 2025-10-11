@@ -400,7 +400,7 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
 
@@ -962,7 +962,7 @@ StatusCode ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *value)
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-Modbus::StatusCode ModbusClientPort::diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+Modbus::StatusCode ModbusClientPort::diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
     return diagnostics(this, unit, subfunc, insize, indata, outsize, outdata);
 }

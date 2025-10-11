@@ -124,7 +124,7 @@ public:
     /// \param[out] outsize Size of the buffer (in bytes) where the output data is stored.
     /// \param[out] outdata Pointer to the buffer where the output data is stored.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+    virtual Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
@@ -149,11 +149,10 @@ public:
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
-    /// \details Function is used to modify the contents of a specified holding register using a
-    /// combination of an AND mask, an OR mask, and the register's current contents.
+    /// \details Function for write coils (discrete outputs, 1-bit values) (0x data).
     /// \param[in]  unit    Address of the remote Modbus device.
     /// \param[in]  offset  Starting offset (0-based).
-    /// \param[in]  count   Count of coils.
+    /// \param[in]  count   Count of coils (bits).
     /// \param[in]  values  Pointer to the input buffer (bit array) which values must be written.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values);

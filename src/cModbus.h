@@ -86,7 +86,7 @@ typedef StatusCode (*pfReadExceptionStatus)(cModbusDevice dev, uint8_t unit, uin
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
 /// \details Pointer to C function for diagnostics. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnostics`
-typedef StatusCode (*pfDiagnostics)(cModbusDevice dev, uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+typedef StatusCode (*pfDiagnostics)(cModbusDevice dev, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
@@ -307,7 +307,7 @@ MODBUS_EXPORT StatusCode cCpoReadExceptionStatus(cModbusClientPort clientPort, u
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
 /// \details Wrapper for `ModbusClientPort::diagnostics`
-MODBUS_EXPORT StatusCode cCpoDiagnostics(cModbusClientPort clientPort, uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata);
+MODBUS_EXPORT StatusCode cCpoDiagnostics(cModbusClientPort clientPort, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE

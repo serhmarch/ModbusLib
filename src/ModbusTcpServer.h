@@ -10,7 +10,7 @@
 
 #include "ModbusServerPort.h"
 
-class ModbusTcpSocket;
+class ModbusSocket;
 
 /*! \brief The `ModbusTcpServer` class implements TCP server part of the Modbus protocol.
 
@@ -29,7 +29,7 @@ public:
         const uint32_t timeout; ///< Default setting for the read timeout of every single conncetion
         const uint32_t maxconn; ///< Default setting for the maximum number of simultaneous connections to the server
 
-        ///  \details Constructor of the class.
+        /// \details Constructor of the class.
         Defaults();
 
         /// \details Returns a reference to the global default value object.
@@ -38,7 +38,7 @@ public:
 
 public:
     ///  \details Constructor of the class. `device` param is object which might process incoming requests for read/write memory.
-    ModbusTcpServer(ModbusInterface *device);
+    ModbusTcpServer(Modbus::ProtocolType type, ModbusInterface *device);
 
     ///  \details Destructor of the class. Clear all unclosed connections.
     ~ModbusTcpServer();
@@ -64,7 +64,7 @@ public:
 
 public:
     /// \details Returns the Modbus protocol type. In this case it is `Modbus::TCP`.
-    Modbus::ProtocolType type() const override { return Modbus::TCP; }
+    Modbus::ProtocolType type() const override;
 
     /// \details Returns `true`.
     bool isTcpServer() const override { return true; }
@@ -97,13 +97,9 @@ public:
     Modbus::StatusCode process() override;
     
 public:
-    /// \details Creates `ModbusServerPort` for new incoming connection defined by `ModbusTcpSocket` pointer
+    /// \details Creates `ModbusPort` for new incoming connection defined by `ModbusSocket` pointer
     /// May be reimplemented in subclasses.
-    virtual ModbusServerPort *createTcpPort(ModbusTcpSocket *socket);
-    
-    /// \details Deletes `ModbusServerPort` by default. 
-    /// May be reimplemented in subclasses.
-    virtual void deleteTcpPort(ModbusServerPort *port);
+    virtual ModbusPort *createModbusPort(ModbusSocket *socket);
     
 public: // SIGNALS
     /// \details Signal occured when new TCP connection was accepted. `source` - name of the current connection.
@@ -113,8 +109,8 @@ public: // SIGNALS
     void signalCloseConnection(const Modbus::Char *source);
 
 protected:
-    /// \details Checks for incoming connections and returns pointer `ModbusTcpSocket` if new connection established, `nullptr` otherwise.
-    ModbusTcpSocket *nextPendingConnection();
+    /// \details Checks for incoming connections and returns pointer `ModbusSocket` if new connection established, `nullptr` otherwise.
+    ModbusSocket *nextPendingConnection();
 
     /// \details Clear all allocated memory for previously established connections.
     void clearConnections();

@@ -187,7 +187,7 @@ public:
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-    StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+    StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
     {
         if (m_diagnostics)
             return m_diagnostics(m_device, unit, subfunc, insize, indata, outsize, outdata);
@@ -548,7 +548,7 @@ StatusCode cCpoReadExceptionStatus(cModbusClientPort clientPort, uint8_t unit, u
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-StatusCode cCpoDiagnostics(cModbusClientPort clientPort, uint8_t unit, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+StatusCode cCpoDiagnostics(cModbusClientPort clientPort, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
     return clientPort->diagnostics(unit, subfunc, insize, indata, outsize, outdata);
 }
@@ -784,7 +784,7 @@ StatusCode cReadExceptionStatus(cModbusClient client, uint8_t *value)
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-StatusCode cDiagnostics(cModbusClient client, uint16_t subfunc, uint8_t insize, const uint8_t *indata, uint8_t *outsize, uint8_t *outdata)
+StatusCode cDiagnostics(cModbusClient client, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
     return client->diagnostics(subfunc, insize, indata, outsize, outdata);
 }

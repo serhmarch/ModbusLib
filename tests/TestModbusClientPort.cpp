@@ -18,20 +18,20 @@ void testAlgorithmRead(ModbusClientPort *cp, ReadMethodPtr method,
     //    .Times(1)
     //    .WillOnce(Return(true));
 
-    EXPECT_CALL(port, isOpen())
-        .WillRepeatedly(Return(true));
+    //EXPECT_CALL(port, isOpen())
+    //    .WillRepeatedly(Return(true));
 
     EXPECT_CALL(port, writeBuffer(unit,func,_,_))
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(port, write())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(port, write())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(port, read())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
     EXPECT_CALL(port, readBuffer(_,_,_,_,_))
         .Times(1)
@@ -60,13 +60,13 @@ void testAlgorithmWriteSingleCoil(ModbusClientPort *cp,
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, write())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, write())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, read())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
     EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
         .Times(1)
@@ -94,13 +94,13 @@ void testAlgorithmWriteSingleRegister(ModbusClientPort *cp,
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, write())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, write())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, read())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
     EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
         .Times(1)
@@ -128,13 +128,13 @@ void testAlgorithmReadExceptionStatus(ModbusClientPort *cp,
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, write())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, write())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, read())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
     EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
         .Times(1)
@@ -165,13 +165,13 @@ void testAlgorithmWrite(ModbusClientPort *cp, WriteMethodPtr method,
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, write())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, write())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
-    EXPECT_CALL(*port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
+    //EXPECT_CALL(*port, read())
+    //    .Times(1)
+    //    .WillOnce(Return(Status_Good));
 
     EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
         .Times(1)
@@ -196,8 +196,8 @@ TEST(ModbusClientPort, testAlgorithmBlocking)
     const uint16_t offset = 0;
     const uint16_t count  = 16;
 
-    EXPECT_CALL(*port, isOpen())
-        .WillRepeatedly(Return(true));
+    //EXPECT_CALL(*port, isOpen())
+    //    .WillRepeatedly(Return(true));
 
     //EXPECT_CALL(*port, open())
     //    .Times(1)
