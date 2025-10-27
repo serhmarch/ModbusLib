@@ -214,7 +214,9 @@ endif()
 #add_library(${MB_LIBRARY_NAME} SHARED ${HEADERS} ${SOURCES} ${RESOURCES})
 add_library(${MB_LIBRARY_NAME} ${HEADERS} ${SOURCES} ${RESOURCES})
 
-target_compile_definitions(${MB_LIBRARY_NAME} PRIVATE MODBUS_EXPORTS)
+if (BUILD_SHARED_LIBS)
+    target_compile_definitions(${MB_LIBRARY_NAME} PRIVATE MODBUS_EXPORTS)
+endif()
 
 set_target_properties(
     ${MB_LIBRARY_NAME}
