@@ -8,6 +8,9 @@
 #ifndef MODBUSSERVERPORT_H
 #define MODBUSSERVERPORT_H
 
+#include <cstdlib>  // for malloc, free
+#include <cstring>  // for memcpy
+
 #include "ModbusObject.h"
 
 /*! \brief Abstract base class for direct control of `ModbusPort` derived classes (TCP or serial) for server side.
