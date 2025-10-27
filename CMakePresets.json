@@ -176,6 +176,22 @@
             }
         },
         {
+            "name": "Linux32-Default",
+            "displayName": "GCC Linux32-gnu Default",
+            "description": "Using compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "/usr/bin/gcc",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+                "CMAKE_C_FLAGS": "-m32",
+                "CMAKE_CXX_FLAGS": "-m32"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
             "name": "Linux-Debug",
             "displayName": "Linux GCC Config Debug",
             "inherits": "Linux-Default",
@@ -185,10 +201,28 @@
             }
         },
         {
+            "name": "Linux32-Debug",
+            "displayName": "Linux32 GCC Config Debug",
+            "inherits": "Linux32-Default",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux32/Debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
             "name": "Linux-Release",
             "displayName": "Linux GCC Config Release",
             "inherits": "Linux-Default",
             "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux/Release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "Linux32-Release",
+            "displayName": "Linux32 GCC Config Release",
+            "inherits": "Linux32-Default",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux32/Release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
@@ -243,10 +277,26 @@
             ]
         },
         {
+            "name": "Linux32-All-Debug",
+            "displayName": "Linux32 GCC Config All Debug",
+            "inherits": [
+                "Linux32-Debug",
+                "Config-All"
+            ]
+        },
+        {
             "name": "Linux-All-Release",
             "displayName": "Linux GCC Config All Release",
             "inherits": [
                 "Linux-Release", 
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Linux32-All-Release",
+            "displayName": "Linux32 GCC Config All Release",
+            "inherits": [
+                "Linux32-Release", 
                 "Config-All"
             ]
         },
@@ -438,9 +488,21 @@
             "configuration": "Debug"
         },
         {
+            "name": "Linux32-All-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux32-All-Debug",
+            "configuration": "Debug"
+        },
+        {
             "name": "Linux-All-Release",
             "inherits": "Build-Base",
             "configurePreset": "Linux-All-Release",
+            "configuration": "Release"
+        },
+        {
+            "name": "Linux32-All-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux32-All-Release",
             "configuration": "Release"
         },
         {

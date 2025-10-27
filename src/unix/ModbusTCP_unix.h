@@ -28,11 +28,9 @@ public:
     inline void setBlocking(bool block) { int flags = fcntl(m_socket, F_GETFL, 0); fcntl(m_socket, F_SETFL, block ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK)); }
     inline void setTimeout(uint32_t timeout)
     {
-        timeval tv
-        {
-            .tv_sec = timeout / 1000,
-            .tv_usec = (timeout % 1000) * 1000
-        };
+        timeval tv;
+        tv.tv_sec = static_cast<decltype(tv.tv_sec)>(timeout / 1000);
+        tv.tv_usec = static_cast<decltype(tv.tv_usec)>((timeout % 1000) * 1000);
         setsockopt(m_socket, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
         setsockopt(m_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
     }
