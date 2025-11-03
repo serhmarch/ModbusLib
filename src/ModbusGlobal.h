@@ -170,7 +170,7 @@
 #define GET_COMM_EVENT_LOG_MAX 64
 
 /// \brief Maximum events for `GetCommEventLog` function
-#define READ_FIFO_QUEUE_MAX 31
+#define MB_READ_FIFO_QUEUE_MAX 31
 
 #ifdef __cplusplus
 

@@ -838,7 +838,7 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
         FIFOCount  = buff[3] | (buff[2] << 8);
         if (bytesCount != (FIFOCount + 1) * 2)
             return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with 'FIFOCount'"));
-        if (FIFOCount > READ_FIFO_QUEUE_MAX)
+        if (FIFOCount > MB_READ_FIFO_QUEUE_MAX)
             return d->setError(Status_BadIllegalDataValue, StringLiteral("'FIFOCount' is bigger than 31"));
         for (i = 0; i < FIFOCount; i++)
             values[i] = buff[i*2+5] | (buff[i*2+4] << 8);
