@@ -649,6 +649,7 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
     const uint16_t szBuff = 300;
 
     uint8_t buff[szBuff];
+    uint8_t byteCount;
     Modbus::StatusCode r;
     uint16_t szOutBuff;
 
@@ -669,8 +670,11 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
 
         if (szOutBuff == 0)
             return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-        *count = buff[0];
-        memcpy(data, &buff[1], *count);
+        byteCount = buff[0];
+        if (szOutBuff != (byteCount+1))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with received data size"));
+        *count = byteCount;
+        memcpy(data, &buff[1], byteCount);
         return d->setGoodStatus();
     default:
         return Status_Processing;
