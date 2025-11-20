@@ -76,6 +76,9 @@ public:
     /// \details Returns `true' if the identifier of each subsequent parcel is automatically incremented by 1, `false' otherwise.
     bool autoIncrement() const;
 
+    /// \details Returns the current transaction identifier.
+    uint16_t transactionId() const;
+
 public:
     const uint8_t *readBufferData() const override;
     uint16_t readBufferSize() const override;

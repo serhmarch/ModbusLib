@@ -54,6 +54,11 @@ bool ModbusTcpPort::autoIncrement() const
     return d_ModbusTcpPort(d_ptr)->autoIncrement;
 }
 
+uint16_t ModbusTcpPort::transactionId() const
+{
+    return d_ModbusTcpPort(d_ptr)->transaction;
+}
+
 const uint8_t *ModbusTcpPort::readBufferData() const
 {
     return d_ModbusTcpPort(d_ptr)->buff;
