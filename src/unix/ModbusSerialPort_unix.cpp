@@ -47,10 +47,14 @@ StatusCode ModbusSerialPort::open()
         {
             if (isOpen())
             {
-                d->state = STATE_OPENED;
-                return Status_Good;
+                if (d->isChanged())
+                    this->close();
+                else
+                {
+                    d->state = STATE_OPENED;
+                    return Status_Good;
+                }
             }
-
             d->clearChanged();
             struct termios options;
             speed_t sp;
@@ -180,14 +184,14 @@ StatusCode ModbusSerialPort::open()
         }
             return Status_Good;
         default:
-            if (!isOpen())
+            if (isOpen() && !d->isChanged())
             {
-                d->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                d->state = STATE_OPENED;
+                return Status_Good;
             }
-            d->state = STATE_OPENED;
-            return Status_Good;
+            d->state = STATE_CLOSED;
+            fRepeatAgain = true;
+            break;
         }
     }
     while (fRepeatAgain);

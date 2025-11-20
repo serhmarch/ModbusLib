@@ -88,12 +88,17 @@ StatusCode ModbusSerialPort::open()
         case STATE_CLOSED:
         case STATE_WAIT_FOR_OPEN:
         {
-            d->clearChanged();
             if (isOpen())
             {
-                d->state = STATE_OPENED;
-                return Status_Good;
+                if (d->isChanged())
+                    this->close();
+                else
+                {
+                    d->state = STATE_OPENED;
+                    return Status_Good;
+                }
             }
+            d->clearChanged();
 
             DWORD dwFlags;
             if (isBlocking())
@@ -186,14 +191,14 @@ StatusCode ModbusSerialPort::open()
         }
             return Status_Good;
         default:
-            if (!isOpen())
+            if (isOpen() && !d->isChanged())
             {
-                d->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                d->state = STATE_OPENED;
+                return Status_Good;
             }
-            d->state = STATE_OPENED;
-            return Status_Good;
+            d->state = STATE_CLOSED;
+            fRepeatAgain = true;
+            break;
         }
     }
     while (fRepeatAgain);

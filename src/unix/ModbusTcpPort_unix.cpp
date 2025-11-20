@@ -41,12 +41,17 @@ Modbus::StatusCode ModbusTcpPort::open()
         case STATE_UNKNOWN:
         case STATE_CLOSED:
         {
-            d->clearChanged();
             if (isOpen())
             {
-                d->state = STATE_OPENED;
-                return Status_Good;
+                if (d->isChanged())
+                    this->close();
+                else
+                {
+                    d->state = STATE_OPENED;
+                    return Status_Good;
+                }
             }
+            d->clearChanged();
             struct addrinfo hints;
             memset(&hints, 0, sizeof hints);
             hints.ai_family = AF_UNSPEC;
@@ -156,14 +161,14 @@ Modbus::StatusCode ModbusTcpPort::open()
         }
             break;
         default:
-            if (!isOpen())
+            if (isOpen() && !d->isChanged())
             {
-                d->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                d->state = STATE_OPENED;
+                return Status_Good;
             }
-            d->state = STATE_OPENED;
-            return Status_Good;
+            d->state = STATE_CLOSED;
+            fRepeatAgain = true;
+            break;
         }
     }
     while (fRepeatAgain);
