@@ -58,6 +58,16 @@ bool ModbusServerResource::isOpen() const
     return d_ModbusServerResource(d_ptr)->port->isOpen();
 }
 
+uint32_t ModbusServerResource::timeout() const
+{
+    return d_ModbusServerResource(d_ptr)->port->timeout();
+}
+
+void ModbusServerResource::setTimeout(uint32_t timeout)
+{
+    d_ModbusServerResource(d_ptr)->port->setTimeout(timeout);
+}
+
 StatusCode ModbusServerResource::process()
 {
     ModbusServerResourcePrivate *d = d_ModbusServerResource(d_ptr);

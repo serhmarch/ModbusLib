@@ -43,6 +43,12 @@ public: // server port interface
 
     bool isOpen() const override;
 
+    ///  \details Returns the timeout for the inner port object defined in constructor.
+    uint32_t timeout() const override;
+
+    ///  \details Sets the timeout for the inner port object defined in constructor.
+    void setTimeout(uint32_t timeout) override;
+
     Modbus::StatusCode process() override;
 
 protected:

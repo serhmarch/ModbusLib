@@ -51,10 +51,10 @@ public:
     void setPort(uint16_t port);
 
     ///  \details Returns the setting for the read timeout of every single conncetion.
-    uint32_t timeout() const;
+    uint32_t timeout() const override;
 
     ///  \details Sets the setting for the read timeout of every single conncetion.
-    void setTimeout(uint32_t timeout);
+    void setTimeout(uint32_t timeout) override;
 
     ///  \details Returns setting for the maximum number of simultaneous connections to the server.
     uint32_t maxConnections() const;

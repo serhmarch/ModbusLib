@@ -63,7 +63,10 @@ uint32_t ModbusTcpServer::timeout() const
 
 void ModbusTcpServer::setTimeout(uint32_t timeout)
 {
-    d_ModbusTcpServer(d_ptr)->timeout = timeout;
+    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    d->timeout = timeout;
+    for (auto& c : d->connections)
+        c->setTimeout(timeout);
 }
 
 uint32_t ModbusTcpServer::maxConnections() const

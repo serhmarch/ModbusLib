@@ -49,6 +49,12 @@ public: // server port interface
     /// \details Returns `true` if inner port is open, `false` otherwise.
     virtual bool isOpen() const = 0;
 
+    ///  \details Returns the setting for the timeout of the port. 
+    virtual uint32_t timeout() const = 0;
+
+    ///  \details Sets the setting for the read timeout of every single conncetion.
+    virtual void setTimeout(uint32_t timeout) = 0;
+
     /// \details Returns `true` if broadcast mode for `0` unit address is enabled, `false` otherwise.
     /// Broadcast mode for `0` unit address is required by Modbus protocol so it is enabled by default
     bool isBroadcastEnabled() const;
