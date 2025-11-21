@@ -1116,52 +1116,57 @@ void ModbusClientPort::signalError(const Modbus::Char *source, Modbus::StatusCod
 StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
-    if (!d->isWriteBufferBlocked())
+    while (1)
     {
-        d->unit = unit;
-        d->func = func;
-        d->lastTries = 0;
-        d->port->writeBuffer(unit, func, buff, szInBuff);
-        d->blockWriteBuffer();
-    }
-    StatusCode r = process();
-    if (StatusIsProcessing(r))
-        return r;
-    d->lastTries = ++d->repeats;
-    if (StatusIsBad(r) && (d->repeats < d->settings.tries))
-    {
-        d->port->setNextRequestRepeated(true);
-        return Status_Processing;
-    }
-    d->freeWriteBuffer();
-    d->repeats = 0;
-    d->currentClient = nullptr;
-    if (StatusIsBad(r))
-        return r;
-    if (!d->isBroadcast())
-    {
-        r = d->port->readBuffer(unit, func, buff, maxSzBuff, szOutBuff);
-        if (StatusIsGood(r))
+        if (!d->isWriteBufferBlocked())
         {
-            if (unit != d->unit)
-                return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested unit (unit) is not equal to responsed"));
-
-            if ((func & MBF_EXCEPTION) == MBF_EXCEPTION)
-            {
-                if (*szOutBuff > 0)
-                {
-                    r = static_cast<StatusCode>(buff[0]); // Returned modbus exception
-                    return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
-                }
-                else
-                    return d->setError(Status_BadNotCorrectResponse, StringLiteral("Exception status missed"));
-            }
-
-            if (func != d->func)
-                return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested function is not equal to responsed"));
+            d->unit = unit;
+            d->func = func;
+            d->lastTries = 0;
+            d->port->writeBuffer(unit, func, buff, szInBuff);
+            d->blockWriteBuffer();
         }
+        StatusCode r = process();
+        if (StatusIsProcessing(r))
+            return r;
+        d->lastTries = ++d->repeats;
+        if (StatusIsBad(r) && (d->repeats < d->settings.tries))
+        {
+            d->port->setNextRequestRepeated(true);
+            if (d->port->isNonBlocking())
+                return Status_Processing;
+            continue;
+        }
+        d->freeWriteBuffer();
+        d->repeats = 0;
+        d->currentClient = nullptr;
+        if (StatusIsBad(r))
+            return r;
+        if (!d->isBroadcast())
+        {
+            r = d->port->readBuffer(unit, func, buff, maxSzBuff, szOutBuff);
+            if (StatusIsGood(r))
+            {
+                if (unit != d->unit)
+                    return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested unit (unit) is not equal to responsed"));
+
+                if ((func & MBF_EXCEPTION) == MBF_EXCEPTION)
+                {
+                    if (*szOutBuff > 0)
+                    {
+                        r = static_cast<StatusCode>(buff[0]); // Returned modbus exception
+                        return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
+                    }
+                    else
+                        return d->setError(Status_BadNotCorrectResponse, StringLiteral("Exception status missed"));
+                }
+
+                if (func != d->func)
+                    return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested function is not equal to responsed"));
+            }
+        }
+        return d->setPortStatus(r);
     }
-    return d->setPortStatus(r);
 }
 
 StatusCode ModbusClientPort::process()
