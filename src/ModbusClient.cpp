@@ -7,9 +7,6 @@ ModbusClient::ModbusClient(uint8_t unit, ModbusClientPort *port) :
     ModbusClientPrivate *d = d_ModbusClient(d_ptr);
     d->unit            = unit;
     d->port            = port;
-    d->lastStatus      = Status_Uncertain;
-    d->lastErrorStatus = Status_Uncertain;
-
 }
 
 

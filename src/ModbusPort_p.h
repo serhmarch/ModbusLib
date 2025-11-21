@@ -34,9 +34,11 @@ public:
     ModbusPortPrivate(bool blocking)
     {
         this->state = STATE_UNKNOWN;
+        this->changed = false;
         this->modeServer = false;
         this->modeBlocking = blocking;
-        this->clearChanged();
+        this->errorStatus = Modbus::Status_Uncertain;
+        // this->settingsBase.timeout must be initialized in derived classes
     }
 
     virtual ~ModbusPortPrivate()

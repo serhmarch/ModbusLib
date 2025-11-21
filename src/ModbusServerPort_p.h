@@ -42,6 +42,7 @@ public:
         this->context = nullptr;
         this->settings.broadcastEnabled = true;
         this->settings.unitmap = nullptr;
+        this->errorStatus = Modbus::Status_Uncertain;
     }
 
     ~ModbusServerPortPrivate() override
