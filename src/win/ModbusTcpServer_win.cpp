@@ -32,6 +32,7 @@ ModbusTcpServer::ModbusTcpServer(ModbusInterface *device) :
 StatusCode ModbusTcpServer::open()
 {
     ModbusTcpServerPrivateWin *d = d_win(d_ptr);
+    d->cmdClose = false;
     bool fRepeatAgain;
     do
     {
