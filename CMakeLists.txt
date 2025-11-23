@@ -27,6 +27,16 @@ if (MB_EXAMPLES_ENABLED)
     add_subdirectory(examples/server)
 endif()
 
+#######################################
+################ TESTS ################
+#######################################
 if (MB_TESTS_ENABLED)
     add_subdirectory(tests)
+endif()
+
+#######################################
+############### INSTALL ###############
+#######################################
+if (NOT MB_TESTS_ENABLED)
+    add_subdirectory(doc)
 endif()

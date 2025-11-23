@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.13) # 2.2 - case insensitive syntax
 project(ModbusLib VERSION 0.4.7 LANGUAGES C CXX)
 
 set(MB_LIBRARY_NAME modbus CACHE INTERNAL "Name of the modbus library")
+set(MB_LIBRARY_VERSION ${PROJECT_VERSION} CACHE INTERNAL "Version of the modbus library")
 
 option(BUILD_SHARED_LIBS "Enable building of shared libraries (dll/so)" ON)
 option(MB_NO_INSTALL "Disable installation target" OFF)
