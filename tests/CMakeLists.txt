@@ -12,6 +12,9 @@ set(MB_TESTS_SOURCES
     TestModbusAddress.cpp
     TestModbusClientPort.cpp
     TestModbusServerPort.cpp
+    TestModbusTcpPort.cpp
+    TestModbusRtuPort.cpp
+    TestModbusAscPort.cpp
     main.cpp
     )
 
@@ -21,3 +24,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../src")
 
 add_executable(${MB_TESTS_EXEC_NAME} ${GOOGLETEST_SOURCES} ${MB_TESTS_HEADERS} ${MB_TESTS_SOURCES})
 target_link_libraries(${MB_TESTS_EXEC_NAME} PRIVATE modbus)
+
+if (WIN32)
+    target_link_libraries(${MB_TESTS_EXEC_NAME} PRIVATE Ws2_32)
+endif()

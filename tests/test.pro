@@ -19,4 +19,7 @@ SOURCES += \
         TestModbus.cpp \
         TestModbusClientPort.cpp \
         TestModbusServerPort.cpp \
+        TestModbusTcpPort.cpp \
+        TestModbusRtuPort.cpp \
+        TestModbusAscPort.cpp \
         main.cpp
