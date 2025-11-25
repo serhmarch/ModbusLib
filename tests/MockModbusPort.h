@@ -8,7 +8,10 @@
 class MockModbusPort : public ModbusPort
 {
 public:
-    MockModbusPort(bool block = true) : ModbusPort(new ModbusPortPrivate(block)) {}
+    MockModbusPort(bool block = true) : ModbusPort(new ModbusPortPrivate(block))
+    {
+        d_ptr->settingsBase.timeout = 1; // default timeout 1 ms for tests
+    }
 
 public:
     MOCK_METHOD(Modbus::ProtocolType, type, (), (const, override));

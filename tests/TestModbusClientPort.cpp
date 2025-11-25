@@ -1,255 +1,982 @@
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <ModbusClientPort.h>
+#include <ModbusClient.h>
+#include <ModbusGlobal.h>
 
 #include "MockModbusPort.h"
 
 using namespace testing;
 using namespace Modbus;
 
-typedef Modbus::StatusCode (ModbusClientPort::*ReadMethodPtr)(uint8_t, uint16_t, uint16_t, void*);
-typedef Modbus::StatusCode (ModbusClientPort::*ReadMethodRegsPtr)(uint8_t, uint16_t, uint16_t, uint16_t*);
+// ============================================================================
+// Test Fixture for ModbusClientPort
+// ============================================================================
 
-void testAlgorithmRead(ModbusClientPort *cp, ReadMethodPtr method,
-                       uint8_t unit, uint8_t func, uint16_t offset, uint16_t count, uint8_t *outbuff, uint16_t szoutbuff)
+class ModbusClientPortTest : public ::testing::Test
 {
-    MockModbusPort &port = *static_cast<MockModbusPort*>(cp->port());
-    //EXPECT_CALL(port, isOpen())
-    //    .Times(1)
-    //    .WillOnce(Return(true));
+protected:
+    MockModbusPort *mockPort;
+    ModbusClientPort *clientPort;
 
-    EXPECT_CALL(port, isOpen())
+    void SetUp() override
+    {
+        mockPort = new MockModbusPort(true);
+        //mockPort->setTimeout(1); // Set minimal timeout for tests
+        clientPort = new ModbusClientPort(mockPort);
+    }
+
+    void TearDown() override
+    {
+        delete clientPort;
+        // mockPort is deleted by clientPort
+    }
+
+    // Helper to setup successful write/read cycle
+    void setupSuccessfulTransaction(uint8_t unit, uint8_t func, 
+                                    const uint8_t *requestData, uint16_t requestSize,
+                                    const uint8_t *responseData, uint16_t responseSize)
+    {
+        EXPECT_CALL(*mockPort, isOpen())
+            .WillRepeatedly(Return(true));
+
+        EXPECT_CALL(*mockPort, writeBuffer(unit, func, _, requestSize))
+            .WillOnce(Return(Status_Good));
+        
+        // Mock buffer size/data methods to eliminate warnings
+        EXPECT_CALL(*mockPort, writeBufferSize())
+            .WillRepeatedly(Return(requestSize));
+        
+        EXPECT_CALL(*mockPort, writeBufferData())
+            .WillRepeatedly(Return(requestData));
+
+        EXPECT_CALL(*mockPort, write())
+            .WillOnce(Return(Status_Good));
+
+        EXPECT_CALL(*mockPort, read())
+            .WillOnce(Return(Status_Good));
+
+        EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+            .WillOnce(DoAll(
+                SetArgReferee<0>(unit),
+                SetArgReferee<1>(func),
+                SetArrayArgument<2>(responseData, responseData + responseSize),
+                SetArgPointee<4>(responseSize),
+                Return(Status_Good)));
+        
+        EXPECT_CALL(*mockPort, readBufferSize())
+            .WillRepeatedly(Return(responseSize));
+        
+        EXPECT_CALL(*mockPort, readBufferData())
+            .WillRepeatedly(Return(responseData));
+    }
+};
+
+// ============================================================================
+// Basic Initialization and Configuration Tests
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, Constructor)
+{
+    EXPECT_NE(clientPort, nullptr);
+    EXPECT_EQ(clientPort->port(), mockPort);
+}
+
+TEST_F(ModbusClientPortTest, TypeReturnsPortType)
+{
+    EXPECT_CALL(*mockPort, type())
+        .WillOnce(Return(ProtocolType::TCP));
+    
+    EXPECT_EQ(clientPort->type(), ProtocolType::TCP);
+}
+
+TEST_F(ModbusClientPortTest, PortGetter)
+{
+    EXPECT_EQ(clientPort->port(), mockPort);
+}
+
+TEST_F(ModbusClientPortTest, SetPort)
+{
+    NiceMock<MockModbusPort> *newPort = new NiceMock<MockModbusPort>(true);
+    
+    EXPECT_CALL(*mockPort, close())
+                .WillOnce(Return(Status_Good));
+
+    clientPort->setPort(newPort);
+    
+    EXPECT_EQ(clientPort->port(), newPort);
+}
+
+TEST_F(ModbusClientPortTest, IsOpenDelegatesToPort)
+{
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillOnce(Return(true))
+        .WillOnce(Return(false));
+    
+    EXPECT_TRUE(clientPort->isOpen());
+    EXPECT_FALSE(clientPort->isOpen());
+}
+
+TEST_F(ModbusClientPortTest, CloseDelegatesToPort)
+{
+    EXPECT_CALL(*mockPort, close())
+        .WillOnce(Return(Status_Good));
+    
+    StatusCode result = clientPort->close();
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+TEST_F(ModbusClientPortTest, TriesDefaultValue)
+{
+    EXPECT_EQ(clientPort->tries(), 1u);
+}
+
+TEST_F(ModbusClientPortTest, SetTries)
+{
+    clientPort->setTries(3);
+    EXPECT_EQ(clientPort->tries(), 3u);
+}
+
+TEST_F(ModbusClientPortTest, RepeatCountBackwardCompatibility)
+{
+    clientPort->setRepeatCount(5);
+    EXPECT_EQ(clientPort->repeatCount(), 5u);
+    EXPECT_EQ(clientPort->tries(), 5u);
+}
+
+TEST_F(ModbusClientPortTest, BroadcastEnabledByDefault)
+{
+    EXPECT_TRUE(clientPort->isBroadcastEnabled());
+}
+
+TEST_F(ModbusClientPortTest, SetBroadcastEnabled)
+{
+    clientPort->setBroadcastEnabled(false);
+    EXPECT_FALSE(clientPort->isBroadcastEnabled());
+    
+    clientPort->setBroadcastEnabled(true);
+    EXPECT_TRUE(clientPort->isBroadcastEnabled());
+}
+
+// ============================================================================
+// Read Coils Tests (Function Code 0x01)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, ReadCoilsSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 0;
+    const uint16_t count = 8;
+    
+    uint8_t requestData[4];
+    requestData[0] = 0x00; // offset high
+    requestData[1] = 0x00; // offset low
+    requestData[2] = 0x00; // count high
+    requestData[3] = 0x08; // count low
+    
+    uint8_t responseData[2];
+    responseData[0] = 0x01; // byte count
+    responseData[1] = 0xAA; // coil values
+    
+    setupSuccessfulTransaction(unit, MBF_READ_COILS, requestData, 4, responseData, 2);
+    
+    uint8_t values[1];
+    StatusCode result = clientPort->readCoils(unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(values[0], 0xAA);
+}
+
+TEST_F(ModbusClientPortTest, ReadCoilsWithClient)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 0;
+    const uint16_t count = 8;
+    
+    uint8_t requestData[4] = {0x00, 0x00, 0x00, 0x08};
+    uint8_t responseData[2] = {0x01, 0x55};
+    
+    setupSuccessfulTransaction(unit, MBF_READ_COILS, requestData, 4, responseData, 2);
+    
+    ModbusClient client(unit, clientPort);
+    uint8_t values[1];
+    StatusCode result = clientPort->readCoils(&client, unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(values[0], 0x55);
+}
+
+TEST_F(ModbusClientPortTest, ReadCoilsAsBoolArray)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 0;
+    const uint16_t count = 8;
+    
+    uint8_t requestData[4] = {0x00, 0x00, 0x00, 0x08};
+    uint8_t responseData[2] = {0x01, 0b10101010};
+    
+    setupSuccessfulTransaction(unit, MBF_READ_COILS, requestData, 4, responseData, 2);
+    
+    bool values[8];
+    StatusCode result = clientPort->readCoilsAsBoolArray(unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_FALSE(values[0]);
+    EXPECT_TRUE(values[1]);
+    EXPECT_FALSE(values[2]);
+    EXPECT_TRUE(values[3]);
+}
+
+// ============================================================================
+// Read Discrete Inputs Tests (Function Code 0x02)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, ReadDiscreteInputsSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 10;
+    const uint16_t count = 8;
+    
+    uint8_t requestData[4] = {0x00, 0x0A, 0x00, 0x08};
+    uint8_t responseData[2] = {0x01, 0xF0};
+    
+    setupSuccessfulTransaction(unit, MBF_READ_DISCRETE_INPUTS, requestData, 4, responseData, 2);
+    
+    uint8_t values[1];
+    StatusCode result = clientPort->readDiscreteInputs(unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(values[0], 0xF0);
+}
+
+TEST_F(ModbusClientPortTest, ReadDiscreteInputsAsBoolArray)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 0;
+    const uint16_t count = 8;
+    
+    uint8_t requestData[4] = {0x00, 0x00, 0x00, 0x08};
+    uint8_t responseData[2] = {0x01, 0xFF};
+    
+    setupSuccessfulTransaction(unit, MBF_READ_DISCRETE_INPUTS, requestData, 4, responseData, 2);
+    
+    bool values[8];
+    StatusCode result = clientPort->readDiscreteInputsAsBoolArray(unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    for (int i = 0; i < 8; i++)
+        EXPECT_TRUE(values[i]);
+}
+
+// ============================================================================
+// Read Holding Registers Tests (Function Code 0x03)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, ReadHoldingRegistersSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 0;
+    const uint16_t count = 2;
+    
+    uint8_t requestData[4] = {0x00, 0x00, 0x00, 0x02};
+    uint8_t responseData[5] = {0x04, 0x00, 0x0A, 0x00, 0x14}; // byte count + 2 registers
+    
+    setupSuccessfulTransaction(unit, MBF_READ_HOLDING_REGISTERS, requestData, 4, responseData, 5);
+    
+    uint16_t values[2];
+    StatusCode result = clientPort->readHoldingRegisters(unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(values[0], 0x000A);
+    EXPECT_EQ(values[1], 0x0014);
+}
+
+TEST_F(ModbusClientPortTest, ReadHoldingRegistersLargeCount)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 100;
+    const uint16_t count = 10;
+    
+    uint8_t requestData[4];
+    requestData[0] = 0x00;
+    requestData[1] = 0x64;
+    requestData[2] = 0x00;
+    requestData[3] = 0x0A;
+    
+    uint8_t responseData[21];
+    responseData[0] = 0x14; // byte count = 20
+    for (int i = 0; i < 20; i++)
+        responseData[i + 1] = static_cast<uint8_t>(i);
+    
+    setupSuccessfulTransaction(unit, MBF_READ_HOLDING_REGISTERS, requestData, 4, responseData, 21);
+    
+    uint16_t values[10];
+    StatusCode result = clientPort->readHoldingRegisters(unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+// ============================================================================
+// Read Input Registers Tests (Function Code 0x04)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, ReadInputRegistersSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 5;
+    const uint16_t count = 3;
+    
+    uint8_t requestData[4] = {0x00, 0x05, 0x00, 0x03};
+    uint8_t responseData[7] = {0x06, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC};
+    
+    setupSuccessfulTransaction(unit, MBF_READ_INPUT_REGISTERS, requestData, 4, responseData, 7);
+    
+    uint16_t values[3];
+    StatusCode result = clientPort->readInputRegisters(unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(values[0], 0x1234);
+    EXPECT_EQ(values[1], 0x5678);
+    EXPECT_EQ(values[2], 0x9ABC);
+}
+
+// ============================================================================
+// Write Single Coil Tests (Function Code 0x05)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, WriteSingleCoilOn)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 10;
+    const bool value = true;
+    
+    uint8_t requestData[4] = {0x00, 0x0A, 0xFF, 0x00};
+    uint8_t responseData[4] = {0x00, 0x0A, 0xFF, 0x00};
+    
+    setupSuccessfulTransaction(unit, MBF_WRITE_SINGLE_COIL, requestData, 4, responseData, 4);
+    
+    StatusCode result = clientPort->writeSingleCoil(unit, offset, value);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+TEST_F(ModbusClientPortTest, WriteSingleCoilOff)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 10;
+    const bool value = false;
+    
+    uint8_t requestData[4] = {0x00, 0x0A, 0x00, 0x00};
+    uint8_t responseData[4] = {0x00, 0x0A, 0x00, 0x00};
+    
+    setupSuccessfulTransaction(unit, MBF_WRITE_SINGLE_COIL, requestData, 4, responseData, 4);
+    
+    StatusCode result = clientPort->writeSingleCoil(unit, offset, value);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+// ============================================================================
+// Write Single Register Tests (Function Code 0x06)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, WriteSingleRegisterSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 20;
+    const uint16_t value = 0x1234;
+    
+    uint8_t requestData[4] = {0x00, 0x14, 0x12, 0x34};
+    uint8_t responseData[4] = {0x00, 0x14, 0x12, 0x34};
+    
+    setupSuccessfulTransaction(unit, MBF_WRITE_SINGLE_REGISTER, requestData, 4, responseData, 4);
+    
+    StatusCode result = clientPort->writeSingleRegister(unit, offset, value);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+// ============================================================================
+// Read Exception Status Tests (Function Code 0x07)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, ReadExceptionStatusSuccess)
+{
+    const uint8_t unit = 1;
+    
+    uint8_t responseData[1] = {0x42}; // exception status byte
+    
+    setupSuccessfulTransaction(unit, MBF_READ_EXCEPTION_STATUS, nullptr, 0, responseData, 1);
+    
+    uint8_t status;
+    StatusCode result = clientPort->readExceptionStatus(unit, &status);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(status, 0x42);
+}
+
+// ============================================================================
+// Write Multiple Coils Tests (Function Code 0x0F)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, WriteMultipleCoilsSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 10;
+    const uint16_t count = 10;
+    
+    uint8_t coilValues[2] = {0xFF, 0x03}; // 10 coils
+    
+    uint8_t requestData[7] = {0x00, 0x0A, 0x00, 0x0A, 0x02, 0xFF, 0x03};
+    uint8_t responseData[4] = {0x00, 0x0A, 0x00, 0x0A};
+    
+    setupSuccessfulTransaction(unit, MBF_WRITE_MULTIPLE_COILS, requestData, 7, responseData, 4);
+    
+    StatusCode result = clientPort->writeMultipleCoils(unit, offset, count, coilValues);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+TEST_F(ModbusClientPortTest, WriteMultipleCoilsAsBoolArray)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 0;
+    const uint16_t count = 8;
+    
+    bool coilValues[8] = {true, false, true, false, true, false, true, false};
+    
+    uint8_t requestData[6] = {0x00, 0x00, 0x00, 0x08, 0x01, 0x55};
+    uint8_t responseData[4] = {0x00, 0x00, 0x00, 0x08};
+    
+    setupSuccessfulTransaction(unit, MBF_WRITE_MULTIPLE_COILS, requestData, 6, responseData, 4);
+    
+    StatusCode result = clientPort->writeMultipleCoilsAsBoolArray(unit, offset, count, coilValues);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+// ============================================================================
+// Write Multiple Registers Tests (Function Code 0x10)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, WriteMultipleRegistersSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 100;
+    const uint16_t count = 2;
+    
+    uint16_t regValues[2] = {0x1234, 0x5678};
+    
+    uint8_t requestData[9] = {0x00, 0x64, 0x00, 0x02, 0x04, 0x12, 0x34, 0x56, 0x78};
+    uint8_t responseData[4] = {0x00, 0x64, 0x00, 0x02};
+    
+    setupSuccessfulTransaction(unit, MBF_WRITE_MULTIPLE_REGISTERS, requestData, 9, responseData, 4);
+
+    StatusCode result = clientPort->writeMultipleRegisters(unit, offset, count, regValues);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+// ============================================================================
+// Mask Write Register Tests (Function Code 0x16)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, MaskWriteRegisterSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t offset = 50;
+    const uint16_t andMask = 0xFF00;
+    const uint16_t orMask = 0x0012;
+    
+    uint8_t requestData[6] = {0x00, 0x32, 0xFF, 0x00, 0x00, 0x12};
+    uint8_t responseData[6] = {0x00, 0x32, 0xFF, 0x00, 0x00, 0x12};
+    
+    setupSuccessfulTransaction(unit, MBF_MASK_WRITE_REGISTER, requestData, 6, responseData, 6);
+    
+    StatusCode result = clientPort->maskWriteRegister(unit, offset, andMask, orMask);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+// ============================================================================
+// Read Write Multiple Registers Tests (Function Code 0x17)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, ReadWriteMultipleRegistersSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t readOffset = 0;
+    const uint16_t readCount = 2;
+    const uint16_t writeOffset = 100;
+    const uint16_t writeCount = 2;
+    
+    uint16_t writeValues[2] = {0xABCD, 0xEF01};
+    uint16_t readValues[2];
+    
+    uint8_t requestData[13] = {0x00, 0x00, 0x00, 0x02, 0x00, 0x64, 0x00, 0x02, 0x04, 0xAB, 0xCD, 0xEF, 0x01};
+    uint8_t responseData[5] = {0x04, 0x12, 0x34, 0x56, 0x78};
+    
+    setupSuccessfulTransaction(unit, MBF_READ_WRITE_MULTIPLE_REGISTERS, requestData, 13, responseData, 5);
+    
+    StatusCode result = clientPort->readWriteMultipleRegisters(
+        unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(readValues[0], 0x1234);
+    EXPECT_EQ(readValues[1], 0x5678);
+}
+
+// ============================================================================
+// Read FIFO Queue Tests (Function Code 0x18)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, ReadFIFOQueueSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t fifoAddr = 10;
+    
+    uint8_t requestData[2] = {0x00, 0x0A};
+    uint8_t responseData[10] = {0x00, 0x08, 0x00, 0x03, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC}; // byte count (2), fifo count (2), 3 registers (6)
+    
+    setupSuccessfulTransaction(unit, MBF_READ_FIFO_QUEUE, requestData, 2, responseData, 10);
+    
+    uint16_t count;
+    uint16_t values[3];
+    StatusCode result = clientPort->readFIFOQueue(unit, fifoAddr, &count, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(count, 3);
+}
+
+// ============================================================================
+// Error Handling Tests
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, PortNotOpen)
+{
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(false));
+    
+    EXPECT_CALL(*mockPort, open())
+        .WillRepeatedly(Return(Status_Good));
+    
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .WillRepeatedly(Return(Status_Good));
+    
+    uint16_t values[10];
+    StatusCode result = clientPort->readHoldingRegisters(1, 0, 10, values);
+    
+    EXPECT_EQ(result, Status_BadPortClosed);
+}
+
+TEST_F(ModbusClientPortTest, WriteBufferError)
+{
+    const uint8_t unit = 1;
+    
+    EXPECT_CALL(*mockPort, isOpen())
         .WillRepeatedly(Return(true));
-
-    EXPECT_CALL(port, writeBuffer(unit,func,_,_))
-        .Times(1)
-        .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(port, write())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(port, readBuffer(_,_,_,_,_))
-        .Times(1)
-        .WillOnce(DoAll(SetArgReferee<0>(unit),
-                        SetArgReferee<1>(func),
-                        SetArrayArgument<2>(outbuff, outbuff + szoutbuff),
-                        SetArgPointee<4>(szoutbuff),
-                        Return(Status_Good)));
-
-    StatusCode s;
-    uint8_t buff[255];
-    s = (cp->*method)(unit, offset, count, buff);
-    EXPECT_EQ(s, Status_Good);
+    
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .WillOnce(Return(Status_BadWriteBufferOverflow));
+    
+    uint16_t values[10];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 10, values);
+    
+    EXPECT_EQ(result, Status_BadWriteBufferOverflow);
 }
 
-void testAlgorithmWriteSingleCoil(ModbusClientPort *cp,
-                                  uint8_t unit, uint16_t offset, bool value, uint8_t *outbuff, uint16_t szoutbuff)
+TEST_F(ModbusClientPortTest, WriteError)
 {
-    MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
-    const uint8_t func = MBF_WRITE_SINGLE_COIL;
-    //EXPECT_CALL(*port, isOpen())
-    //    .Times(1)
-    //    .WillOnce(Return(true));
-
-    EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
-        .Times(1)
+    const uint8_t unit = 1;
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, write())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
-        .Times(1)
-        .WillOnce(DoAll(SetArgReferee<0>(unit),
-                        SetArgReferee<1>(func),
-                        SetArrayArgument<2>(outbuff, outbuff + szoutbuff),
-                        SetArgPointee<4>(szoutbuff),
-                        Return(Status_Good)));
-
-    StatusCode s;
-    s = cp->writeSingleCoil(unit, offset, value);
-    EXPECT_EQ(s, Status_Good);
+    
+    EXPECT_CALL(*mockPort, write())
+        .WillOnce(Return(Status_BadTcpWrite));
+    
+    uint16_t values[10];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 10, values);
+    
+    EXPECT_EQ(result, Status_BadTcpWrite);
 }
 
-void testAlgorithmWriteSingleRegister(ModbusClientPort *cp,
-                                  uint8_t unit, uint16_t offset, uint16_t value, uint8_t *outbuff, uint16_t szoutbuff)
+TEST_F(ModbusClientPortTest, ReadError)
 {
-    MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
-    const uint8_t func = MBF_WRITE_SINGLE_REGISTER;
-    //EXPECT_CALL(*port, isOpen())
-    //    .Times(1)
-    //    .WillOnce(Return(true));
-
-    EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
-        .Times(1)
+    const uint8_t unit = 1;
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, write())
-        .Times(1)
+    
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(4));
+    
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+    
+    EXPECT_CALL(*mockPort, write())
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, read())
-        .Times(1)
-        .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
-        .Times(1)
-        .WillOnce(DoAll(SetArgReferee<0>(unit),
-                        SetArgReferee<1>(func),
-                        SetArrayArgument<2>(outbuff, outbuff + szoutbuff),
-                        SetArgPointee<4>(szoutbuff),
-                        Return(Status_Good)));
-
-    StatusCode s;
-    s = cp->writeSingleRegister(unit, offset, value);
-    EXPECT_EQ(s, Status_Good);
+    
+    EXPECT_CALL(*mockPort, read())
+        .WillOnce(Return(Status_BadSerialReadTimeout));
+    
+    uint16_t values[10];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 10, values);
+    
+    EXPECT_EQ(result, Status_BadSerialReadTimeout);
 }
 
-void testAlgorithmReadExceptionStatus(ModbusClientPort *cp,
-                       uint8_t unit, uint8_t *outbuff, uint16_t szoutbuff)
+TEST_F(ModbusClientPortTest, ReadBufferError)
 {
-    MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
-    const uint8_t func = MBF_READ_EXCEPTION_STATUS;
-    //EXPECT_CALL(*port, isOpen())
-    //    .Times(1)
-    //    .WillOnce(Return(true));
-
-    EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
-        .Times(1)
+    const uint8_t unit = 1;
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, write())
-        .Times(1)
+    
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(4));
+    
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+    
+    EXPECT_CALL(*mockPort, write())
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, read())
-        .Times(1)
+    
+    EXPECT_CALL(*mockPort, read())
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
-        .Times(1)
-        .WillOnce(DoAll(SetArgReferee<0>(unit),
-                        SetArgReferee<1>(func),
-                        SetArrayArgument<2>(outbuff, outbuff + szoutbuff),
-                        SetArgPointee<4>(szoutbuff),
-                        Return(Status_Good)));
-
-    StatusCode s;
-    uint8_t buff[1];
-    s = cp->readExceptionStatus(unit, buff);
-    EXPECT_EQ(s, Status_Good);
+    
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(Return(Status_BadCrc));
+    
+    EXPECT_CALL(*mockPort, readBufferSize())
+        .WillRepeatedly(Return(0));
+    
+    EXPECT_CALL(*mockPort, readBufferData())
+        .WillRepeatedly(Return(nullptr));
+    
+    uint16_t values[10];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 10, values);
+    
+    EXPECT_EQ(result, Status_BadCrc);
 }
 
-typedef Modbus::StatusCode (ModbusClientPort::*WriteMethodPtr)(uint8_t, uint16_t, uint16_t, const void*);
-typedef Modbus::StatusCode (ModbusClientPort::*WriteMethodRegsPtr)(uint8_t, uint16_t, uint16_t, const uint16_t*);
-
-void testAlgorithmWrite(ModbusClientPort *cp, WriteMethodPtr method,
-                       uint8_t unit, uint8_t func, uint16_t offset, uint16_t count, uint8_t *outbuff, uint16_t szoutbuff)
+TEST_F(ModbusClientPortTest, ExceptionResponse)
 {
-    MockModbusPort *port = static_cast<MockModbusPort*>(cp->port());
-    //EXPECT_CALL(*port, isOpen())
-    //    .Times(1)
-    //    .WillOnce(Return(true));
-
-    EXPECT_CALL(*port, writeBuffer(unit,func,_,_))
-        .Times(1)
+    const uint8_t unit = 1;
+    const uint8_t func = MBF_READ_HOLDING_REGISTERS;
+    const uint8_t exceptionFunc = func | 0x80;
+    const uint8_t exceptionCode = 0x02; // Illegal data address
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, write())
-        .Times(1)
+    
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(4));
+    
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+    
+    EXPECT_CALL(*mockPort, write())
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, read())
-        .Times(1)
+    
+    EXPECT_CALL(*mockPort, read())
         .WillOnce(Return(Status_Good));
-
-    EXPECT_CALL(*port, readBuffer(_,_,_,_,_))
-        .Times(1)
-        .WillOnce(DoAll(SetArgReferee<0>(unit),
-                        SetArgReferee<1>(func),
-                        SetArrayArgument<2>(outbuff, outbuff + szoutbuff),
-                        SetArgPointee<4>(szoutbuff),
-                        Return(Status_Good)));
-
-    StatusCode s;
-    uint8_t buff[255];
-    s = (cp->*method)(unit, offset, count, buff);
-    EXPECT_EQ(s, Status_Good);
+    
+    uint8_t responseData[1] = {exceptionCode};
+    
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(exceptionFunc),
+            SetArrayArgument<2>(responseData, responseData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+    
+    EXPECT_CALL(*mockPort, readBufferSize())
+        .WillRepeatedly(Return(1));
+    
+    EXPECT_CALL(*mockPort, readBufferData())
+        .WillRepeatedly(Return(responseData));
+    
+    uint16_t values[10];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 10, values);
+    
+    EXPECT_EQ(result, Status_BadIllegalDataAddress);
 }
+
+// ============================================================================
+// Retry Mechanism Tests
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, RetryOnFailure)
+{
+    const uint8_t unit = 1;
+    clientPort->setTries(3);
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    // Note: No need to fill write buffer on every try, just once at first try
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(1)
+        .WillRepeatedly(Return(Status_Good));
+    
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(4));
+    
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+    
+    EXPECT_CALL(*mockPort, write())
+        .Times(3)
+        .WillRepeatedly(Return(Status_Good));
+    
+    // First two reads fail, third succeeds
+    EXPECT_CALL(*mockPort, read())
+        .Times(3)
+        .WillOnce(Return(Status_BadSerialReadTimeout))
+        .WillOnce(Return(Status_BadSerialReadTimeout))
+        .WillOnce(Return(Status_Good));
+    
+    uint8_t responseData[5] = {0x04, 0x00, 0x0A, 0x00, 0x14};
+    
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_READ_HOLDING_REGISTERS),
+            SetArrayArgument<2>(responseData, responseData + 5),
+            SetArgPointee<4>(5),
+            Return(Status_Good)));
+    
+    EXPECT_CALL(*mockPort, readBufferSize())
+        .WillRepeatedly(Return(5));
+    
+    EXPECT_CALL(*mockPort, readBufferData())
+        .WillRepeatedly(Return(responseData));
+    
+    uint16_t values[2];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 2, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(clientPort->lastTries(), 3);
+}
+
+TEST_F(ModbusClientPortTest, AllRetriesFail)
+{
+    const uint8_t unit = 1;
+    clientPort->setTries(2);
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    // Note: No need to fill write buffer on every try, just once at first try
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(1)
+        .WillRepeatedly(Return(Status_Good));
+    
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(4));
+    
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+    
+    EXPECT_CALL(*mockPort, write())
+        .Times(2)
+        .WillRepeatedly(Return(Status_Good));
+    
+    EXPECT_CALL(*mockPort, read())
+        .Times(2)
+        .WillRepeatedly(Return(Status_BadSerialReadTimeout));
+    
+    uint16_t values[2];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 2, values);
+    
+    EXPECT_EQ(result, Status_BadSerialReadTimeout);
+    EXPECT_EQ(clientPort->lastTries(), 2);
+}
+
+// ============================================================================
+// Status Tracking Tests
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, LastStatusTracking)
+{
+    const uint8_t unit = 1;
+    uint8_t requestData[4] = {0x00, 0x00, 0x00, 0x02};
+    uint8_t responseData[5] = {0x04, 0x00, 0x0A, 0x00, 0x14};
+    
+    setupSuccessfulTransaction(unit, MBF_READ_HOLDING_REGISTERS, requestData, 4, responseData, 5);
+    
+    uint16_t values[2];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 2, values);
+    
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(clientPort->lastStatus(), Status_Good);
+}
+
+TEST_F(ModbusClientPortTest, LastErrorStatusTracking)
+{
+    const uint8_t unit = 1;
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .WillOnce(Return(Status_Good));
+    
+    EXPECT_CALL(*mockPort, write())
+        .WillOnce(Return(Status_BadTcpDisconnect));
+    
+    uint16_t values[2];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 2, values);
+    
+    EXPECT_EQ(result, Status_BadTcpDisconnect);
+    EXPECT_EQ(clientPort->lastErrorStatus(), Status_BadTcpDisconnect);
+}
+
+TEST_F(ModbusClientPortTest, LastErrorTextAvailable)
+{
+    const uint8_t unit = 1;
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .WillOnce(Return(Status_Good));
+    
+    EXPECT_CALL(*mockPort, write())
+        .WillOnce(Return(Status_BadSerialWriteTimeout));
+    
+    uint16_t values[2];
+    clientPort->readHoldingRegisters(unit, 0, 2, values);
+    
+    const Char *errorText = clientPort->lastErrorText();
+    EXPECT_NE(errorText, nullptr);
+}
+
+// ============================================================================
+// Broadcast Mode Tests
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, BroadcastModeUnit0)
+{
+    const uint8_t unit = 0; // Broadcast address
+    const uint16_t offset = 100;
+    const uint16_t value = 0x1234;
+    
+    clientPort->setBroadcastEnabled(true);
+    
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+    
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_WRITE_SINGLE_REGISTER, _, 4))
+        .WillOnce(Return(Status_Good));
+    
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(0));
+    
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+    
+    EXPECT_CALL(*mockPort, write())
+        .WillOnce(Return(Status_Good));
+    
+    // In broadcast mode, no response is expected
+    EXPECT_CALL(*mockPort, read())
+        .Times(0);
+    
+    StatusCode result = clientPort->writeSingleRegister(unit, offset, value);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+TEST_F(ModbusClientPortTest, BroadcastDisabled)
+{
+    const uint8_t unit = 0;
+    const uint16_t offset = 100;
+    const uint16_t value = 0x1234;
+    
+    clientPort->setBroadcastEnabled(false);
+    
+    uint8_t requestData[4] = {0x00, 0x64, 0x12, 0x34};
+    uint8_t responseData[4] = {0x00, 0x64, 0x12, 0x34};
+    
+    setupSuccessfulTransaction(unit, MBF_WRITE_SINGLE_REGISTER, requestData, 4, responseData, 4);
+    
+    StatusCode result = clientPort->writeSingleRegister(unit, offset, value);
+    
+    EXPECT_EQ(result, Status_Good);
+}
+
+// ============================================================================
+// Algorithm Test (Similar to ServerPort test)
+// ============================================================================
 
 TEST(ModbusClientPort, testAlgorithmBlocking)
 {
     // NiceMock for ignoring uninteresting calls
-    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
-    ModbusClientPort cp(port);
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>(true);
+    
+    ModbusClientPort clientPort(port);
+    
     const uint8_t  unit   = 1;
+    const uint8_t  func   = MBF_READ_HOLDING_REGISTERS;
     const uint16_t offset = 0;
     const uint16_t count  = 16;
-
+    
     EXPECT_CALL(*port, isOpen())
         .WillRepeatedly(Return(true));
-
-    //EXPECT_CALL(*port, open())
-    //    .Times(1)
-    //    .WillOnce(Return(Status_Good));
-    uint8_t buff01[1+count/MB_BYTE_SZ_BITES];
-    memset(&buff01[1], 0, sizeof(buff01)-1);
-    buff01[0] = count/MB_BYTE_SZ_BITES;
-    testAlgorithmRead(&cp, &ModbusClientPort::readCoils, unit, MBF_READ_COILS, offset, count, buff01, sizeof(buff01));
-
-    uint8_t buff02[1+count/MB_BYTE_SZ_BITES];
-    memset(&buff02[1], 0, sizeof(buff02)-1);
-    buff02[0] = count/MB_BYTE_SZ_BITES;
-    testAlgorithmRead(&cp, &ModbusClientPort::readDiscreteInputs, unit, MBF_READ_DISCRETE_INPUTS, offset, count, buff02, sizeof(buff02));
-
-    uint8_t buff03[1+count*MB_REGE_SZ_BYTES];
-    memset(&buff03[1], 0, sizeof(buff03)-1);
-    buff03[0] = count*MB_REGE_SZ_BYTES;
-    ReadMethodRegsPtr ptr03 = &ModbusClientPort::readHoldingRegisters;
-    testAlgorithmRead(&cp, reinterpret_cast<ReadMethodPtr>(ptr03), unit, MBF_READ_HOLDING_REGISTERS, offset, count, buff03, sizeof(buff03));
-
-    uint8_t buff04[1+count*MB_REGE_SZ_BYTES];
-    memset(&buff04[1], 0, sizeof(buff04)-1);
-    buff04[0] = count*MB_REGE_SZ_BYTES;
-    ReadMethodRegsPtr ptr04 = &ModbusClientPort::readInputRegisters;
-    testAlgorithmRead(&cp, reinterpret_cast<ReadMethodPtr>(ptr04), unit, MBF_READ_INPUT_REGISTERS, offset, count, buff04, sizeof(buff04));
-
-    uint8_t buff05[4];
-    memset(&buff05[0], 0, sizeof(buff05));
-    bool value05 = false;
-    testAlgorithmWriteSingleCoil(&cp, unit, offset, value05, buff05, sizeof(buff05));
-
-    uint8_t buff06[4];
-    memset(&buff06[0], 0, sizeof(buff06));
-    uint16_t value06 = 0;
-    testAlgorithmWriteSingleRegister(&cp, unit, offset, value06, buff06, sizeof(buff06));
-
-    uint8_t buff07[1];
-    buff07[0] = 0;
-    testAlgorithmReadExceptionStatus(&cp, unit, buff07, sizeof(buff07));
-
-    uint8_t buff15[4];
-    buff15[0] = reinterpret_cast<const uint8_t*>(&offset)[1];
-    buff15[1] = reinterpret_cast<const uint8_t*>(&offset)[0];
-    buff15[2] = reinterpret_cast<const uint8_t*>(&count )[1];
-    buff15[3] = reinterpret_cast<const uint8_t*>(&count )[0];
-    testAlgorithmWrite(&cp, &ModbusClientPort::writeMultipleCoils, unit, MBF_WRITE_MULTIPLE_COILS, offset, count, buff15, sizeof(buff15));
-
-    uint8_t buff16[4];
-    buff16[0] = reinterpret_cast<const uint8_t*>(&offset)[1];
-    buff16[1] = reinterpret_cast<const uint8_t*>(&offset)[0];
-    buff16[2] = reinterpret_cast<const uint8_t*>(&count )[1];
-    buff16[3] = reinterpret_cast<const uint8_t*>(&count )[0];
-    WriteMethodRegsPtr ptr16 = &ModbusClientPort::writeMultipleRegisters;
-    testAlgorithmWrite(&cp, reinterpret_cast<WriteMethodPtr>(ptr16), unit, MBF_WRITE_MULTIPLE_REGISTERS, offset, count, buff16, sizeof(buff16));
+    
+    // Request preparation
+    uint8_t requestData[4];
+    requestData[0] = reinterpret_cast<const uint8_t*>(&offset)[1];
+    requestData[1] = reinterpret_cast<const uint8_t*>(&offset)[0];
+    requestData[2] = reinterpret_cast<const uint8_t*>(&count)[1];
+    requestData[3] = reinterpret_cast<const uint8_t*>(&count)[0];
+    
+    EXPECT_CALL(*port, writeBuffer(unit, func, _, 4))
+        .Times(1)
+        .WillOnce(Return(Status_Good));
+    
+    EXPECT_CALL(*port, write())
+        .Times(1)
+        .WillOnce(Return(Status_Good));
+    
+    EXPECT_CALL(*port, read())
+        .Times(1)
+        .WillOnce(Return(Status_Good));
+    
+    // Response data: byte count + 16 registers (32 bytes)
+    uint8_t responseData[33];
+    responseData[0] = 32; // byte count
+    for (int i = 0; i < 32; i++)
+        responseData[i + 1] = static_cast<uint8_t>(i);
+    
+    EXPECT_CALL(*port, readBuffer(_, _, _, _, _))
+        .Times(1)
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(func),
+            SetArrayArgument<2>(responseData, responseData + 33),
+            SetArgPointee<4>(33),
+            Return(Status_Good)));
+    
+    uint16_t values[count];
+    StatusCode result = clientPort.readHoldingRegisters(unit, offset, count, values);
+    
+    EXPECT_EQ(result, Status_Good);
 }
