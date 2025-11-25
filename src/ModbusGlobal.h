@@ -265,6 +265,7 @@ typedef enum _StatusCode
     Status_BadNotCorrectResponse    ,                     ///< Error. Invalid response
     Status_BadWriteBufferOverflow   ,                     ///< Error. Write buffer overflow
     Status_BadReadBufferOverflow    ,                     ///< Error. Request receive buffer overflow
+    Status_BadPortClosed            ,                     ///< Error. Port is closed when trying to read/write data
 
     //-------- Modbus common errors end ---------
 

@@ -1237,8 +1237,7 @@ StatusCode ModbusClientPort::process()
             if (!d->port->isOpen())
             {
                 d->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                return d->setError(Status_BadPortClosed, StringLiteral("Error: Port is closed when trying to write data"));
             }
             d->state = STATE_WRITE;
             // no need break
