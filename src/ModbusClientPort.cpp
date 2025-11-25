@@ -1043,7 +1043,7 @@ Modbus::Timestamp ModbusClientPort::lastStatusTimestamp() const
 
 Modbus::StatusCode ModbusClientPort::lastErrorStatus() const
 {
-    return d_ModbusClientPort(d_ptr)->port->lastErrorStatus();
+    return d_ModbusClientPort(d_ptr)->lastErrorStatus;
 }
 
 const Char *ModbusClientPort::lastErrorText() const
@@ -1123,7 +1123,9 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
             d->unit = unit;
             d->func = func;
             d->lastTries = 0;
-            d->port->writeBuffer(unit, func, buff, szInBuff);
+            auto r = d->port->writeBuffer(unit, func, buff, szInBuff);
+            if (StatusIsBad(r))
+                return d->setPortError(r);
             d->blockWriteBuffer();
         }
         StatusCode r = process();
@@ -1220,7 +1222,8 @@ StatusCode ModbusClientPort::process()
                 return r;
             }
             d->state = STATE_CLOSED;
-            //fRepeatAgain = true;
+            // Note: Function can not return Status_Processing in Blocking mode
+            //fRepeatAgain = d->port->isBlocking(); 
             break;
         case STATE_OPENED:
             if (d->port->isChanged())
