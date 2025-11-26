@@ -14,7 +14,70 @@ class ModbusTcpSocket;
 
 /*! \brief The `ModbusTcpServer` class implements TCP server part of the Modbus protocol.
 
-    \details `ModbusTcpServer` ...
+    \details `ModbusTcpServer` manages multiple TCP connections and processes Modbus requests from clients.
+    It listens on a specified TCP port, accepts incoming connections, and creates `ModbusServerResource` 
+    instances for each connection to handle Modbus protocol communication. The server manages connection 
+    lifecycle, enforces maximum connection limits, and propagates settings (timeout, broadcast, unit map) 
+    to all active connections. Incoming requests are forwarded to the `ModbusInterface` device object 
+    provided in the constructor.
+    
+    The server operates asynchronously through the `process()` method which must be called repeatedly 
+    in a loop. It handles the complete server lifecycle including socket creation, binding, listening, 
+    accepting new connections, processing existing connections, and cleanup. Each connection runs 
+    independently with its own `ModbusServerResource` that processes Modbus protocol frames.
+    
+    Key features:
+    \li Automatic connection management with configurable maximum connections limit
+    \li Non-blocking operation suitable for single-threaded event loops
+    \li Virtual methods `createTcpPort()` and `deleteTcpPort()` allow customization of connection handling
+    \li Signals for connection events: `signalNewConnection()`, `signalCloseConnection()`
+    \li Inherits standard server signals from base class: `signalOpened()`, `signalClosed()`, `signalError()`, `signalTx()`, `signalRx()`
+    \li Supports broadcast mode and unit address filtering through unit map
+    \li Thread-safe for single-threaded usage (caller responsible for thread synchronization if needed)
+    
+    Example usage:
+    \code
+    // Define device that implements ModbusInterface
+    class MyDevice : public ModbusInterface
+    {
+    public:
+        StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) override
+        {
+            // Read data from your device memory/registers
+            for (uint16_t i = 0; i < count; i++)
+                values[i] = myRegisters[offset + i];
+            return Status_Good;
+        }
+        // Implement other ModbusInterface methods...
+    private:
+        uint16_t myRegisters[1000];
+    };
+    
+    // Create and configure TCP server
+    MyDevice device;
+    ModbusTcpServer server(&device);
+    server.setPort(502);           // Standard Modbus TCP port
+    server.setTimeout(5000);       // 5 second timeout
+    server.setMaxConnections(10);  // Allow up to 10 simultaneous connections
+    
+    // Open server
+    StatusCode status = server.open();
+    while (StatusIsProcessing(status))
+        status = server.process();
+    
+    if (StatusIsGood(status))
+    {
+        // Main server loop
+        while (running)
+        {
+            server.process();  // Handle all connections
+            // Add your application logic here
+        }
+        
+        // Clean shutdown
+        server.close();
+    }
+    \endcode
 
  */
 
