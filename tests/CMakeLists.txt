@@ -12,6 +12,7 @@ set(MB_TESTS_SOURCES
     TestModbusAddress.cpp
     TestModbusClientPort.cpp
     TestModbusServerPort.cpp
+    TestModbusServerResource.cpp
     TestModbusTcpPort.cpp
     TestModbusRtuPort.cpp
     TestModbusAscPort.cpp
