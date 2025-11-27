@@ -85,13 +85,13 @@
         else                                                                                                                \
             ((uint8_t*)(bitBuff))[((bitNum)+__i__)/8] &= (~(1<<(((bitNum)+__i__)%8)));
 
-/// \brief
+/// \brief Size of unit map in bytes (supports 256 unit addresses)
 #define MB_UNITMAP_SIZE 32
 
-/// \brief
+/// \brief Get bit value from unit map for specified unit address
 #define MB_UNITMAP_GET_BIT(unitmap, unit) ((((const uint8_t*)(unitmap))[(unit)/8] & (1<<((unit)%8))) != 0)
 
-/// \brief
+/// \brief Set bit value in unit map for specified unit address
 #define MB_UNITMAP_SET_BIT(unitmap, unit, value)                                                                            \
     if (value)                                                                                                              \
         ((uint8_t*)(unitmap))[(unit)/8] |= (1<<((unit)%8));                                                                 \
@@ -104,29 +104,50 @@
 
 /// \name Modbus Functions
 /// Modbus Function's codes.
-///@{ 
+///\{ 
+/// \brief Read coils (function code 01)
 #define MBF_READ_COILS                          1
+/// \brief Read discrete inputs (function code 02)
 #define MBF_READ_DISCRETE_INPUTS                2
+/// \brief Read holding registers (function code 03)
 #define MBF_READ_HOLDING_REGISTERS              3
+/// \brief Read input registers (function code 04)
 #define MBF_READ_INPUT_REGISTERS                4
+/// \brief Write single coil (function code 05)
 #define MBF_WRITE_SINGLE_COIL                   5
+/// \brief Write single register (function code 06)
 #define MBF_WRITE_SINGLE_REGISTER               6
+/// \brief Read exception status (function code 07)
 #define MBF_READ_EXCEPTION_STATUS               7
+/// \brief Diagnostics (function code 08)
 #define MBF_DIAGNOSTICS                         8
+/// \brief Get comm event counter (function code 11)
 #define MBF_GET_COMM_EVENT_COUNTER              11
+/// \brief Get comm event log (function code 12)
 #define MBF_GET_COMM_EVENT_LOG                  12
+/// \brief Write multiple coils (function code 15)
 #define MBF_WRITE_MULTIPLE_COILS                15
+/// \brief Write multiple registers (function code 16)
 #define MBF_WRITE_MULTIPLE_REGISTERS            16
+/// \brief Report server ID (function code 17)
 #define MBF_REPORT_SERVER_ID                    17
+/// \brief Read file record (function code 20)
 #define MBF_READ_FILE_RECORD                    20
+/// \brief Write file record (function code 21)
 #define MBF_WRITE_FILE_RECORD                   21
+/// \brief Mask write register (function code 22)
 #define MBF_MASK_WRITE_REGISTER                 22
+/// \brief Read/write multiple registers (function code 23)
 #define MBF_READ_WRITE_MULTIPLE_REGISTERS       23
+/// \brief Read FIFO queue (function code 24)
 #define MBF_READ_FIFO_QUEUE                     24
+/// \brief Encapsulated interface transport (function code 43)
 #define MBF_ENCAPSULATED_INTERFACE_TRANSPORT    43
+/// \brief Illegal function code indicator
 #define MBF_ILLEGAL_FUNCTION                    73 
+/// \brief Exception response flag (bit 7 set)
 #define MBF_EXCEPTION                           128    
-///@}
+///\}
 
 
 // --------------------------------------------------------------------------------------------------------

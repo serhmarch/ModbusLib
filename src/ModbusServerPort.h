@@ -121,6 +121,8 @@ public: // server port interface
     const void *unitMap() const;
 
     /// \details Set units map of current server. Server make a copy of units map data.
+    /// Unit map is data type with size of at least 32 bytes (MB_UNITMAP_SIZE)
+    /// in which every bit represents unit address from `0` to `255`.
     /// \sa `unitMap()`
     virtual void setUnitMap(const void *unitmap);
 

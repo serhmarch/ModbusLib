@@ -458,10 +458,15 @@ inline StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *valu
 
 #ifndef MB_ADDRESS_CLASS_DISABLE
 
+/// \brief IEC 61131-3 prefix for coils (0x addresses)
 #define sIEC61131Prefix0x "%Q"
+/// \brief IEC 61131-3 prefix for discrete inputs (1x addresses)
 #define sIEC61131Prefix1x "%I"
+/// \brief IEC 61131-3 prefix for input registers (3x addresses)
 #define sIEC61131Prefix3x "%IW"
+/// \brief IEC 61131-3 prefix for holding registers (4x addresses)
 #define sIEC61131Prefix4x "%MW"
+/// \brief IEC 61131-3 suffix character for hexadecimal notation
 #define cIEC61131SuffixHex 'h'
 
 /// \brief Modbus Data Address class. Represents Modbus Data Address.
