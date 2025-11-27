@@ -17,8 +17,52 @@ class ModbusPortPrivate;
 
 /*! \brief The abstract class `ModbusPort` is the base class for a specific implementation of the Modbus communication protocol.
 
-    \details `ModbusPort` contains general functions for working with a specific port, implementing a specific version of the Modbus communication protocol.
+    \details `ModbusPort` contains general functions for working with a specific port,
+    implementing a specific version of the Modbus communication protocol.
     For example, versions for working with a TCP port or a serial port.
+
+    Key characteristics:
+    - Abstract base class for all protocol-specific port implementations
+    - Provides unified interface for TCP, RTU, and ASCII protocols
+    - Supports both client and server operation modes
+    - Supports both blocking (synchronous) and non-blocking (asynchronous) operation
+    - Manages connection lifecycle (open/close) and state
+    - Handles low-level packet assembly and parsing
+    - Provides error reporting with status codes and descriptive text
+    
+    This base class defines:
+    - Port lifecycle management (open, close, state checking)
+    - Operating mode configuration (client/server, blocking/non-blocking)
+    - Timeout settings for communication operations
+    - Buffer management for read and write operations
+    - Abstract packet handling interface (writeBuffer, readBuffer, write, read)
+    - Error status tracking and reporting
+    - Native handle access for platform-specific operations
+    
+    Derived classes implement protocol-specific behavior:
+    - ModbusTcpPort: TCP/IP socket communication with MBAP header handling
+    - ModbusRtuPort: Serial RTU protocol with binary encoding and CRC-16
+    - ModbusAscPort: Serial ASCII protocol with hexadecimal encoding and LRC
+    
+    The class provides two operational patterns:
+    
+    1. Blocking mode (synchronous):
+       Operations wait until completion or timeout. Suitable for simple
+       single-threaded applications where blocking is acceptable.
+    
+    2. Non-blocking mode (asynchronous):
+       Operations return immediately with Status_Processing if not complete.
+       The caller must repeatedly call the operation until it completes or fails.
+       Suitable for event-driven architectures and applications requiring responsiveness.
+    
+    Packet handling workflow:
+    1. writeBuffer() - Assemble protocol-specific packet with unit, function, data
+    2. write() - Transmit the assembled packet to the remote device
+    3. read() - Receive response packet from the remote device
+    4. readBuffer() - Parse and validate the received protocol-specific packet
+    
+    The port maintains internal read/write buffers accessible through buffer access methods,
+    allowing inspection of raw protocol data for debugging and logging purposes.
 
  */
 class MODBUS_EXPORT ModbusPort

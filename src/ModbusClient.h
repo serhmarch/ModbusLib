@@ -12,12 +12,52 @@
 
 class ModbusClientPort;
 
-/*! \brief The `ModbusClient` class implements the interface of the client part of the Modbus protocol.
+/*! \brief The `ModbusClient` class is wrapper to simplify usage of `ModbusClientPort`.
 
-    \details `ModbusClient` contains a list of Modbus functions that are implemented by the Modbus client program.
-    It implements functions for reading and writing different types of Modbus memory that are defined by the specification.
-    The operations that return `Modbus::StatusCode` are asynchronous, that is, if the operation is not completed, it returns the intermediate status `Modbus::Status_Processing`,
-    and then it must be called until it is successfully completed or returns an error status.
+    \details The ModbusClient class provides a convenient wrapper around ModbusClientPort that simplifies
+    communication with a specific remote Modbus device. It encapsulates the device unit address, eliminating
+    the need to specify it with each function call.
+    
+    Key characteristics:
+    - Binds to a specific unit address on construction
+    - Wraps all standard Modbus functions without requiring unit parameter
+    - Delegates actual communication to the underlying ModbusClientPort
+    - Provides access to port connection state and error information
+    - Thread-safe when used with proper port synchronization
+    - Works with any protocol (TCP, RTU, ASCII) through polymorphic port
+    
+    This implementation provides:
+    - Automatic unit address management for all Modbus function calls
+    - Simplified API for applications communicating with single devices
+    - Pass-through access to port status and error information
+    - Support for all standard Modbus functions (01-24)
+    - Optional bool array variants for coil operations
+    - Diagnostic and special functions (where enabled)
+    
+    Usage pattern:
+    \code{.cpp}
+    // Create and configure the port (settings definition omitted for brevity)
+    ModbusClientPort *port = Modbus::createClientPort(Modbus::TCP, &settings, false);
+    // Create clients bound to unit addresses
+    ModbusClient c1(1, port);
+    ModbusClient c2(2, port);
+    ModbusClient c3(3, port);
+
+    Modbus::StatusCode s1, s2, s3;
+    uint16_t regs1[10], regs2[10], regs3[10];
+    
+    // Read holding registers without specifying unit address
+    while(1)
+    {
+        s1 = c1.readHoldingRegisters(0, 10, regs1);
+        s2 = c2.readHoldingRegisters(0, 10, regs2);
+        s3 = c3.readHoldingRegisters(0, 10, regs3);
+        Modbus::msleep(1);
+    }
+    \endcode
+    
+    The ModbusClient simplifies scenarios where an application communicates with a specific device,
+    making code more concise and reducing the chance of addressing errors.
 
  */
 

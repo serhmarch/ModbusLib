@@ -12,9 +12,29 @@
 
 /*! \brief Implements RTU version of the Modbus communication protocol.
 
-    \details `ModbusRtuPort` derived from `ModbusSerialPort` and implements `writeBuffer` and `readBuffer`
-    for RTU version of Modbus communication protocol.
-
+    \details `ModbusRtuPort` derived from `ModbusSerialPort` and implements RTU (Remote Terminal Unit)
+    framing for Modbus communication over serial lines (RS-232, RS-485, RS-422). RTU is a compact binary
+    protocol that uses CRC-16 for error detection and relies on timing gaps between frames for message
+    delimiting.
+    
+    RTU protocol characteristics:
+    - Binary encoding - Data transmitted in raw binary format (more efficient than ASCII)
+    - CRC-16 error checking - Appends 16-bit CRC to each frame for data integrity verification
+    - Silent interval framing - Uses 3.5 character times of silence to mark frame boundaries
+    - Efficient bandwidth usage - Typically 30-40% more efficient than ASCII protocol
+    - Standard addressing - Supports 1-247 device addresses (0 for broadcast)
+    
+    The implementation handles:
+    - Automatic CRC-16 calculation and verification
+    - Proper timing for inter-character and inter-frame gaps
+    - Unit address encoding in the frame header
+    - Binary data packing and unpacking
+    - Error detection and reporting
+    
+    Timing requirements:
+    - Inter-character timeout - Maximum time between characters within a frame
+    - Inter-frame delay - Minimum silent time (3.5 char) before starting new frame
+    - These timings are baud-rate dependent and automatically calculated
  */
 class MODBUS_EXPORT ModbusRtuPort : public ModbusSerialPort
 {

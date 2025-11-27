@@ -27,13 +27,13 @@ class ModbusTcpSocket;
     independently with its own `ModbusServerResource` that processes Modbus protocol frames.
     
     Key features:
-    \li Automatic connection management with configurable maximum connections limit
-    \li Non-blocking operation suitable for single-threaded event loops
-    \li Virtual methods `createTcpPort()` and `deleteTcpPort()` allow customization of connection handling
-    \li Signals for connection events: `signalNewConnection()`, `signalCloseConnection()`
-    \li Inherits standard server signals from base class: `signalOpened()`, `signalClosed()`, `signalError()`, `signalTx()`, `signalRx()`
-    \li Supports broadcast mode and unit address filtering through unit map
-    \li Thread-safe for single-threaded usage (caller responsible for thread synchronization if needed)
+    - Automatic connection management with configurable maximum connections limit
+    - Non-blocking operation suitable for single-threaded event loops
+    - Virtual methods `createTcpPort()` and `deleteTcpPort()` allow customization of connection handling
+    - Signals for connection events: `signalNewConnection()`, `signalCloseConnection()`
+    - Inherits standard server signals from base class: `signalOpened()`, `signalClosed()`, `signalError()`, `signalTx()`, `signalRx()`
+    - Supports broadcast mode and unit address filtering through unit map
+    - Thread-safe for single-threaded usage (caller responsible for thread synchronization if needed)
     
     Example usage:
     \code
