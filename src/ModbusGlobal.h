@@ -422,7 +422,12 @@ typedef struct
 /// \brief Struct to define settings for TCP connection
 typedef struct 
 {
-    const Char *host   ; ///< Value for the IP address or DNS name of the remote device
+    union
+    {
+    const Char *host   ; ///< Value for the IP address or DNS name of the remote device (TCP Client)
+    const Char *ipaddr ; ///< Value for the IP address to bind the server (TCP Server)
+    };
+    
     uint16_t    port   ; ///< Value for the TCP port number of the remote device
     uint32_t    timeout; ///< Value for connection timeout (milliseconds)
     uint32_t    maxconn; ///< Maximum number of simultaneous connections to the server (for server side only)

@@ -180,7 +180,11 @@ enum FlowControl {
 ```cpp
 // TCP connection settings
 struct TcpSettings {
-    const Char *host;    // IP address or DNS name
+    union
+    {    
+    const Char *host;   // IP address or hostname to connect (client)
+    const Char *ipaddr; // IP address to bind (server)
+    };
     uint16_t port;       // TCP port number (default: 502)
     uint32_t timeout;    // Connection timeout in milliseconds
     uint32_t maxconn;    // Max simultaneous connections (server only)
@@ -816,6 +820,8 @@ if (StatusIsGood(status)) {
 
 High-level client wrapper for specific device communication.
 
+### Settings Overview {#api-tcpserver-settings}
+
 ### Class Declaration {#api-modbusclient-decl}
 ```cpp
 class ModbusClient : public ModbusObject {
@@ -840,6 +846,8 @@ public:
     StatusCode readExceptionStatus(uint8_t *value);
     StatusCode diagnostics(uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
     StatusCode getCommEventCounter(uint16_t *status, uint16_t *eventCount);
+### Usage Examples {#api-tcpserver-examples}
+
     StatusCode getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
     StatusCode writeMultipleCoils(uint16_t offset, uint16_t count, const void *values);
     StatusCode writeMultipleRegisters(uint16_t offset, uint16_t count, const uint16_t *values);
@@ -1020,7 +1028,8 @@ class ModbusTcpServer : public ModbusServerPort {
 public:
     // Default values
     struct Defaults {
-        const uint16_t port;    // Default: 502
+        const Char*    ipaddr ; // Default: "0.0.0.0"
+        const uint16_t port   ; // Default: 502
         const uint32_t timeout; // Default: 3000 ms
         const uint32_t maxconn; // Default: 10
         
@@ -1033,6 +1042,8 @@ public:
     ~ModbusTcpServer();
     
     // Configuration
+    const Char* ipaddr() const;     // Bind address (e.g., "127.0.0.1", "0.0.0.0")
+    void setIpaddr(const Char *ip); // Set bind address
     uint16_t port() const;
     void setPort(uint16_t port);
     uint32_t timeout() const override;
@@ -1071,6 +1082,7 @@ class MyDevice : public ModbusInterface {
 // Create and configure server
 MyDevice device;
 ModbusTcpServer server(&device);
+server.setIpaddr("127.0.0.1");
 server.setPort(502);
 server.setTimeout(5000);
 server.setMaxConnections(10);

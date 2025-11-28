@@ -88,9 +88,10 @@ public:
      */
     struct MODBUS_EXPORT Defaults
     {
-        const uint16_t port   ; ///< Default setting 'TCP port number' for the listening server
-        const uint32_t timeout; ///< Default setting for the read timeout of every single conncetion
-        const uint32_t maxconn; ///< Default setting for the maximum number of simultaneous connections to the server
+        const Modbus::Char *ipaddr ; ///< Default setting 'IP address' to bind the server
+        const uint16_t      port   ; ///< Default setting 'TCP port number' for the listening server
+        const uint32_t      timeout; ///< Default setting for the read timeout of every single conncetion
+        const uint32_t      maxconn; ///< Default setting for the maximum number of simultaneous connections to the server
 
         ///  \details Constructor of the class.
         Defaults();
@@ -107,6 +108,12 @@ public:
     ~ModbusTcpServer();
 
 public:
+    ///  \details Returns the settings for the IP address to bind the server.
+    const Modbus::Char *ipaddr() const;
+
+    ///  \details Sets the settings for the IP address to bind the server.
+    void setIpaddr(const Modbus::Char *ipaddr);
+
     ///  \details Returns the setting for the TCP port number of the server.
     uint16_t port() const;
 

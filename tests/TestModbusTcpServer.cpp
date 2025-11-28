@@ -52,6 +52,12 @@ TEST_F(ModbusTcpServerTest, IsTcpServerReturnsTrue)
     EXPECT_TRUE(tcpServer->isTcpServer());
 }
 
+TEST_F(ModbusTcpServerTest, DefaultIpaddr)
+{
+    const ModbusTcpServer::Defaults &defaults = ModbusTcpServer::Defaults::instance();
+    EXPECT_STREQ(tcpServer->ipaddr(), defaults.ipaddr);
+}
+
 TEST_F(ModbusTcpServerTest, DefaultPort)
 {
     const ModbusTcpServer::Defaults &defaults = ModbusTcpServer::Defaults::instance();
@@ -68,6 +74,13 @@ TEST_F(ModbusTcpServerTest, DefaultMaxConnections)
 {
     const ModbusTcpServer::Defaults &defaults = ModbusTcpServer::Defaults::instance();
     EXPECT_EQ(tcpServer->maxConnections(), defaults.maxconn);
+}
+
+TEST_F(ModbusTcpServerTest, IpaddrSetter)
+{
+    const char* testIpaddr = "192.168.1.100";
+    tcpServer->setIpaddr(testIpaddr);
+    EXPECT_STREQ(tcpServer->ipaddr(), testIpaddr);
 }
 
 TEST_F(ModbusTcpServerTest, PortSetter)
@@ -99,17 +112,78 @@ TEST_F(ModbusTcpServerTest, MaxConnectionsSetterZeroDefaultsToOne)
 
 TEST_F(ModbusTcpServerTest, SetAllSettings)
 {
+    const char* testIpaddr = "192.168.1.100";
     const uint16_t testPort = 5025;
     const uint32_t testTimeout = 20000;
     const uint32_t testMaxConn = 25;
     
+    tcpServer->setIpaddr(testIpaddr);
     tcpServer->setPort(testPort);
     tcpServer->setTimeout(testTimeout);
     tcpServer->setMaxConnections(testMaxConn);
     
+    EXPECT_STREQ(tcpServer->ipaddr(), testIpaddr);
     EXPECT_EQ(tcpServer->port(), testPort);
     EXPECT_EQ(tcpServer->timeout(), testTimeout);
     EXPECT_EQ(tcpServer->maxConnections(), testMaxConn);
+}
+
+// ============================================================================
+// IP Address Specific Tests
+// ============================================================================
+
+TEST_F(ModbusTcpServerTest, IpaddrSetterPersistsAfterClose)
+{
+    const char* testIpaddr = "127.0.0.1";
+    tcpServer->setIpaddr(testIpaddr);
+
+    // Close to simulate lifecycle change
+    (void)tcpServer->close();
+
+    EXPECT_STREQ(tcpServer->ipaddr(), testIpaddr);
+}
+
+TEST_F(ModbusTcpServerTest, DifferentServersDifferentIpaddr)
+{
+    MockModbusDevice *device2 = new MockModbusDevice();
+    ModbusTcpServer *server2 = new ModbusTcpServer(device2);
+
+    const char* ip1 = "127.0.0.1";
+    const char* ip2 = "192.168.10.50";
+
+    tcpServer->setIpaddr(ip1);
+    server2->setIpaddr(ip2);
+
+    EXPECT_STRNE(tcpServer->ipaddr(), server2->ipaddr());
+
+    delete server2;
+    delete device2;
+}
+
+TEST_F(ModbusTcpServerTest, BindToSpecificIpAndPort)
+{
+    // Use loopback to avoid external dependencies
+    const char* loopback = "127.0.0.1";
+    const uint16_t customPort = 50499;
+
+    tcpServer->setIpaddr(loopback);
+    tcpServer->setPort(customPort);
+
+    EXPECT_STREQ(tcpServer->ipaddr(), loopback);
+    EXPECT_EQ(tcpServer->port(), customPort);
+
+    // Attempt to open; allow Good, Processing or Bad depending on environment
+    StatusCode result = tcpServer->open();
+
+    int attempts = 0;
+    while (StatusIsProcessing(result) && attempts < 100)
+    {
+        result = tcpServer->process();
+        attempts++;
+    }
+
+    // We only assert stability (no exceptions) and valid status domain
+    EXPECT_TRUE(StatusIsGood(result) || StatusIsBad(result));
 }
 
 // ============================================================================

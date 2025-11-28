@@ -14,6 +14,7 @@ Strings::Strings() :
     type              (QStringLiteral("type")),
     tries             (QStringLiteral("tries")),
     host              (QStringLiteral("host")),
+    ipaddr            (QStringLiteral("ipaddr")),
     port              (QStringLiteral("port")),
     timeout           (QStringLiteral("timeout")),
     maxconn           (QStringLiteral("maxconn")),
@@ -54,6 +55,7 @@ Defaults::Defaults() :
     type              (TCP),
     tries             (1), // TODO: initialize by constant from ModbusClientPort
     host              (ModbusTcpPort   ::Defaults::instance().host            ),
+    ipaddr            (ModbusTcpPort   ::Defaults::instance().ipaddr          ),
     port              (ModbusTcpPort   ::Defaults::instance().port            ),
     timeout           (ModbusTcpPort   ::Defaults::instance().timeout         ),
     maxconn           (ModbusTcpServer ::Defaults::instance().maxconn         ),
@@ -109,6 +111,11 @@ uint32_t getSettingTries(const Settings &s, bool *ok)
 QString getSettingHost(const Settings &s, bool *ok)
 {
     MB_GET_SETTING_MACRO(QString, host, v = var.toString(); okInner = true)
+}
+
+MODBUS_EXPORT QString getSettingIpaddr(const Settings &s, bool *ok)
+{
+    MB_GET_SETTING_MACRO(QString, ipaddr, v = var.toString(); okInner = true)
 }
 
 uint16_t getSettingPort(const Settings &s, bool *ok)
@@ -189,6 +196,11 @@ void setSettingTries(Settings &s, uint32_t v)
 void setSettingHost(Settings &s, const QString &v)
 {
     s[Modbus::Strings::instance().host] = v;
+}
+
+MODBUS_EXPORT void setSettingIpaddr(Settings &s, const QString &v)
+{
+    s[Modbus::Strings::instance().ipaddr] = v;
 }
 
 void setSettingPort(Settings &s, uint16_t v)
@@ -549,6 +561,7 @@ ModbusServerPort *createServerPort(ModbusInterface *device, const Settings &sett
             {
                 const auto &d = ModbusTcpServer::Defaults::instance();
                 ModbusTcpServer *tcp = new ModbusTcpServer(device);
+                tcp->setIpaddr (settings.value(s.ipaddr, d.ipaddr).toString().toStdString().c_str());
                 tcp->setPort   (settings.value(s.port, d.port).toUInt());
                 tcp->setTimeout(settings.value(s.timeout, d.timeout).toUInt());
                 tcp->setMaxConnections(settings.value(s.maxconn, d.maxconn).toUInt());

@@ -61,7 +61,9 @@ StatusCode ModbusTcpServer::open()
             // Bind the socket
             sockaddr_in serverAddr;
             serverAddr.sin_family = AF_INET;
-            serverAddr.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any available interface
+            serverAddr.sin_addr.s_addr = inet_addr(d->ipaddr.data());
+            if (serverAddr.sin_addr.s_addr == INADDR_NONE)
+                serverAddr.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any available interface
             serverAddr.sin_port = htons(d->tcpPort); // Port number
 
             if (d->socket->bind((sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)

@@ -629,6 +629,45 @@ delete client; // Deletes tcpPort automatically
 
 `ModbusTcpServer` manages multiple client connections on a TCP port.
 
+The TCP server exposes settings to control listening behavior and connection handling.
+
+- **Bind Address**: `ipaddr` — local IP address to bind the server.
+    - Examples: `127.0.0.1` (loopback), `0.0.0.0` (all interfaces), specific NIC IP like `192.168.1.10`.
+- **Port**: `port` — TCP port number (default `STANDARD_TCP_PORT`, usually `502`).
+- **Timeout**: `timeout` — read timeout per connection (ms).
+- **Max Connections**: `maxconn` — maximum simultaneous connections.
+
+```cpp
+ModbusTcpServer server(device);
+server.setIpaddr("0.0.0.0");
+server.setPort(50200);
+server.setTimeout(10000);
+server.setMaxConnections(8);
+```
+
+Alternatively, use `Modbus::TcpSettings`:
+
+```cpp
+Modbus::TcpSettings ts;
+ts.ipaddr = "127.0.0.1";
+ts.port = STANDARD_TCP_PORT;
+ts.timeout = 7000;
+ts.maxconn = 16;
+```
+#### Bind Address {#tcp-server-ipaddr}
+
+Local IP address for the server to bind.
+
+**Type:** `const Char *` (C-string)  
+**Default:** `"0.0.0.0"` (all interfaces)  
+**Property:** `ipaddr()` / `setIpaddr()`
+
+```cpp
+ModbusTcpServer server(device);
+server.setIpaddr("0.0.0.0");
+const Char *addr = server.ipaddr();
+``` 
+
 #### TCP Port Number {#tcp-server-port}
 
 Port on which the server listens for incoming connections.

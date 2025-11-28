@@ -29,6 +29,7 @@
 #define MODBUS_TCPSERVER_OPEN_TIMOUT_ms 1000
 
 ModbusTcpServer::Defaults::Defaults() :
+    ipaddr (StringLiteral("0.0.0.0")),
     port   (STANDARD_TCP_PORT),
     timeout(3000),
     maxconn(10)
@@ -44,6 +45,16 @@ const ModbusTcpServer::Defaults &ModbusTcpServer::Defaults::instance()
 ModbusTcpServer::~ModbusTcpServer()
 {
     clearConnections();
+}
+
+const Modbus::Char *ModbusTcpServer::ipaddr() const
+{
+    return d_ModbusTcpServer(d_ptr)->ipaddr.data();
+}
+
+void ModbusTcpServer::setIpaddr(const Modbus::Char *ipaddr)
+{
+    d_ModbusTcpServer(d_ptr)->ipaddr = ipaddr;
 }
 
 uint16_t ModbusTcpServer::port() const

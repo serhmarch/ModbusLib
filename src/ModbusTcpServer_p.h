@@ -25,12 +25,14 @@ public:
     {
         const ModbusTcpServer::Defaults &d = ModbusTcpServer::Defaults::instance();
 
+        this->ipaddr  = d.ipaddr ;
         this->tcpPort = d.port   ;
         this->timeout = d.timeout;
         this->maxconn = d.maxconn;
     }
 
 public:
+    String   ipaddr ;
     uint16_t tcpPort;
     uint32_t timeout;
     uint32_t maxconn;

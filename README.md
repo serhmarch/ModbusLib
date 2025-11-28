@@ -133,6 +133,7 @@ void main()
 {
     MyModbusDevice device;
     Modbus::TcpSettings settings;
+    settings.ipaddr = "0.0.0.0"; // bind address; use "127.0.0.1" for loopback
     settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
     settings.maxconn = 10;

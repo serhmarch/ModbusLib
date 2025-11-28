@@ -67,6 +67,7 @@ ModbusTcpServer(ModbusInterface *device);
 **Configuration:**
 ```cpp
 ModbusTcpServer server(&device);
+server.setIpaddr("0.0.0.0");      // Bind address (e.g., 127.0.0.1 for loopback)
 server.setPort(502);              // TCP port (default: 502)
 server.setTimeout(5000);          // Connection timeout in milliseconds
 server.setMaxConnections(10);     // Maximum simultaneous connections
@@ -76,6 +77,7 @@ server.setMaxConnections(10);     // Maximum simultaneous connections
 * port = 502 (standard Modbus TCP port)
 * timeout = 3000 ms
 * maxConnections = 10
+* ipaddr = implementation default (commonly 0.0.0.0)
 
 **Key Features:**
 * Accepts multiple client connections simultaneously
@@ -88,6 +90,7 @@ server.setMaxConnections(10);     // Maximum simultaneous connections
 ```cpp
 MyDevice device;
 ModbusTcpServer server(&device);
+server.setIpaddr("127.0.0.1");
 server.setPort(502);
 server.setMaxConnections(10);
 
@@ -99,6 +102,27 @@ while (running)
     Modbus::msleep(1);
 }
 server.close();
+```
+
+### Binding Address and Port {#server-binding}
+
+Use `ipaddr` to control which local interface the server binds to, and `port` to select the TCP port.
+
+- `ipaddr("127.0.0.1")` binds to loopback only.
+- `ipaddr("0.0.0.0")` binds all IPv4 interfaces.
+- Bind to a specific NIC IP (e.g. `"192.168.1.10"`).
+
+### Using TcpSettings {#server-using-tcpsettings}
+
+`Modbus::TcpSettings` provides a compact way to pass configuration:
+
+```cpp
+Modbus::TcpSettings ts;
+ts.ipaddr = "127.0.0.1";
+ts.port = STANDARD_TCP_PORT;
+ts.timeout = 5000;
+ts.maxconn = 8;
+// Depending on your factory/helper API, pass &ts for TCP
 ```
 
 ### ModbusServerResource {#server-modbusserverresource}
