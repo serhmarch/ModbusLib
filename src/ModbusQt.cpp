@@ -55,7 +55,7 @@ Defaults::Defaults() :
     type              (TCP),
     tries             (1), // TODO: initialize by constant from ModbusClientPort
     host              (ModbusTcpPort   ::Defaults::instance().host            ),
-    ipaddr            (ModbusTcpPort   ::Defaults::instance().ipaddr          ),
+    ipaddr            (ModbusTcpServer ::Defaults::instance().ipaddr          ),
     port              (ModbusTcpPort   ::Defaults::instance().port            ),
     timeout           (ModbusTcpPort   ::Defaults::instance().timeout         ),
     maxconn           (ModbusTcpServer ::Defaults::instance().maxconn         ),

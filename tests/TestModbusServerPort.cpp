@@ -12,6 +12,7 @@ TEST(ModbusServerPort, testAlgorithm)
 {
     // NiceMock for ignoring uninteresting calls
     NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
+    EXPECT_CALL(*port, setServerMode(true)).Times(AtLeast(0));
     NiceMock<MockModbusDevice> device;
 
     ModbusServerResource sp(port, &device);

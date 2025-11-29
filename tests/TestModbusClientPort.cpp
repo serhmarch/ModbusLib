@@ -23,6 +23,8 @@ protected:
     void SetUp() override
     {
         mockPort = new MockModbusPort(true);
+        // Expect client to switch port into client mode
+        EXPECT_CALL(*mockPort, setServerMode(false)).Times(AtLeast(0));
         //mockPort->setTimeout(1); // Set minimal timeout for tests
         clientPort = new ModbusClientPort(mockPort);
     }
