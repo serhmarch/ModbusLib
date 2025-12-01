@@ -8,22 +8,22 @@ set(MB_TESTS_HEADERS
     )
 
 set(MB_TESTS_SOURCES 
-    TestModbus.cpp
-    TestModbusAddress.cpp
-    TestModbusClientPort.cpp
-    TestModbusServerPort.cpp
-    TestModbusServerResource.cpp
-    TestModbusTcpPort.cpp
-    TestModbusTcpServer.cpp
-    TestModbusRtuPort.cpp
-    TestModbusAscPort.cpp
+    Modbus_test.cpp
+    ModbusAddress_test.cpp
+    ModbusClientPort_test.cpp
+    ModbusServerPort_test.cpp
+    ModbusServerResource_test.cpp
+    ModbusTcpPort_test.cpp
+    ModbusTcpServer_test.cpp
+    ModbusRtuPort_test.cpp
+    ModbusAscPort_test.cpp
     main.cpp
     )
 
 # Add Qt-specific tests when Qt support is enabled in the library
 if (MB_QT_ENABLED)
     list(APPEND MB_TESTS_SOURCES
-        TestModbusQt.cpp
+        ModbusQt_test.cpp
     )
 endif()
 

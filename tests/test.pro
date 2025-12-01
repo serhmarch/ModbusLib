@@ -16,10 +16,10 @@ INCLUDEPATH += . ..   \
 LIBS += -L../bin -lmodbus
 
 SOURCES += \
-        TestModbus.cpp \
-        TestModbusClientPort.cpp \
-        TestModbusServerPort.cpp \
-        TestModbusTcpPort.cpp \
-        TestModbusRtuPort.cpp \
-        TestModbusAscPort.cpp \
-        main.cpp
+    Modbus_test.cpp \
+    ModbusClientPort_test.cpp \
+    ModbusServerPort_test.cpp \
+    ModbusTcpPort_test.cpp \
+    ModbusRtuPort_test.cpp \
+    ModbusAscPort_test.cpp \
+    main.cpp

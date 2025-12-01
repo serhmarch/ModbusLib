@@ -10,13 +10,13 @@
 using namespace testing;
 using namespace Modbus;
 
-TEST(Modbus, crc16)
+TEST(ModbusTest, crc16)
 {
     EXPECT_EQ(crc16(reinterpret_cast<const uint8_t*>("\xDE\xAD\xBE\xAF"), 4), 0x319A);
     EXPECT_EQ(crc16(reinterpret_cast<const uint8_t*>("\x01\x03\x00\x00\x00\x0A"), 6), 0xCDC5);
 }
 
-TEST(Modbus, readMemBits)
+TEST(ModbusTest, readMemBits)
 {
     const uint16_t mem[] = { 0x01FC, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 };
     StatusCode status;
@@ -52,7 +52,7 @@ TEST(Modbus, readMemBits)
     EXPECT_EQ(status, Status_Good);
 }
 
-TEST(Modbus, writeMemBits)
+TEST(ModbusTest, writeMemBits)
 {
     uint16_t mem[16];
     StatusCode status;
@@ -92,7 +92,7 @@ TEST(Modbus, writeMemBits)
     EXPECT_EQ(status, Status_Good);
 }
 
-TEST(Modbus, bytesToAscii)
+TEST(ModbusTest, bytesToAscii)
 {
     const uint8_t bytes[] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
     std::vector<uint8_t> ascii(sizeof(bytes)*2);
@@ -102,7 +102,7 @@ TEST(Modbus, bytesToAscii)
 }
 
 
-TEST(Modbus, asciiToBytes)
+TEST(ModbusTest, asciiToBytes)
 {
     const uint8_t ascii[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     std::vector<uint8_t> bytes(sizeof(ascii)/2);
@@ -112,24 +112,24 @@ TEST(Modbus, asciiToBytes)
 }
 
 
-TEST(Modbus, toModbusString)
+TEST(ModbusTest, toModbusString)
 {
     EXPECT_EQ(toModbusString(0), "0");
     EXPECT_EQ(toModbusString(1), "1");
     EXPECT_EQ(toModbusString(-1), "-1");
 }
 
-TEST(Modbus, bytesToString)
+TEST(ModbusTest, bytesToString)
 {
     EXPECT_EQ(bytesToString(reinterpret_cast<const uint8_t*>("\x01\x03\x00\x00\x00\x0A"), 6), StringLiteral("01 03 00 00 00 0A "));
 }
 
-TEST(Modbus, asciiToString)
+TEST(ModbusTest, asciiToString)
 {
     EXPECT_EQ(asciiToString(reinterpret_cast<const uint8_t*>(":01030000000A\r\n"), 15), StringLiteral(": 01 03 00 00 00 0A CR LF "));
 }
 
-TEST(Modbus, createPortTcp)
+TEST(ModbusTest, createPortTcp)
 {
     TcpSettings tcp;
     tcp.host    = "localhost";
@@ -145,7 +145,7 @@ TEST(Modbus, createPortTcp)
 }
 
 
-TEST(Modbus, createPortRtu)
+TEST(ModbusTest, createPortRtu)
 {
     SerialSettings ser;
     ser.portName         = StringLiteral("COM1");
@@ -171,7 +171,7 @@ TEST(Modbus, createPortRtu)
     delete port;
 }
 
-TEST(Modbus, createPortAsc)
+TEST(ModbusTest, createPortAsc)
 {
     SerialSettings ser;
     ser.portName         = StringLiteral("COM1");
