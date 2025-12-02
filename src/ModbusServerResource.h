@@ -17,9 +17,11 @@ class ModbusPort;
     \details `ModbusServerResource` derived from `ModbusServerPort` and
     makes `ModbusPort` object behaves like server port.
     Pointer to `ModbusPort` object is passed to `ModbusServerResource` constructor.
+    `ModbusServerResource` owns the passed `ModbusPort` object and deletes it in destructor.
 
     Also `ModbusServerResource` have `ModbusInterface` object as second parameter
     of constructor which process every Modbus function request.
+    `ModbusServerResource` does not own the passed `ModbusInterface` object.
 
     Key characteristics:
     - Concrete implementation of ModbusServerPort for single-connection scenarios
@@ -72,7 +74,9 @@ class MODBUS_EXPORT ModbusServerResource : public ModbusServerPort
 public:
     /// \details Constructor of the class.
     /// \param[in]  port    Pointer to the `ModbusPort` which is managed by the current class object.
+    /// `ModbusServerResource` owns the passed `ModbusPort` object and deletes it in destructor.
     /// \param[in]  device  Pointer to the `ModbusInterface` implementation to which all requests for Modbus functions are forwarded.
+    /// `ModbusServerResource` does not own the passed `ModbusInterface` object.
     ModbusServerResource(ModbusPort *port, ModbusInterface *device);
 
 public:

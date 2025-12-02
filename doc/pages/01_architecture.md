@@ -38,28 +38,28 @@ All protocol implementations (TCP, RTU, ASCII) share a common interface through 
 ## Architecture Layers {#architecture-layers}
 
 ```
-┌─────────────────────────────────────────────────┐
-│         Application Layer                       │
-│  (User code, examples, applications)            │
-└──────────────┬──────────────────────────────────┘
-               │
-┌──────────────▼──────────────────────────────────┐
-│         Client/Server Layer                     │
-│  ModbusClient, ModbusClientPort                 │
-│  ModbusTcpServer, ModbusServerResource          │
-└──────────────┬──────────────────────────────────┘
-               │
-┌──────────────▼──────────────────────────────────┐
-│         Protocol Layer                          │
-│  ModbusTcpPort, ModbusRtuPort, ModbusAscPort    │
-│  Handles framing, checksums, serialization      │
-└──────────────┬──────────────────────────────────┘
-               │
-┌──────────────▼──────────────────────────────────┐
-│         Transport Layer                         │
-│  Socket (TCP), Serial Port (RTU/ASCII)          │
-│  Low-level I/O operations                       │
-└─────────────────────────────────────────────────┘
++-------------------------------------------------+
+|         Application Layer                       |
+|  (User code, examples, applications)            |
++--------------+----------------------------------+
+               |
++--------------v----------------------------------+
+|         Client/Server Layer                     |
+|  ModbusClient, ModbusClientPort                 |
+|  ModbusTcpServer, ModbusServerResource          |
++--------------+----------------------------------+
+               |
++--------------v----------------------------------+
+|         Protocol Layer                          |
+|  ModbusTcpPort, ModbusRtuPort, ModbusAscPort    |
+|  Handles framing, checksums, serialization      |
++--------------+----------------------------------+
+               |
++--------------v----------------------------------+
+|         Transport Layer                         |
+|  Socket (TCP), Serial Port (RTU/ASCII)          |
+|  Low-level I/O operations                       |
++-------------------------------------------------+
 ```
 
 ## Core Components {#core-components}
@@ -77,7 +77,7 @@ All protocol implementations (TCP, RTU, ASCII) share a common interface through 
   * Implements `ModbusInterface`
   * Manages request/response state machine
   * Handles error recovery and timeouts
-  * Provides signal callbacks (Qt mode)
+  * Provides signal callbacks (Qt style)
   * Supports resource sharing between multiple clients
 
 * **ModbusServerPort** - Base server port implementation
@@ -165,29 +165,29 @@ Methods include:
 
 ```
 User Code
-    ↓
+    v
 ModbusClient / ModbusClientPort (blocking mode)
-    ↓
+    v
 Protocol Layer (ModbusTcpPort / ModbusRtuPort / ModbusAscPort)
-    ↓
+    v
 Frame construction (serialization)
-    ↓
+    v
 CRC/LRC calculation
-    ↓
+    v
 Transport Layer (Socket / Serial)
-    ↓
+    v
 [Network / Serial Line]
-    ↓
+    v
 Server receives request
-    ↓
+    v
 Response generation
-    ↓
+    v
 Frame transmission back to client
-    ↓
+    v
 Client receives response
-    ↓
+    v
 Response validation (CRC/LRC)
-    ↓
+    v
 Data extraction and return to user
 ```
 
@@ -195,23 +195,23 @@ Data extraction and return to user
 
 ```
 Accept Connection
-    ↓
+    v
 Read incoming data
-    ↓
+    v
 Parse frame (CRC/LRC validation)
-    ↓
+    v
 Extract function code and parameters
-    ↓
+    v
 Call ModbusInterface method
-    ↓
+    v
 Generate response
-    ↓
+    v
 Frame construction
-    ↓
+    v
 CRC/LRC calculation
-    ↓
+    v
 Send response
-    ↓
+    v
 Close or await next request
 ```
 
@@ -276,26 +276,26 @@ void errorCallback(const Modbus::Char *source, Modbus::StatusCode code, const Mo
 
 ```
 ModbusLib/
-├── src/
-│   ├── Modbus.h/cpp              # Core definitions, status codes
-│   ├── ModbusGlobal.h            # Global definitions and macros
-│   ├── ModbusObject.h/cpp        # Base object class
-│   ├── ModbusPort.h/cpp          # ModbusPort abstract base
-│   ├── ModbusClientPort.h/cpp    # ModbusClientPort implementation
-│   ├── ModbusClient.h/cpp        # ModbusClient wrapper
-│   ├── ModbusTcpPort.h/cpp       # TCP protocol implementation
-│   ├── ModbusSerialPort.h/cpp    # Serial port base class
-│   ├── ModbusRtuPort.h/cpp       # RTU protocol implementation
-│   ├── ModbusAscPort.h/cpp       # ASCII protocol implementation
-│   ├── ModbusServerPort.h/cpp    # ModbusServerPort base
-│   ├── ModbusServerResource.h/cpp # Server resource for RTU/ASCII
-│   ├── ModbusTcpServer.h/cpp     # TCP server implementation
-│   ├── win/                      # Windows-specific implementations
-│   └── unix/                     # Unix/Linux-specific implementations
-├── examples/
-│   ├── client/                   # Client examples
-│   └── server/                   # Server examples
-└── tests/                        # Unit tests (GoogleTest)
++- src/
+|   +-- Modbus.h/cpp              # Core definitions, status codes
+|   +-- ModbusGlobal.h            # Global definitions and macros
+|   +-- ModbusObject.h/cpp        # Base object class
+|   +-- ModbusPort.h/cpp          # ModbusPort abstract base
+|   +-- ModbusClientPort.h/cpp    # ModbusClientPort implementation
+|   +-- ModbusClient.h/cpp        # ModbusClient wrapper
+|   +-- ModbusTcpPort.h/cpp       # TCP protocol implementation
+|   +-- ModbusSerialPort.h/cpp    # Serial port base class
+|   +-- ModbusRtuPort.h/cpp       # RTU protocol implementation
+|   +-- ModbusAscPort.h/cpp       # ASCII protocol implementation
+|   +-- ModbusServerPort.h/cpp    # ModbusServerPort base
+|   +-- ModbusServerResource.h/cpp # Server resource for RTU/ASCII
+|   +-- ModbusTcpServer.h/cpp     # TCP server implementation
+|   +-- win/                      # Windows-specific implementations
+|   \-- unix/                     # Unix/Linux-specific implementations
++-- examples/
+|   +-- client/                   # Client examples
+|   \-- server/                   # Server examples
+\-- tests/                        # Unit tests (GoogleTest)
 ```
 
 ## Key Design Patterns {#key-design-patterns}

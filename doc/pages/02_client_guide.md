@@ -15,7 +15,7 @@ The ModbusLib client implementation provides comprehensive support for Modbus co
 * Blocking and non-blocking operation modes
 * Automatic connection management
 * Comprehensive error handling
-* Signal/slot event system (Qt mode)
+* Signal/slot event system (Qt style)
 * Resource sharing between multiple clients
 
 **Constructor:**
@@ -32,12 +32,12 @@ ModbusClientPort(ModbusPort *port);
 #include "ModbusClientPort.h"
 
 // Create TCP port
-ModbusTcpPort tcpPort;
-tcpPort.setHost("192.168.1.100");
-tcpPort.setPort(502);
+ModbusTcpPort *tcpPort = new ModbusTcpPort();
+tcpPort->setHost("192.168.1.100");
+tcpPort->setPort(502);
 
 // Create client port
-ModbusClientPort clientPort(&tcpPort);
+ModbusClientPort clientPort(tcpPort);
 
 // Read holding registers (FC 03)
 uint16_t registers[10];
@@ -73,9 +73,9 @@ ModbusClient(uint8_t unit, ModbusClientPort *port);
 #include "ModbusClientPort.h"
 #include "ModbusTcpPort.h"
 
-ModbusTcpPort tcpPort;
-tcpPort.setHost("192.168.1.100");
-ModbusClientPort port(&tcpPort);
+ModbusTcpPort *tcpPort = new ModbusTcpPort();
+tcpPort->setHost("192.168.1.100");
+ModbusClientPort port(tcpPort);
 
 // Create clients for different units
 ModbusClient client1(1, &port);
@@ -105,10 +105,10 @@ ModbusTcpPort();
 
 **Settings:**
 ```cpp
-ModbusTcpPort port;
-port.setHost("192.168.1.100");    // Device IP or hostname
-port.setPort(502);                 // Modbus TCP port (default: 502)
-port.setTimeout(3000);             // Timeout in milliseconds
+ModbusTcpPort *port = new ModbusTcpPort();
+port->setHost("192.168.1.100");    // Device IP or hostname
+port->setPort(502);                 // Modbus TCP port (default: 502)
+port->setTimeout(3000);             // Timeout in milliseconds
 ```
 
 **Default Values:**
@@ -127,14 +127,14 @@ ModbusRtuPort();
 
 **Settings:**
 ```cpp
-ModbusRtuPort port;
-port.setPortName("COM1");          // Serial port
-port.setBaudRate(9600);            // Baud rate
-port.setDataBits(8);               // Data bits (5-8)
-port.setParity(Modbus::NoParity);  // Parity
-port.setStopBits(Modbus::OneStop); // Stop bits
-port.setTimeoutFirstByte(3000);    // First byte timeout (ms)
-port.setTimeoutInterByte(5);       // Inter-byte timeout (ms)
+ModbusRtuPort *port = new ModbusRtuPort();
+port->setPortName("COM1");          // Serial port
+port->setBaudRate(9600);            // Baud rate
+port->setDataBits(8);               // Data bits (5-8)
+port->setParity(Modbus::NoParity);  // Parity
+port->setStopBits(Modbus::OneStop); // Stop bits
+port->setTimeoutFirstByte(3000);    // First byte timeout (ms)
+port->setTimeoutInterByte(5);       // Inter-byte timeout (ms)
 ```
 
 **Default Values:**
@@ -174,9 +174,9 @@ In blocking mode, method calls wait until the operation completes and returns th
 #include "ModbusClientPort.h"
 #include "ModbusTcpPort.h"
 
-ModbusTcpPort tcp;
-tcp.setHost("192.168.1.100");
-ModbusClientPort port(&tcp);
+ModbusTcpPort *tcp = new ModbusTcpPort();
+tcp->setHost("192.168.1.100");
+ModbusClientPort port(tcp);
 
 // Method blocks until response received
 uint16_t registers[10];
@@ -208,9 +208,9 @@ In non-blocking mode, method calls return immediately. If the operation is incom
 #include "ModbusClientPort.h"
 #include "ModbusTcpPort.h"
 
-ModbusTcpPort tcp;
-tcp.setHost("192.168.1.100");
-ModbusClientPort port(&tcp);
+ModbusTcpPort *tcp = new ModbusTcpPort();
+tcp->setHost("192.168.1.100");
+ModbusClientPort port(tcp);
 
 uint16_t registers[10];
 
@@ -498,8 +498,8 @@ Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data);
 #include "ModbusClientPort.h"
 #include "ModbusTcpPort.h"
 
-ModbusTcpPort tcp;
-ModbusClientPort port(&tcp);
+ModbusTcpPort *tcp = new ModbusTcpPort();
+ModbusClientPort port(tcp);
 
 uint16_t registers[10];
 Modbus::StatusCode status = port.readHoldingRegisters(1, 0, 10, registers);
@@ -551,7 +551,7 @@ void onError(const Modbus::Char *source, Modbus::StatusCode code, const Modbus::
     // Handle error
 }
 
-// Connect signals (Qt mode)
+// Connect signals (Qt style)
 port->connect(&ModbusClientPort::signalTx, onTx);
 port->connect(&ModbusClientPort::signalRx, onRx);
 port->connect(&ModbusClientPort::signalError, onError);

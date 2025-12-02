@@ -31,7 +31,7 @@ if(MB_DOXYGEN_EXECUTABLE)
             COMMAND "${MB_DOXYGEN_EXECUTABLE}" "${MB_DOC_FILE}"
             COMMENT "Build documentation"
             )
-    #add_dependencies(${PROJECT_NAME} ${MB_APP_NAME})
+    add_dependencies(${PROJECT_NAME} ${MB_LIBRARY_NAME})
 
 else()
     message(WARNING "MB-DOC: Doxygen not found. Documentation will not be generated.")

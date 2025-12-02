@@ -34,11 +34,11 @@ The MBAP header is 7 bytes and prepended to every Modbus TCP message:
 ### Frame Structure {#protocol-tcp-frame}
 
 ```
-┌─────────────┬──────────────┬────────┬─────────┬──────────────┬──────────┐
-│Transaction  │ Protocol ID  │ Length │ Unit ID │ Function Code│   Data   │
-│    ID (2)   │     (2)      │  (2)   │   (1)   │     (1)      │  (N)     │
-└─────────────┴──────────────┴────────┴─────────┴──────────────┴──────────┘
-      MBAP Header (7 bytes)              PDU (N+1 bytes)
++-------------+--------------+--------+---------+--------------+----------+
+| Transaction | Protocol ID  | Length | Unit ID | Function Code|   Data   |
+|    ID (2)   |     (2)      |  (2)   |   (1)   |     (1)      |  (N)     |
++-------------+--------------+--------+---------+--------------+----------+
+    MBAP Header (7 bytes)              PDU (N+1 bytes)
 ```
 
 ### Example: Read Holding Registers (FC 03) {#example-read-holding-registers-fc-03}
@@ -63,7 +63,7 @@ Protocol ID:    0x0000
 Length:         0x0017 (23 bytes follow)
 Unit ID:        0x01
 Function Code:  0x03
-Byte Count:     0x14 (20 bytes = 10 registers × 2)
+Byte Count:     0x14 (20 bytes = 10 registers x 2)
 Data:           [20 bytes of register values]
 
 Hex: 00 01 00 00 00 17 01 03 14 [20 data bytes]
@@ -124,12 +124,12 @@ Modbus RTU (Remote Terminal Unit) is a compact binary protocol designed for seri
 ### Frame Structure {#rtu-frame-structure}
 
 ```
-┌─────────┬──────────────┬──────────┬─────────────┐
-│ Address │ Function Code│   Data   │  CRC-16     │
-│   (1)   │     (1)      │   (N)    │  (2 bytes)  │
-└─────────┴──────────────┴──────────┴─────────────┘
-  ↑                                              ↑
-  Start (3.5 char silence)              End (3.5 char silence)
++---------+--------------+----------+-------------+
+| Address | Function Code|   Data   |  CRC-16     |
+|   (1)   |     (1)      |   (N)    |  (2 bytes)  |
++---------+--------------+----------+-------------+
+    ^                                              ^
+    Start (3.5 char silence)              End (3.5 char silence)
 ```
 
 ### Timing Requirements {#timing-requirements}
@@ -146,11 +146,11 @@ T_char = (1 start bit + 8 data bits + 1 parity bit + 1 stop bit) / baud_rate
 T_char = 11 bits / baud_rate
 
 At 9600 baud: T_char = 11 / 9600 = 1.146 ms
-              3.5 × T_char = 4.01 ms
-              1.5 × T_char = 1.72 ms
+              3.5 x T_char = 4.01 ms
+              1.5 x T_char = 1.72 ms
 
 At 19200 baud: T_char = 0.573 ms
-               3.5 × T_char = 2.00 ms (minimum 1.75 ms per spec)
+               3.5 x T_char = 2.00 ms (minimum 1.75 ms per spec)
 ```
 
 For baud rates > 19200, use fixed timing:
@@ -270,11 +270,11 @@ Modbus ASCII encodes all data as ASCII hexadecimal characters, making frames hum
 ### Frame Structure {#ascii-frame-structure}
 
 ```
-┌───────┬─────────┬──────────────┬──────────┬─────┬──────┐
-│ Start │ Address │ Function Code│   Data   │ LRC │ End  │
-│  ':'  │  (2)    │     (2)      │   (2N)   │ (2) │CR LF │
-└───────┴─────────┴──────────────┴──────────┴─────┴──────┘
-   0x3A    ASCII      ASCII         ASCII    ASCII  0x0D 0x0A
++-------+---------+--------------+----------+-----+------+
+| Start | Address | Function Code|   Data   | LRC | End  |
+|  ':'  |  (2)    |     (2)      |   (2N)   | (2) |CR LF |
++-------+---------+--------------+----------+-----+------+
+    0x3A    ASCII      ASCII         ASCII    ASCII  0x0D 0x0A
 ```
 
 - **Start delimiter**: `:` (0x3A)
@@ -420,18 +420,18 @@ Reads the ON/OFF status of discrete output coils.
 
 **Request PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Start Addr(2)│ Quantity (2) │
-│     0x01     │   0x0000     │   0x0001     │
-└──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+
+| Function (1) | Start Addr(2)| Quantity (2) |
+|     0x01     |   0x0000     |   0x0001     |
++--------------+--------------+--------------+
 ```
 
 **Response PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Byte Count(1)│ Coil Status  │
-│     0x01     │     0x01     │   (N bytes)  │
-└──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+
+| Function (1) | Byte Count(1)| Coil Status  |
+|     0x01     |     0x01     |   (N bytes)  |
++--------------+--------------+--------------+
 ```
 
 **Example:**
@@ -462,18 +462,18 @@ Reads 16-bit holding registers (read/write).
 
 **Request PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Start Addr(2)│ Quantity (2) │
-│     0x03     │   0x0000     │   0x000A     │
-└──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+
+| Function (1) | Start Addr(2)| Quantity (2) |
+|     0x03     |   0x0000     |   0x000A     |
++--------------+--------------+--------------+
 ```
 
 **Response PDU:**
 ```
-┌──────────────┬──────────────┬──────────────────────┐
-│ Function (1) │ Byte Count(1)│ Register Values      │
-│     0x03     │     0x14     │ (2 bytes per reg)    │
-└──────────────┴──────────────┴──────────────────────┘
++--------------+--------------+----------------------+
+| Function (1) | Byte Count(1)| Register Values      |
+|     0x03     |     0x14     | (2 bytes per reg)    |
++--------------+--------------+----------------------+
 ```
 
 **Example:**
@@ -504,12 +504,12 @@ Writes a single coil to ON (0xFF00) or OFF (0x0000).
 
 **Request PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Coil Addr(2) │ Value (2)    │
-│     0x05     │   0x0000     │   0xFF00     │
-└──────────────┴──────────────┴──────────────┘
-                                 ↑
-                         ON = 0xFF00, OFF = 0x0000
++--------------+--------------+--------------+
+| Function (1) | Coil Addr(2) | Value (2)    |
+|     0x05     |   0x0000     |   0xFF00     |
++--------------+--------------+--------------+
+                 ^
+             ON = 0xFF00, OFF = 0x0000
 ```
 
 **Response:** Echo of request (same format)
@@ -529,10 +529,10 @@ Writes a single 16-bit register.
 
 **Request PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Reg Addr (2) │ Value (2)    │
-│     0x06     │   0x0001     │   0x0003     │
-└──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+
+| Function (1) | Reg Addr (2) | Value (2)    |
+|     0x06     |   0x0001     |   0x0003     |
++--------------+--------------+--------------+
 ```
 
 **Response:** Echo of request
@@ -549,18 +549,18 @@ Writes multiple contiguous coils.
 
 **Request PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Start Addr(2)│ Quantity (2) │ Byte Count(1)│ Coil Values  │
-│     0x0F     │   0x0013     │   0x000A     │     0x02     │  (N bytes)   │
-└──────────────┴──────────────┴──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+--------------+--------------+
+| Function (1) | Start Addr(2)| Quantity (2) | Byte Count(1)| Coil Values  |
+|     0x0F     |   0x0013     |   0x000A     |     0x02     |  (N bytes)   |
++--------------+--------------+--------------+--------------+--------------+
 ```
 
 **Response PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Start Addr(2)│ Quantity (2) │
-│     0x0F     │   0x0013     │   0x000A     │
-└──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+
+| Function (1) | Start Addr(2)| Quantity (2) |
+|     0x0F     |   0x0013     |   0x000A     |
++--------------+--------------+--------------+
 ```
 
 **Example:**
@@ -579,18 +579,18 @@ Writes multiple contiguous 16-bit registers.
 
 **Request PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Start Addr(2)│ Quantity (2) │ Byte Count(1)│ Reg Values   │
-│     0x10     │   0x0001     │   0x0002     │     0x04     │  (N bytes)   │
-└──────────────┴──────────────┴──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+--------------+--------------+
+| Function (1) | Start Addr(2)| Quantity (2) | Byte Count(1)| Reg Values   |
+|     0x10     |   0x0001     |   0x0002     |     0x04     |  (N bytes)   |
++--------------+--------------+--------------+--------------+--------------+
 ```
 
 **Response PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Start Addr(2)│ Quantity (2) │
-│     0x10     │   0x0001     │   0x0002     │
-└──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+
+| Function (1) | Start Addr(2)| Quantity (2) |
+|     0x10     |   0x0001     |   0x0002     |
++--------------+--------------+--------------+
 ```
 
 **Example:**
@@ -606,10 +606,10 @@ Modifies a register using AND and OR masks.
 
 **Request PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Reg Addr (2) │ AND Mask (2) │ OR Mask (2)  │
-│     0x16     │   0x0004     │   0x00F2     │   0x0025     │
-└──────────────┴──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+--------------+
+| Function (1) | Reg Addr (2) | AND Mask (2) | OR Mask (2)  |
+|     0x16     |   0x0004     |   0x00F2     |   0x0025     |
++--------------+--------------+--------------+--------------+
 
 Result = (Current_Value AND And_Mask) OR (Or_Mask AND (NOT And_Mask))
 ```
@@ -633,22 +633,22 @@ Combines read and write operations in a single transaction.
 
 **Request PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┬──────────────┬──────────────┬
-│ Function (1) │ Read Addr(2) │ Read Qty (2) │ Write Addr(2)│ Write Qty(2) │
-│     0x17     │   0x0003     │   0x0006     │   0x000E     │   0x0003     │
-└──────────────┴──────────────┴──────────────┴──────────────┴──────────────┴
- ──────────────┬──────────────┐
-  Byte Count(1)│ Write Values │
-      0x06     │  (N bytes)   │
- ──────────────┴──────────────┘
++--------------+--------------+--------------+--------------+--------------+
+| Function (1) | Read Addr(2) | Read Qty (2) | Write Addr(2)| Write Qty(2) |
+|     0x17     |   0x0003     |   0x0006     |   0x000E     |   0x0003     |
++--------------+--------------+--------------+--------------+--------------+
+ +-------------+--------------+
+ | Byte Count(1)| Write Values |
+ |     0x06     |  (N bytes)   |
+ +-------------+--------------+
 ```
 
 **Response PDU:**
 ```
-┌──────────────┬──────────────┬──────────────┐
-│ Function (1) │ Byte Count(1)│ Read Values  │
-│     0x17     │     0x0C     │  (N bytes)   │
-└──────────────┴──────────────┴──────────────┘
++--------------+--------------+--------------+
+| Function (1) | Byte Count(1)| Read Values  |
+|     0x17     |     0x0C     |  (N bytes)   |
++--------------+--------------+--------------+
 ```
 
 **Example:**
@@ -679,10 +679,10 @@ When a Modbus device encounters an error processing a request, it returns an exc
 
 **Exception Response Format:**
 ```
-┌──────────────────┬──────────────┐
-│ Function + 0x80  │ Exception    │
-│      (1)         │   Code (1)   │
-└──────────────────┴──────────────┘
++------------------+--------------+
+| Function + 0x80  | Exception    |
+|      (1)         |   Code (1)   |
++------------------+--------------+
 ```
 
 The function code has its MSB set (original + 0x80):
@@ -709,20 +709,20 @@ The function code has its MSB set (original + 0x80):
 **Request (Read non-existent register):**
 ```
 RTU Hex: 01 03 9C 41 00 02 [CRC]
-         │  │  └────┘  └──┘
-         │  │     │      └── Quantity: 2 registers
-         │  │     └── Address: 40001 (may not exist)
-         │  └── Function: Read Holding Registers
-         └── Unit ID: 1
+         |  |  +----+  +--+
+         |  |     |      +-- Quantity: 2 registers
+         |  |     +-- Address: 40001 (may not exist)
+         |  +-- Function: Read Holding Registers
+         +-- Unit ID: 1
 ```
 
 **Exception Response:**
 ```
 RTU Hex: 01 83 02 [CRC]
-         │  │  │
-         │  │  └── Exception Code: 0x02 (Illegal Data Address)
-         │  └── Function: 0x83 (0x03 + 0x80)
-         └── Unit ID: 1
+         |  |  |
+         |  |  +-- Exception Code: 0x02 (Illegal Data Address)
+         |  +-- Function: 0x83 (0x03 + 0x80)
+         +-- Unit ID: 1
 ```
 
 ### C++ Exception Handling {#c-exception-handling}
@@ -907,18 +907,19 @@ Echo of request: :0506003212344A7\r\n
 **Request (RTU):**
 ```
 01 03 C3 50 00 01 [CRC]
-   │  └────┘  └──┘
-   │     │      └── Quantity: 1
-   │     └── Address: 50000
-   └── Read Holding Registers
+    |    |     |     |
+    |    |     |     +-- CRC-16
+    |    |     +-------- Quantity: 1
+    |    +-------------- Address: 50000
+    +------------------- Read Holding Registers
 ```
 
 **Exception Response (RTU):**
 ```
 01 83 02 [CRC]
-   │  │
-   │  └── Exception: Illegal Data Address (0x02)
-   └── Function + 0x80 = 0x83
+    |  |
+    |  +-- Exception: Illegal Data Address (0x02)
+    +-- Function + 0x80 = 0x83
 ```
 
 ---
@@ -1007,7 +1008,7 @@ Echo of request: :0506003212344A7\r\n
 
 5. **Cable and Termination**
    - Use twisted pair cable for RS-485
-   - Add 120Ω termination resistors at both ends of RS-485 bus
+   - Add 120 Ohm termination resistors at both ends of RS-485 bus
    - Keep cable length < 1000m for 9600 baud
    - Use shielded cable in noisy environments
 
