@@ -3,7 +3,7 @@
 #include <string>
 #include <gtest/gtest.h>
 
-TEST(TestModbusAddress, AddressFromString)
+TEST(ModbusAddressTest, AddressFromString)
 {
     const Modbus::Address bmAdr0xStandard(Modbus::Memory_0x, 0);
     const Modbus::Address bmAdr1xStandard(Modbus::Memory_1x, 0);
@@ -56,7 +56,7 @@ TEST(TestModbusAddress, AddressFromString)
     EXPECT_EQ(adr4xIEC61131Hex, bmAdr4xStandard);
 }
 
-TEST(TestModbusAddress, AddressToString)
+TEST(ModbusAddressTest, AddressToString)
 {
     const Modbus::Address bmAdr0xStandard(Modbus::Memory_0x, 0);
     const Modbus::Address bmAdr1xStandard(Modbus::Memory_1x, 0);
