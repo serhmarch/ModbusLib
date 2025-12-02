@@ -3,25 +3,47 @@
     "configurePresets": [
         {
             "name": "Config-All",
-            "displayName": "Config All",
+            "displayName": "Config-All",
             "hidden": true,
             "cacheVariables": {
                 "MB_EXAMPLES_ENABLED": "ON",
-                "MB_TESTS_ENABLED": "ON"
+                "MB_TESTS_ENABLED": "ON",
+                "MB_DOC_ENABLED": "ON"
             }
         },
         {
             "name": "Config-No-Examples-Tests",
-            "displayName": "No Examples And Tests",
+            "displayName": "Config-No-Examples-Tests",
             "hidden": true,
             "cacheVariables": {
                 "MB_EXAMPLES_ENABLED": "OFF",
-                "MB_TESTS_ENABLED": "OFF"
+                "MB_TESTS_ENABLED": "OFF",
+                "MB_DOC_ENABLED": "OFF"
+            }
+        },
+        {
+            "name": "Config-Docs",
+            "displayName": "Config-Docs",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_EXAMPLES_ENABLED": "OFF",
+                "MB_TESTS_ENABLED": "OFF",
+                "MB_DOC_ENABLED": "ON"
+            }
+        },
+        {
+            "name": "Config-Tests",
+            "displayName": "Config-Tests",
+            "hidden": true,
+            "cacheVariables": {
+                "MB_EXAMPLES_ENABLED": "OFF",
+                "MB_TESTS_ENABLED": "ON",
+                "MB_DOC_ENABLED": "OFF"
             }
         },
         {
             "name": "Config-Examples",
-            "displayName": "Examples",
+            "displayName": "Config-Examples",
             "hidden": true,
             "cacheVariables": {
                 "MB_QT_ENABLED": "OFF",
@@ -31,7 +53,6 @@
         },
         {
             "name": "Win64-Default",
-            "displayName": "Win64 Config Default MSVC",
             "description": "Using compilers for Visual Studio 17 2022 (x64 architecture)",
             "generator": "Visual Studio 17 2022",
             "toolset": "host=x64",
@@ -48,8 +69,50 @@
             }
         },
         {
+            "name": "Win64-All",
+            "inherits": [
+                "Win64-Default",
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Win64-Examples",
+            "displayName": "Win64-Examples",
+            "inherits": [
+                "Config-Examples",
+                "Win64-Default"
+            ],
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Examples"
+        },
+        {
+            "name": "Win64-Docs",
+            "displayName": "Win64-Docs",
+            "inherits": [
+                "Config-Docs",
+                "Win64-Default"
+            ],
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Docs"
+        },
+        {
+            "name": "Win64-Tests",
+            "inherits": [
+                "Config-Tests",
+                "Win64-Default"
+            ],
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Tests"
+        },
+        {
+            "name": "Win64-No-Examples-Tests",
+            "displayName": "Win64-No-Examples-Tests",
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Simple",
+            "inherits": [
+                "Win64-Default",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
             "name": "Win64-Qt",
-            "displayName": "Windows MSVC x64 Qt",
+            "displayName": "Win64-Qt",
             "hidden": true,
             "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Qt",
             "cacheVariables": {
@@ -58,42 +121,25 @@
             }
         },
         {
-            "name": "Win64-All",
-            "displayName": "Win64 Config All",
-            "inherits": "Win64-Default",
-            "cacheVariables": {
-                "MB_EXAMPLES_ENABLED": "ON",
-                "MB_TESTS_ENABLED": "ON"
-            }
-        },
-        {
             "name": "Win64-Qt-All",
-            "displayName": "Win64 Config Qt All",
+            "displayName": "Win64-Qt-All",
             "inherits": [
                 "Win64-Qt",
                 "Win64-All"
             ]
         },
         {
-            "name": "Win64-Examples",
-            "displayName": "Win64 Config Examples",
-            "inherits": [
-                "Config-Examples",
-                "Win64-Default"
-            ],
-            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Examples"
-        },
-        {
-            "name": "Win64-No-Examples-Tests",
-            "displayName": "Win64 Config No Examples And Tests",
+            "name": "Win64-Qt-Tests",
+            "displayName": "Win64-Qt-Tests",
             "inherits": [
                 "Win64-Default",
-                "Config-No-Examples-Tests"
+                "Config-Tests",
+                "Win64-Qt"
             ]
         },
         {
             "name": "Win64-Qt-No-Examples-Tests",
-            "displayName": "Win64 Config Qt No Examples And Tests",
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64-Qt-Simple",
             "inherits": [
                 "Win64-Qt",
                 "Win64-Default",
@@ -119,8 +165,51 @@
             }
         },
         {
+            "name": "Win32-All",
+            "displayName": "Win32-All",
+            "inherits": [
+                "Win32-Default",
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Win32-Examples",
+            "displayName": "Win32-Examples",
+            "inherits": [
+                "Config-Examples",
+                "Win32-Default"
+            ],
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32-Examples"
+        },
+        {
+            "name": "Win32-Docs",
+            "displayName": "Win32-Docs",
+            "inherits": [
+                "Config-Docs",
+                "Win32-Default"
+            ],
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32-Docs"
+        },
+        {
+            "name": "Win32-Tests",
+            "displayName": "Win32-Tests",
+            "inherits": [
+                "Config-Tests",
+                "Win32-Default"
+            ],
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32-Tests"
+        },
+        {
+            "name": "Win32-No-Examples-Tests",
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32-Simple",
+            "inherits": [
+                "Win32-Default",
+                "Config-No-Examples-Tests"
+            ]
+        },
+        {
             "name": "Win32-Qt",
-            "displayName": "Windows MSVC x32 Qt",
+            "displayName": "Win32-Qt",
             "hidden": true,
             "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32-Qt",
             "cacheVariables": {
@@ -129,32 +218,24 @@
             }
         },
         {
-            "name": "Win32-All",
-            "displayName": "Win32 Config All",
-            "inherits": [
-                "Win32-Default",
-                "Config-All"
-            ]
-        },
-        {
             "name": "Win32-Qt-All",
-            "displayName": "Win32 Config Qt All",
+            "displayName": "Win32-Qt-All",
             "inherits": [
                 "Win32-Qt",
                 "Win32-All"
             ]
         },
         {
-            "name": "Win32-No-Examples-Tests",
-            "displayName": "Win32 Config No Examples And Tests",
+            "name": "Win32-Qt-Tests",
             "inherits": [
                 "Win32-Default",
-                "Config-No-Examples-Tests"
+                "Config-Tests",
+                "Win32-Qt"
             ]
         },
         {
             "name": "Win32-Qt-No-Examples-Tests",
-            "displayName": "Win32 Config Qt No Examples And Tests",
+            "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32-Qt-Simple",
             "inherits": [
                 "Win32-Qt",
                 "Win32-Default",
@@ -229,7 +310,6 @@
         },
         {
             "name": "Linux-Qt",
-            "displayName": "Linux GCC Qt",
             "hidden": true,
             "cacheVariables": {
                 "MB_QT_ENABLED": "ON"
@@ -247,70 +327,77 @@
             "inherits": "Linux-Qt"
         },
         {
-            "name": "Linux-Qt-Release",
-            "hidden": true,
-            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux-Qt/Release",
-            "inherits": "Linux-Qt"
-        },
-        {
             "name": "Linux-Examples-Debug",
-            "displayName": "Linux GCC Config Examples Debug",
             "inherits": [
                 "Linux-Debug",
-                "Config-Examples"
-            ]
-        },
-        {
-            "name": "Linux-Examples-Release",
-            "displayName": "Linux GCC Config Examples Release",
-            "inherits": [
-                "Linux-Release", 
                 "Config-Examples"
             ]
         },
         {
             "name": "Linux-All-Debug",
-            "displayName": "Linux GCC Config All Debug",
             "inherits": [
                 "Linux-Debug",
                 "Config-All"
             ]
         },
         {
-            "name": "Linux32-All-Debug",
-            "displayName": "Linux32 GCC Config All Debug",
+            "name": "Linux-Tests-Debug",
             "inherits": [
-                "Linux32-Debug",
-                "Config-All"
+                "Linux-Debug",
+                "Config-Tests"
             ]
         },
         {
-            "name": "Linux-All-Release",
-            "displayName": "Linux GCC Config All Release",
+            "name": "Linux-Docs-Debug",
             "inherits": [
-                "Linux-Release", 
-                "Config-All"
-            ]
-        },
-        {
-            "name": "Linux32-All-Release",
-            "displayName": "Linux32 GCC Config All Release",
-            "inherits": [
-                "Linux32-Release", 
-                "Config-All"
+                "Linux-Debug",
+                "Config-Docs"
             ]
         },
         {
             "name": "Linux-No-Examples-Tests-Debug",
-            "displayName": "Linux Config No Examples And Tests Debug",
             "inherits": [
                 "Linux-Debug",
                 "Config-No-Examples-Tests"
             ]
         },
         {
+            "name": "Linux-Examples-Release",
+            "inherits": [
+                "Linux-Release", 
+                "Config-Examples"
+            ]
+        },
+        {
+            "name": "Linux-Qt-Release",
+            "hidden": true,
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux-Qt/Release",
+            "inherits": "Linux-Qt"
+        },
+        {
+            "name": "Linux-All-Release",
+            "inherits": [
+                "Linux-Release", 
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Linux32-All-Debug",
+            "inherits": [
+                "Linux32-Debug",
+                "Config-All"
+            ]
+        },
+        {
+            "name": "Linux32-All-Release",
+            "inherits": [
+                "Linux32-Release", 
+                "Config-All"
+            ]
+        },
+        {
             "name": "Linux-No-Examples-Tests-Release",
-            "displayName": "Linux Config No Examples And Tests Release",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux-Simple/Release",
             "inherits": [
                 "Linux-Release",
                 "Config-No-Examples-Tests"
@@ -327,7 +414,6 @@
         },
         {
             "name": "Linux-Qt-All-Release",
-            "displayName": "Linux GCC Config Qt All Release",
             "inherits": [
                 "Linux-Qt-Release",
                 "Linux-Release",
@@ -336,7 +422,6 @@
         },
         {
             "name": "Linux-Qt-No-Examples-Tests-Debug",
-            "displayName": "Linux Config Qt No Examples And Tests Debug",
             "inherits": [
                 "Linux-Qt-Debug",
                 "Linux-Debug",
@@ -345,14 +430,13 @@
         },
         {
             "name": "Linux-Qt-No-Examples-Tests-Release",
-            "displayName": "Linux Config Qt No Examples And Tests Release",
+            "binaryDir": "$env{HOME}/tmp/cmake/ModbusLib/Linux-Qt-Simple/Release",
             "inherits": [
                 "Linux-Qt-Release",
                 "Linux-Release",
                 "Config-No-Examples-Tests"
             ]
         }
-
     ],
     "buildPresets": [
         {
@@ -368,22 +452,10 @@
             "configuration": "Debug"
         },
         {
-            "name": "Win64-All-Release",
-            "inherits": "Build-Base",
-            "configurePreset": "Win64-All",
-            "configuration": "Release"
-        },
-        {
             "name": "Win64-Examples-Debug",
             "inherits": "Build-Base",
             "configurePreset": "Win64-Examples",
             "configuration": "Debug"
-        },
-        {
-            "name": "Win64-Examples-Release",
-            "inherits": "Build-Base",
-            "configurePreset": "Win64-Examples",
-            "configuration": "Release"
         },
         {
             "name": "Win64-Qt-All-Debug",
@@ -392,10 +464,40 @@
             "configuration": "Debug"
         },
         {
+            "name": "Win64-All-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-All",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win64-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win64-Examples-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Examples",
+            "configuration": "Release"
+        },
+        {
             "name": "Win64-Qt-All-Release",
             "inherits": "Build-Base",
             "configurePreset": "Win64-Qt-All",
             "configuration": "Release"
+        },
+        {
+            "name": "Win64-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Tests",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win64-Docs-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Docs",
+            "configuration": "Debug"
         },
         {
             "name": "Win64-No-Examples-Tests-Debug",
@@ -410,6 +512,12 @@
             "configuration": "Release"
         },
         {
+            "name": "Win64-Qt-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Qt-Tests",
+            "configuration": "Debug"
+        },
+        {
             "name": "Win64-Qt-No-Examples-Tests-Debug",
             "inherits": "Build-Base",
             "configurePreset": "Win64-Qt-No-Examples-Tests",
@@ -419,6 +527,12 @@
             "name": "Win64-Qt-No-Examples-Tests-Release",
             "inherits": "Build-Base",
             "configurePreset": "Win64-Qt-No-Examples-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win64-Qt-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win64-Qt-Tests",
             "configuration": "Release"
         },
         {
@@ -446,6 +560,18 @@
             "configuration": "Release"
         },
         {
+            "name": "Win32-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Tests",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Win32-Docs-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Docs",
+            "configuration": "Debug"
+        },
+        {
             "name": "Win32-No-Examples-Tests-Debug",
             "inherits": "Build-Base",
             "configurePreset": "Win32-No-Examples-Tests",
@@ -467,6 +593,24 @@
             "name": "Win32-Qt-No-Examples-Tests-Release",
             "inherits": "Build-Base",
             "configurePreset": "Win32-Qt-No-Examples-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win32-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Tests",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win32-Docs-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Docs",
+            "configuration": "Release"
+        },
+        {
+            "name": "Win32-Qt-Tests-Release",
+            "inherits": "Build-Base",
+            "configurePreset": "Win32-Qt-Tests",
             "configuration": "Release"
         },
         {
@@ -506,6 +650,18 @@
             "configuration": "Release"
         },
         {
+            "name": "Linux-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Tests-Debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Linux-Docs-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Docs-Debug",
+            "configuration": "Debug"
+        },
+        {
             "name": "Linux-No-Examples-Tests-Debug",
             "inherits": "Build-Base",
             "configurePreset": "Linux-No-Examples-Tests-Debug",
@@ -542,5 +698,145 @@
             "configuration": "Release"
         }
 
+    ],
+    "testPresets": [
+        {
+            "name": "Win64-All",
+            "configurePreset": "Win64-All",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Win64-Tests",
+            "configurePreset": "Win64-Tests",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Win64-Qt-All",
+            "configurePreset": "Win64-Qt-All",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Win64-Qt-Tests",
+            "configurePreset": "Win64-Qt-Tests",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Win32-All",
+            "configurePreset": "Win32-All",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Win32-Tests",
+            "configurePreset": "Win32-Tests",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Win32-Qt-All",
+            "configurePreset": "Win32-Qt-All",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Win32-Qt-Tests",
+            "configurePreset": "Win32-Qt-Tests",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Linux-All-Debug",
+            "configurePreset": "Linux-All-Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Linux-Qt-All-Debug",
+            "configurePreset": "Linux-Qt-All-Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        }
     ]
 }

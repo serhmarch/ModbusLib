@@ -100,3 +100,19 @@
 
 * Fixed memory leak according to the #6 bug report
 * Change types of in/out buffers of `diagnostics` (0x08) function to `void*`
+
+# 0.4.7
+
+* Add setting ModbusTcpServer::ipaddr to bind
+* Fixed issues #8, #9, #10
+* Add ModbusTcpPort::transactionId() getter
+* Add new error 'Status_BadPortClosed' when trying to write into port that is closed
+* Add 'setError' string in ModbusServerResource::processDevice()
+* Fix ModbusTcpServer::setTimeout() issue
+* Fixed ModbusClientPort::request() method for blocking mode
+* CMake: separate public and private headers
+* Fix cmake install
+* Fix error text message for ModbusAscPort
+* Improve open() method for ModbusTcpPort and ModbusSerialPort
+* Update tests
+* Update docs

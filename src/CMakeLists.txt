@@ -261,6 +261,7 @@ else()
         message(STATUS "Install directory specified: ${CMAKE_INSTALL_PREFIX}")
     endif ()
     
+    message(STATUS "MB: Public headers: ${MB_PUBLIC_HEADERS}")
     set_target_properties(${MB_LIBRARY_NAME} PROPERTIES PUBLIC_HEADER "${MB_PUBLIC_HEADERS}")
     
     # Specify where header and built files should be copied
@@ -275,44 +276,44 @@ else()
         )
     
     # Specify where headers should be found for installed target
-    target_include_directories(
-        ${MB_LIBRARY_NAME}
-        PUBLIC
-        $<INSTALL_INTERFACE:include>
-        )   
+    #target_include_directories(
+    #    ${MB_LIBRARY_NAME}
+    #    PUBLIC
+    #    $<INSTALL_INTERFACE:include>
+    #    )   
     
     # Create the config file X-targets.cmake
     # which will be referenced in config.cmake.in
     # Put it in build directory for now to avoid
     # having temporary files in the installation directory
-    install(
-        EXPORT ${MB_LIBRARY_NAME}-targets
-        FILE "${MB_LIBRARY_NAME}-targets.cmake"
-        NAMESPACE ${MB_LIBRARY_NAME}::
-        DESTINATION "./lib/cmake/${MB_LIBRARY_NAME}"
-        )
-    
-    include(CMakePackageConfigHelpers) # Helper to create basic config files
+    #install(
+    #    EXPORT ${MB_LIBRARY_NAME}-targets
+    #    FILE "${MB_LIBRARY_NAME}-targets.cmake"
+    #    NAMESPACE ${MB_LIBRARY_NAME}::
+    #    DESTINATION "./lib/cmake/${MB_LIBRARY_NAME}"
+    #    )
+    #
+    #include(CMakePackageConfigHelpers) # Helper to create basic config files
     
     # Write ${MB_LIBRARY_NAME}ConfigVersion.cmake in build directory
-    write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}ConfigVersion.cmake"
-        VERSION "${CMAKE_PROJECT_VERSION}"
-        COMPATIBILITY SameMajorVersion
-        )
+    #write_basic_package_version_file(
+    #    "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}ConfigVersion.cmake"
+    #    VERSION "${CMAKE_PROJECT_VERSION}"
+    #    COMPATIBILITY SameMajorVersion
+    #    )
     
     # Write ${MB_LIBRARY_NAME}Config.cmake in build directory
     # (based on config.cmake.in template for dependencies)
-    configure_package_config_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}Config.cmake"
-        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${MB_LIBRARY_NAME}"
-        )
+    #configure_package_config_file(
+    #    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.cmake.in"
+    #    "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}Config.cmake"
+    #    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${MB_LIBRARY_NAME}"
+    #    )
     
     # Move config files to install directory
-    install(
-        FILES "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}Config.cmake"
-              "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}ConfigVersion.cmake"
-        DESTINATION "./lib/cmake/${MB_LIBRARY_NAME}"
-        )
+    #install(
+    #    FILES "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}Config.cmake"
+    #          "${CMAKE_CURRENT_BINARY_DIR}/${MB_LIBRARY_NAME}ConfigVersion.cmake"
+    #    DESTINATION "./lib/cmake/${MB_LIBRARY_NAME}"
+    #    )
 endif()
