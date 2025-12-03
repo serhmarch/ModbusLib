@@ -261,7 +261,6 @@ else()
         message(STATUS "Install directory specified: ${CMAKE_INSTALL_PREFIX}")
     endif ()
     
-    message(STATUS "MB: Public headers: ${MB_PUBLIC_HEADERS}")
     set_target_properties(${MB_LIBRARY_NAME} PROPERTIES PUBLIC_HEADER "${MB_PUBLIC_HEADERS}")
     
     # Specify where header and built files should be copied
