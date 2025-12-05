@@ -279,6 +279,7 @@ ModbusLib/
 +- src/
 |   +-- Modbus.h/cpp              # Core definitions, status codes
 |   +-- ModbusGlobal.h            # Global definitions and macros
+|   +-- ModbusQt.h/cpp            # Additional functionality for Qt integration (optional)
 |   +-- ModbusObject.h/cpp        # Base object class
 |   +-- ModbusPort.h/cpp          # ModbusPort abstract base
 |   +-- ModbusClientPort.h/cpp    # ModbusClientPort implementation
@@ -288,7 +289,7 @@ ModbusLib/
 |   +-- ModbusRtuPort.h/cpp       # RTU protocol implementation
 |   +-- ModbusAscPort.h/cpp       # ASCII protocol implementation
 |   +-- ModbusServerPort.h/cpp    # ModbusServerPort base
-|   +-- ModbusServerResource.h/cpp # Server resource for RTU/ASCII
+|   +-- ModbusServerResource.h/cpp # Server port implementation for RTU/ASCII or single TCP connection
 |   +-- ModbusTcpServer.h/cpp     # TCP server implementation
 |   +-- win/                      # Windows-specific implementations
 |   \-- unix/                     # Unix/Linux-specific implementations

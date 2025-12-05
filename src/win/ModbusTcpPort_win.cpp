@@ -49,6 +49,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                     return Status_Good;
                 }
             }
+            d->clearChanged();
             ADDRINFO hints;
             ZeroMemory(&hints, sizeof(hints));
             hints.ai_family = AF_INET;
