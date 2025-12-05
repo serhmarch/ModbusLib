@@ -116,3 +116,6 @@
 * Improve open() method for ModbusTcpPort and ModbusSerialPort
 * Update tests
 * Update docs
+* Fixed bug when TCP client unable to connect
+* Add functions isUnitEnabled, setUnitEnabled for ModbusServerPort class
+* Add functions fillUnitMap, unitMapToString
