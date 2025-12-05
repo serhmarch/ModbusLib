@@ -8,6 +8,18 @@
 using namespace testing;
 using namespace Modbus;
 
+// Helper to build a unit map with specific bits set
+static void buildUnitMap(uint8_t *map, const std::initializer_list<uint8_t> &enabledUnits)
+{
+    memset(map, 0, MB_UNITMAP_SIZE);
+    for (uint8_t unit : enabledUnits)
+    {
+        const uint8_t byteIndex = unit / 8;
+        const uint8_t bitIndex  = unit % 8;
+        MB_UNITMAP_SET_BIT(map, unit, 1);
+    }
+}
+
 TEST(ModbusServerPort, testAlgorithm)
 {
     // NiceMock for ignoring uninteresting calls
@@ -59,4 +71,113 @@ TEST(ModbusServerPort, testAlgorithm)
         .WillOnce(Return(Status_Good));
 
     sp.process();
+}
+
+TEST(ModbusServerPort_NonVirtual, DeviceGetterSetter)
+{
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
+    NiceMock<MockModbusDevice> device1;
+    NiceMock<MockModbusDevice> device2;
+
+    EXPECT_CALL(*port, setServerMode(true)).Times(AtLeast(0));
+
+    ModbusServerResource sp(port, &device1);
+    EXPECT_EQ(sp.device(), &device1);
+
+    sp.setDevice(&device2);
+    EXPECT_EQ(sp.device(), &device2);
+}
+
+TEST(ModbusServerPort_NonVirtual, BroadcastEnableBehavior)
+{
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
+    NiceMock<MockModbusDevice> device;
+    EXPECT_CALL(*port, setServerMode(true)).Times(AtLeast(0));
+
+    ModbusServerResource sp(port, &device);
+
+    // Default: broadcast enabled
+    EXPECT_TRUE(sp.isBroadcastEnabled());
+    // Unit 0 should be considered enabled, even with empty unit map
+    EXPECT_TRUE(sp.isUnitEnabled(0));
+
+    // Disable broadcast
+    sp.setBroadcastEnabled(false);
+    EXPECT_FALSE(sp.isBroadcastEnabled());
+    // With broadcast disabled and no unit map, all units are enabled by default
+    EXPECT_TRUE(sp.isUnitEnabled(0));
+}
+
+TEST(ModbusServerPort_NonVirtual, UnitMapSetAndQuery)
+{
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
+    NiceMock<MockModbusDevice> device;
+    EXPECT_CALL(*port, setServerMode(true)).Times(AtLeast(0));
+
+    ModbusServerResource sp(port, &device);
+
+    // By default unitMap is nullptr and any unit is enabled
+    EXPECT_EQ(sp.unitMap(), nullptr);
+    EXPECT_TRUE(sp.isUnitEnabled(0));
+    EXPECT_TRUE(sp.isUnitEnabled(1));
+    EXPECT_TRUE(sp.isUnitEnabled(10));
+    EXPECT_TRUE(sp.isUnitEnabled(200));
+
+    // Provide a specific unit map enabling only units {2, 7, 200}
+    uint8_t map[MB_UNITMAP_SIZE];
+    buildUnitMap(map, {2, 7, 200});
+    sp.setUnitMap(map);
+    sp.setBroadcastEnabled(false); // disable broadcast to test map directly
+
+    ASSERT_NE(sp.unitMap(), nullptr);
+    EXPECT_FALSE(sp.isUnitEnabled(0)); // broadcast separate, but default enabled; here we explicitly test map without broadcast special-case
+    EXPECT_FALSE(sp.isUnitEnabled(1));
+    EXPECT_TRUE (sp.isUnitEnabled(2));
+    EXPECT_FALSE(sp.isUnitEnabled(3));
+    EXPECT_FALSE(sp.isUnitEnabled(5));
+    EXPECT_TRUE (sp.isUnitEnabled(7));
+    EXPECT_FALSE(sp.isUnitEnabled(8));
+    EXPECT_FALSE(sp.isUnitEnabled(199));
+    EXPECT_TRUE (sp.isUnitEnabled(200));
+    EXPECT_FALSE(sp.isUnitEnabled(201));
+
+    // setUnitEnabled should create map if nullptr and then set bit
+    sp.setUnitMap(nullptr);
+    ASSERT_EQ(sp.unitMap(), nullptr);
+    // if map is nullptr all units enabled
+    EXPECT_TRUE(sp.isUnitEnabled(0));
+    EXPECT_TRUE(sp.isUnitEnabled(1));
+    EXPECT_TRUE(sp.isUnitEnabled(2));
+    EXPECT_TRUE(sp.isUnitEnabled(3));
+
+    sp.setUnitEnabled(5, true);
+    ASSERT_NE(sp.unitMap(), nullptr);
+    EXPECT_TRUE(sp.isUnitEnabled(5));
+    // Disable it back
+    sp.setUnitEnabled(5, false);
+    EXPECT_FALSE(sp.isUnitEnabled(5));
+}
+
+TEST(ModbusServerPort_NonVirtual, ContextGetterSetter)
+{
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
+    NiceMock<MockModbusDevice> device;
+    EXPECT_CALL(*port, setServerMode(true)).Times(AtLeast(0));
+
+    ModbusServerResource sp(port, &device);
+
+    EXPECT_EQ(sp.context(), nullptr);
+    int userData = 42;
+    sp.setContext(&userData);
+    EXPECT_EQ(sp.context(), &userData);
+}
+
+TEST(ModbusServerPort_NonVirtual, IsTcpServerFalseByDefault)
+{
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
+    NiceMock<MockModbusDevice> device;
+    EXPECT_CALL(*port, setServerMode(true)).Times(AtLeast(0));
+
+    ModbusServerResource sp(port, &device);
+    EXPECT_FALSE(sp.isTcpServer());
 }

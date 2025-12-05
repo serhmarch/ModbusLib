@@ -123,8 +123,20 @@ public: // server port interface
     /// \details Set units map of current server. Server make a copy of units map data.
     /// Unit map is data type with size of at least 32 bytes (MB_UNITMAP_SIZE)
     /// in which every bit represents unit address from `0` to `255`.
+    /// If `unitmap` is `nullptr` then previous unit map will be deleted and
+    /// all unit addresses are enabled for processing.
     /// \sa `unitMap()`
     virtual void setUnitMap(const void *unitmap);
+
+    /// \details Returns `true` if unit address `unit` is enabled for processing, `false` otherwise.
+    /// If unit map is not set (nullptr) then all unit addresses are enabled by default.
+    /// If broadcast mode is enabled then function always returns `true` for unit address `0`.
+    bool isUnitEnabled(uint8_t unit) const;
+
+    /// \details Enable or disable unit address `unit` for processing.
+    /// If unit map was not set previously it will be created automatically and
+    /// all unit addresses will be disabled by default except the `unit` address that is enabled/disabled by this function.
+    virtual void setUnitEnabled(uint8_t unit, bool enable);
 
     /// \details Return context of the port previously set by `setContext` function or `nullptr` by default.
     void *context() const;

@@ -58,6 +58,16 @@ void ModbusServerPort::setUnitMap(const void *unitmap)
     d_ModbusServerPort(d_ptr)->setUnitMap(unitmap);
 }
 
+bool ModbusServerPort::isUnitEnabled(uint8_t unit) const
+{
+    return d_ModbusServerPort(d_ptr)->isUnitEnabled(unit);
+}
+
+void ModbusServerPort::setUnitEnabled(uint8_t unit, bool enable)
+{
+    d_ModbusServerPort(d_ptr)->setUnitEnabled(unit, enable);
+}
+
 void *ModbusServerPort::context() const
 {
     return d_ModbusServerPort(d_ptr)->context;

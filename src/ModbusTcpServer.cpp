@@ -109,6 +109,14 @@ void ModbusTcpServer::setUnitMap(const void *unitmap)
         c->setUnitMap(unitmap);
 }
 
+void ModbusTcpServer::setUnitEnabled(uint8_t unit, bool enable)
+{
+    ModbusServerPort::setUnitEnabled(unit, enable);
+    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    for (auto& c : d->connections)
+        c->setUnitEnabled(unit, enable);
+}
+
 void ModbusTcpServer::clearConnections()
 {
     ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);

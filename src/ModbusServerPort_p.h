@@ -78,6 +78,16 @@ public: // state
         return MB_UNITMAP_GET_BIT(settings.unitmap, unit);
     }
 
+    inline void setUnitEnabled(uint8_t unit, bool enable)
+    {
+        if (settings.unitmap == nullptr)
+        {
+            settings.unitmap = reinterpret_cast<uint8_t*>(malloc(MB_UNITMAP_SIZE));
+            memset(settings.unitmap, 0, MB_UNITMAP_SIZE);
+        }
+        MB_UNITMAP_SET_BIT(settings.unitmap, unit, enable);
+    }
+
     inline void timestampRefresh() { timestamp = timer(); }
     inline bool isStateClosed() const { return state == STATE_CLOSED || state == STATE_TIMEOUT; }
     inline const Char *getName() const { return objectName.data(); }
