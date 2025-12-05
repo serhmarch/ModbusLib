@@ -112,6 +112,22 @@ TEST_F(ModbusAscPortTest, InitializationBlockingMode)
 }
 
 // ============================================================================
+// `open()`-method tests
+// ============================================================================
+
+TEST_F(ModbusAscPortTest, OpenMethodClearsChangedFlag)
+{
+    auto *ascPort = new ModbusAscPort(true);
+    
+    ascPort->setPortName("somethingnonexisting.plc");
+    EXPECT_TRUE(ascPort->isChanged());    
+    auto status = ascPort->open();
+    EXPECT_TRUE(Modbus::StatusIsBad(status));
+    EXPECT_FALSE(ascPort->isChanged());    
+    delete ascPort;
+}
+
+// ============================================================================
 // Write Buffer Tests (ASCII Frame Construction with LRC)
 // ============================================================================
 

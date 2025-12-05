@@ -171,6 +171,22 @@ TEST_F(ModbusTcpPortTest, ServerModeConfiguration)
 }
 
 // ============================================================================
+// `open()`-method tests
+// ============================================================================
+
+TEST_F(ModbusTcpPortTest, OpenMethodClearsChangedFlag)
+{
+    auto *tcpPort = new ModbusTcpPort(true);
+    
+    tcpPort->setHost("somethingnonexisting.plc");
+    EXPECT_TRUE(tcpPort->isChanged());    
+    auto status = tcpPort->open();
+    EXPECT_TRUE(Modbus::StatusIsBad(status));
+    EXPECT_FALSE(tcpPort->isChanged());    
+    delete tcpPort;
+}
+
+// ============================================================================
 // Transaction ID Tests
 // ============================================================================
 

@@ -112,6 +112,22 @@ TEST_F(ModbusRtuPortTest, InitializationBlockingMode)
 }
 
 // ============================================================================
+// `open()`-method tests
+// ============================================================================
+
+TEST_F(ModbusRtuPortTest, OpenMethodClearsChangedFlag)
+{
+    auto *rtuPort = new ModbusRtuPort(true);
+    
+    rtuPort->setPortName("somethingnonexisting.plc");
+    EXPECT_TRUE(rtuPort->isChanged());    
+    auto status = rtuPort->open();
+    EXPECT_TRUE(Modbus::StatusIsBad(status));
+    EXPECT_FALSE(rtuPort->isChanged());    
+    delete rtuPort;
+}
+
+// ============================================================================
 // Write Buffer Tests (RTU Frame Construction with CRC16)
 // ============================================================================
 
