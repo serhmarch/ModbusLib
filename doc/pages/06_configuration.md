@@ -63,7 +63,7 @@ Timeout values control how long operations wait for responses. Units are in **mi
 | Parameter | Description | Typical Range |
 |-----------|-------------|---------------|
 | `timeout` | Connection/read timeout for TCP and serial first byte | 1000-5000 ms |
-| `timeoutInterByte` | Serial inter-byte timeout (RTU/ASCII only) | 10-100 ms |
+| `timeoutInterByte` | Serial inter-byte timeout (RTU/ASCII only) | 1-50 ms |
 
 **Default Values:**
 - TCP timeout: **3000 ms**
@@ -346,7 +346,7 @@ Maximum time between consecutive bytes within a frame.
 
 **Type:** `uint32_t`  
 **Default:** `50` milliseconds  
-**Range:** 10-200 ms (typical)  
+**Range:** 1-50 ms (typical)  
 **Units:** milliseconds
 
 **Note:** RTU protocol requires 3.5 character times of silence between frames, typically calculated from baud rate.

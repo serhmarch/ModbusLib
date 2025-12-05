@@ -33,7 +33,7 @@ All protocol implementations (TCP, RTU, ASCII) share a common interface through 
 
 * Core functionality works with or without Qt
 * Platform-specific implementations for Windows and Unix/Linux
-* Optional Qt integration for signals/slots and event loop integration
+* Optional Qt integration through `ModbusQt.h`
 
 ## Architecture Layers {#architecture-layers}
 
@@ -77,7 +77,7 @@ All protocol implementations (TCP, RTU, ASCII) share a common interface through 
   * Implements `ModbusInterface`
   * Manages request/response state machine
   * Handles error recovery and timeouts
-  * Provides signal callbacks (Qt style)
+  * Provides signal callbacks (Qt style, but can be used without Qt)
   * Supports resource sharing between multiple clients
 
 * **ModbusServerPort** - Base server port implementation
@@ -244,7 +244,7 @@ For TCP servers, each connection maintains independent state. For serial resourc
 
 ## Signal/Callback Mechanism {#signal-callback-mechanism}
 
-ModbusLib implements a Qt-compatible signal/slot system for event callbacks (when compiled with Qt support):
+ModbusLib implements a signal/slot system for event callbacks (Qt-style but can be used without Qt).
 
 **Port Signals:**
 * `signalOpened` - Emitted when port opens
@@ -253,7 +253,7 @@ ModbusLib implements a Qt-compatible signal/slot system for event callbacks (whe
 * `signalRx` - Emitted after receiving data
 * `signalError` - Emitted on error
 
-**Callback Signature (Qt):**
+**Callback Signature:**
 ```cpp
 void callback(const Modbus::Char *source, const uint8_t* buff, uint16_t size);
 void errorCallback(const Modbus::Char *source, Modbus::StatusCode code, const Modbus::Char *text);
