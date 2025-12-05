@@ -129,6 +129,40 @@ TEST(ModbusTest, asciiToString)
     EXPECT_EQ(asciiToString(reinterpret_cast<const uint8_t*>(":01030000000A\r\n"), 15), StringLiteral(": 01 03 00 00 00 0A CR LF "));
 }
 
+TEST(ModbusTest, fillUnitMap)
+{
+    uint8_t unitmap[MB_UNITMAP_SIZE] = {0};
+    bool res = fillUnitMap("1,3-5,10", unitmap);
+    ASSERT_TRUE(res);
+    EXPECT_EQ(unitmap[0], 0b00111010); // bits 1,3,4,5 set
+    EXPECT_EQ(unitmap[1], 0b00000100); // bit 10 set
+}
+
+TEST(ModbusTest, fillUnitMap_Invalid)
+{
+    bool res;
+    uint8_t unitmap[MB_UNITMAP_SIZE] = {0};
+    
+    res = fillUnitMap("1,3-300,10", unitmap); // 300 is invalid
+    EXPECT_FALSE(res);
+
+    res = fillUnitMap("1,3-5a,10", unitmap); // invalid character
+    EXPECT_FALSE(res);
+
+    res = fillUnitMap("1,,5,10", unitmap); // empty range
+    EXPECT_FALSE(res);
+}
+
+TEST(ModbusTest, unitMapToString)
+{
+    uint8_t unitmap[MB_UNITMAP_SIZE] = {0};
+    unitmap[0] = 0b00111010; // bits 1,3,4,5 set
+    unitmap[1] = 0b00000100; // bit 10 set
+
+    String s = unitMapToString(unitmap);
+    EXPECT_EQ(s, StringLiteral("1,3-5,10"));
+}
+
 TEST(ModbusTest, createPortTcp)
 {
     TcpSettings tcp;

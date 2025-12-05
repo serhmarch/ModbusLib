@@ -1,5 +1,7 @@
 #include "Modbus.h"
 
+#include <sstream>
+
 #include "ModbusAscPort.h"
 #include "ModbusRtuPort.h"
 #include "ModbusTcpPort.h"
@@ -602,6 +604,88 @@ List<FlowControl> availableFlowControl()
     ls.push_back(HardwareControl);
     ls.push_back(SoftwareControl);
     return ls;
+}
+
+bool fillUnitMap(const Modbus::Char *s, void *unitmap)
+{
+    std::istringstream ss(s);
+    std::string token;
+    bool res = false;
+    while (std::getline(ss, token, ','))
+    {
+        // Remove whitespace
+        token.erase(std::remove_if(token.begin(), token.end(), ::isspace), token.end());
+
+        if (token.empty())
+            return false; // handle invalid input
+
+        auto dashPos = token.find('-');
+        if (dashPos != std::string::npos)
+        {
+            // It's a range: e.g., "5-10"
+            std::string startStr = token.substr(0, dashPos);
+            std::string endStr = token.substr(dashPos + 1);
+
+            char* e;
+
+            auto start = std::strtol(startStr.data(), &e, 10);
+            if (e == startStr.data() || *e != '\0')
+                return false; // handle invalid input
+
+            auto end = std::strtol(endStr.data(), &e, 10);
+            if (e == endStr.data() || *e != '\0')
+                return false; // handle invalid input
+
+            if (start > end || start < 0 || end > 255)
+                return false; // handle invalid input
+
+            res = true;
+            for (int unit = start; unit <= end; ++unit)
+            {
+                MB_UNITMAP_SET_BIT(unitmap, unit, 1);
+            }
+        }
+        else
+        {
+            // Single number
+            char* e;
+            int unit = std::strtol(token.data(), &e, 10);
+            if (e == token.data() || *e != '\0')
+                return false; // handle invalid input
+            if (unit < 0 || unit > 255)
+                return false; // handle invalid input
+
+            MB_UNITMAP_SET_BIT(unitmap, unit, 1);
+            res = true;
+        }
+    }
+    return res;
+}
+
+String unitMapToString(const void *unitmap)
+{
+    String res;
+    if (unitmap == nullptr)
+        return res;
+    bool printed = false;
+    for (int unit = 0; unit <= 255; ++unit)
+    {
+        if (MB_UNITMAP_GET_BIT(unitmap, unit))
+        {
+            int start = unit;
+            int end = unit;
+            for (++unit; MB_UNITMAP_GET_BIT(unitmap, unit) && (unit <= 255); ++unit)
+                end = unit;
+            if (printed)
+                res += ",";
+            if (start < end)
+                res += std::to_string(start) + '-' + std::to_string(end);
+            else
+                res += std::to_string(start);
+            printed = true;
+        }
+    }
+    return res;
 }
 
 } //namespace Modbus

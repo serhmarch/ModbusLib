@@ -408,6 +408,16 @@ MODBUS_EXPORT List<StopBits> availableStopBits();
 /// \details Return list of `FlowControl` values
 MODBUS_EXPORT List<FlowControl> availableFlowControl();
 
+/// \details Convert string like "1,3-8,10" to unit map bit array
+/// Returns true if success, false otherwise
+MODBUS_EXPORT bool fillUnitMap(const Modbus::Char *s, void *unitmap);
+
+/// \details Overloaded function
+inline bool fillUnitMap(const String &s, void *unitmap) { return fillUnitMap(s.data(), unitmap); }
+
+/// \details Return unit map bit array string repr like "1,3-8,10"
+MODBUS_EXPORT String unitMapToString(const void *unitmap);
+
 /// \details Function for creation `ModbusPort` with defined parameters:
 /// \param[in]  type        Protocol type: TCP, RTU, ASC.
 /// \param[in]  settings    For TCP must be pointer: `TcpSettings*`, `SerialSettings*` otherwise.
