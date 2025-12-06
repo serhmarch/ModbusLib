@@ -614,7 +614,17 @@ bool fillUnitMap(const Modbus::Char *s, void *unitmap)
     while (std::getline(ss, token, ','))
     {
         // Remove whitespace
-        token.erase(std::remove_if(token.begin(), token.end(), ::isspace), token.end());
+        {
+            std::string cleaned;
+            cleaned.reserve(token.size());
+            for (std::string::size_type i = 0; i < token.size(); ++i) {
+                unsigned char ch = static_cast<unsigned char>(token[i]);
+                if (!std::isspace(ch)) {
+                    cleaned.push_back(static_cast<char>(ch));
+                }
+            }
+            token.swap(cleaned);
+        }
 
         if (token.empty())
             return false; // handle invalid input
