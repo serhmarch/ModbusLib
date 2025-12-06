@@ -348,6 +348,13 @@
             ]
         },
         {
+            "name": "Linux-Qt-Tests-Debug",
+            "inherits": [
+                "Linux-Qt-Debug",
+                "Config-Tests"
+            ]
+        },
+        {
             "name": "Linux-Docs-Debug",
             "inherits": [
                 "Linux-Debug",
@@ -656,6 +663,12 @@
             "configuration": "Debug"
         },
         {
+            "name": "Linux-Qt-Tests-Debug",
+            "inherits": "Build-Base",
+            "configurePreset": "Linux-Qt-Tests-Debug",
+            "configuration": "Debug"
+        },
+        {
             "name": "Linux-Docs-Debug",
             "inherits": "Build-Base",
             "configurePreset": "Linux-Docs-Debug",
@@ -802,6 +815,32 @@
             "name": "Win32-Qt-Tests",
             "configurePreset": "Win32-Qt-Tests",
             "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Linux-Tests-Debug",
+            "configurePreset": "Linux-Tests-Debug",
+            "output": {
+                "outputOnFailure": true,
+                "shortProgress": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false,
+                "jobs": 8
+            }
+        },
+        {
+            "name": "Linux-Qt-Tests-Debug",
+            "configurePreset": "Linux-Qt-Tests-Debug",
             "output": {
                 "outputOnFailure": true,
                 "shortProgress": true
