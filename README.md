@@ -81,11 +81,12 @@ void main()
     ModbusClient c2(2, port);
     ModbusClient c3(3, port);
     Modbus::StatusCode s1, s2, s3;
+    uint16_t regs1[10], regs2[10], regs3[10];
     while(1)
     {
-        s1 = c1.readHoldingRegisters(0, 10, values);
-        s2 = c2.readHoldingRegisters(0, 10, values);
-        s3 = c3.readHoldingRegisters(0, 10, values);
+        s1 = c1.readHoldingRegisters(0, 10, regs1);
+        s2 = c2.readHoldingRegisters(0, 10, regs2);
+        s3 = c3.readHoldingRegisters(0, 10, regs3);
         Modbus::msleep(1);
     }
     //...
@@ -132,6 +133,7 @@ void main()
 {
     MyModbusDevice device;
     Modbus::NetSettings settings;
+    settings.ipaddr = "0.0.0.0"; // bind address; use "127.0.0.1" for loopback
     settings.port = Modbus::STANDARD_TCP_PORT;
     settings.timeout = 3000;
     settings.maxconn = 10;
@@ -142,7 +144,7 @@ void main()
         port->process();
         Modbus::msleep(1);
         if (c % 1000 == 0)
-            setValue(0, getValue(0)+1);
+            device.setValue(0, device.getValue(0)+1);
         ++c;
     }
 }

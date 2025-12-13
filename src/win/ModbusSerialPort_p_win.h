@@ -148,13 +148,17 @@ StatusCode ModbusSerialPortPrivateWin::open()
         case STATE_CLOSED:
         case STATE_WAIT_FOR_OPEN:
         {
-            this->clearChanged();
             if (isOpen())
             {
-                this->state = STATE_OPENED;
-                return Status_Good;
+                if (this->isChanged())
+                    this->close();
+                else
+                {
+                    this->state = STATE_OPENED;
+                    return Status_Good;
+                }
             }
-
+            this->clearChanged();
             DWORD dwFlags;
             if (isBlocking())
                 dwFlags = 0; // Disables overlapped I/O

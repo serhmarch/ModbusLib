@@ -31,3 +31,9 @@
 # 0.3.8
 
 * Fixed a bug for TCP Server when changing connection timeout makes no effect
+
+# 0.4.8
+
+* Fixed bug when TCP client unable to connect on Windows.
+When using `ModbusTcpPort::open()` `Changed` flag is not unset causing
+endless attempts to reconnect.

@@ -36,6 +36,7 @@ public:
             break;
         }
 
+        this->ipaddr  = d.ipaddr ;
         this->tcpPort = d.port   ;
         this->timeout = d.timeout;
         this->maxconn = d.maxconn;
@@ -43,6 +44,7 @@ public:
 
 public:
     Modbus::ProtocolType type;
+    String   ipaddr ;
     uint16_t tcpPort;
     uint32_t timeout;
     uint32_t maxconn;

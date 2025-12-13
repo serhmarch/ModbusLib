@@ -9,13 +9,13 @@
 using namespace testing;
 using namespace Modbus;
 
-TEST(Modbus, crc16)
+TEST(ModbusTest, crc16)
 {
     EXPECT_EQ(crc16(reinterpret_cast<const uint8_t*>("\xDE\xAD\xBE\xAF"), 4), 0x319A);
     EXPECT_EQ(crc16(reinterpret_cast<const uint8_t*>("\x01\x03\x00\x00\x00\x0A"), 6), 0xCDC5);
 }
 
-TEST(Modbus, readMemBits)
+TEST(ModbusTest, readMemBits)
 {
     const uint16_t mem[] = { 0x01FC, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 };
     StatusCode status;
@@ -51,7 +51,7 @@ TEST(Modbus, readMemBits)
     EXPECT_EQ(status, Status_Good);
 }
 
-TEST(Modbus, writeMemBits)
+TEST(ModbusTest, writeMemBits)
 {
     uint16_t mem[16];
     StatusCode status;
@@ -91,7 +91,7 @@ TEST(Modbus, writeMemBits)
     EXPECT_EQ(status, Status_Good);
 }
 
-TEST(Modbus, bytesToAscii)
+TEST(ModbusTest, bytesToAscii)
 {
     const uint8_t bytes[] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
     std::vector<uint8_t> ascii(sizeof(bytes)*2);
@@ -101,7 +101,7 @@ TEST(Modbus, bytesToAscii)
 }
 
 
-TEST(Modbus, asciiToBytes)
+TEST(ModbusTest, asciiToBytes)
 {
     const uint8_t ascii[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     std::vector<uint8_t> bytes(sizeof(ascii)/2);
@@ -111,24 +111,58 @@ TEST(Modbus, asciiToBytes)
 }
 
 
-TEST(Modbus, toModbusString)
+TEST(ModbusTest, toModbusString)
 {
     EXPECT_EQ(toModbusString(0), "0");
     EXPECT_EQ(toModbusString(1), "1");
     EXPECT_EQ(toModbusString(-1), "-1");
 }
 
-TEST(Modbus, bytesToString)
+TEST(ModbusTest, bytesToString)
 {
     EXPECT_EQ(bytesToString(reinterpret_cast<const uint8_t*>("\x01\x03\x00\x00\x00\x0A"), 6), StringLiteral("01 03 00 00 00 0A "));
 }
 
-TEST(Modbus, asciiToString)
+TEST(ModbusTest, asciiToString)
 {
     EXPECT_EQ(asciiToString(reinterpret_cast<const uint8_t*>(":01030000000A\r\n"), 15), StringLiteral(": 01 03 00 00 00 0A CR LF "));
 }
 
-TEST(Modbus, createPortTcp)
+TEST(ModbusTest, fillUnitMap)
+{
+    uint8_t unitmap[MB_UNITMAP_SIZE] = {0};
+    bool res = fillUnitMap("1,3-5,10", unitmap);
+    ASSERT_TRUE(res);
+    EXPECT_EQ(unitmap[0], 0b00111010); // bits 1,3,4,5 set
+    EXPECT_EQ(unitmap[1], 0b00000100); // bit 10 set
+}
+
+TEST(ModbusTest, fillUnitMap_Invalid)
+{
+    bool res;
+    uint8_t unitmap[MB_UNITMAP_SIZE] = {0};
+    
+    res = fillUnitMap("1,3-300,10", unitmap); // 300 is invalid
+    EXPECT_FALSE(res);
+
+    res = fillUnitMap("1,3-5a,10", unitmap); // invalid character
+    EXPECT_FALSE(res);
+
+    res = fillUnitMap("1,,5,10", unitmap); // empty range
+    EXPECT_FALSE(res);
+}
+
+TEST(ModbusTest, unitMapToString)
+{
+    uint8_t unitmap[MB_UNITMAP_SIZE] = {0};
+    unitmap[0] = 0b00111010; // bits 1,3,4,5 set
+    unitmap[1] = 0b00000100; // bit 10 set
+
+    String s = unitMapToString(unitmap);
+    EXPECT_EQ(s, StringLiteral("1,3-5,10"));
+}
+
+TEST(ModbusTest, createPortTcp)
 {
     NetSettings tcp;
     tcp.host    = "localhost";
@@ -144,7 +178,7 @@ TEST(Modbus, createPortTcp)
 }
 
 
-TEST(Modbus, createPortRtu)
+TEST(ModbusTest, createPortRtu)
 {
     SerialSettings ser;
     ser.portName         = StringLiteral("COM1");
@@ -171,7 +205,7 @@ TEST(Modbus, createPortRtu)
     delete port;
 }
 
-TEST(Modbus, createPortAsc)
+TEST(ModbusTest, createPortAsc)
 {
     SerialSettings ser;
     ser.portName         = StringLiteral("COM1");

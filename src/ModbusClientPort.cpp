@@ -661,6 +661,7 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
     const uint16_t szBuff = 300;
 
     uint8_t buff[szBuff];
+    uint8_t byteCount;
     Modbus::StatusCode r;
     uint16_t szOutBuff;
 
@@ -682,8 +683,11 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
 
         if (szOutBuff == 0)
             return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-        *count = buff[0];
-        memcpy(data, &buff[1], *count);
+        byteCount = buff[0];
+        if (szOutBuff != (byteCount+1))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with received data size"));
+        *count = byteCount;
+        memcpy(data, &buff[1], byteCount);
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -850,7 +854,7 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
         FIFOCount  = buff[3] | (buff[2] << 8);
         if (bytesCount != (FIFOCount + 1) * 2)
             return d->setError(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with 'FIFOCount'"));
-        if (FIFOCount > READ_FIFO_QUEUE_MAX)
+        if (FIFOCount > MB_READ_FIFO_QUEUE_MAX)
             return d->setError(Status_BadIllegalDataValue, StringLiteral("'FIFOCount' is bigger than 31"));
         for (i = 0; i < FIFOCount; i++)
             values[i] = buff[i*2+5] | (buff[i*2+4] << 8);
@@ -1055,7 +1059,7 @@ Modbus::Timestamp ModbusClientPort::lastStatusTimestamp() const
 
 Modbus::StatusCode ModbusClientPort::lastErrorStatus() const
 {
-    return d_ModbusClientPort(d_ptr)->port->lastErrorStatus();
+    return d_ModbusClientPort(d_ptr)->lastErrorStatus;
 }
 
 const Char *ModbusClientPort::lastErrorText() const
@@ -1131,7 +1135,7 @@ StatusCode ModbusClientPort::rawRequest(const void *inBuff, uint16_t szInBuff, v
     if (rs == Disable)
         return Status_Processing;
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
-    if (!d->isWriteBufferBlocked())
+    while (1)
     {
         // TODO: set `d->unit = 0` and find reason of the crash
         d->unit = 1; // Note: prevent broadcast false recognition
@@ -1166,54 +1170,60 @@ StatusCode ModbusClientPort::rawRequest(const void *inBuff, uint16_t szInBuff, v
 StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
     ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
-    if (!d->isWriteBufferBlocked())
+    while (1)
     {
-        d->unit = unit;
-        d->func = func;
-        d->lastTries = 0;
-        StatusCode s = d->port->writeBuffer(unit, func, inBuff, szInBuff);
-        if (StatusIsBad(s))
-            return s;
-        d->blockWriteBuffer();
-    }
-    StatusCode r = process();
-    if (StatusIsProcessing(r))
-        return r;
-    d->lastTries = ++d->repeats;
-    if (StatusIsBad(r) && (d->repeats < d->settings.tries))
-    {
-        d->port->setNextRequestRepeated(true);
-        return Status_Processing;
-    }
-    d->freeWriteBuffer();
-    d->repeats = 0;
-    d->currentClient = nullptr;
-    if (StatusIsBad(r))
-        return r;
-    if (!d->isBroadcast())
-    {
-        r = d->port->readBuffer(unit, func, outBuff, maxSzBuff, szOutBuff);
-        if (StatusIsGood(r))
+        if (!d->isWriteBufferBlocked())
         {
-            if (unit != d->unit)
-                return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested unit (unit) is not equal to responsed"));
+            d->unit = unit;
+            d->func = func;
+            d->lastTries = 0;
+            auto r = d->port->writeBuffer(unit, func, inBuff, szInBuff);
+            if (StatusIsBad(r))
+                return d->setPortError(r);
+            d->blockWriteBuffer();
 
-            if ((func & MBF_EXCEPTION) == MBF_EXCEPTION)
-            {
-                if (*szOutBuff > 0)
-                {
-                    r = static_cast<StatusCode>(outBuff[0]); // Returned modbus exception
-                    return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
-                }
-                else
-                    return d->setError(Status_BadNotCorrectResponse, StringLiteral("Exception status missed"));
-            }
-
-            if (func != d->func)
-                return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested function is not equal to responsed"));
         }
+        StatusCode r = process();
+        if (StatusIsProcessing(r))
+            return r;
+        d->lastTries = ++d->repeats;
+        if (StatusIsBad(r) && (d->repeats < d->settings.tries))
+        {
+            d->port->setNextRequestRepeated(true);
+            if (d->port->isNonBlocking())
+                return Status_Processing;
+            continue;
+        }
+        d->freeWriteBuffer();
+        d->repeats = 0;
+        d->currentClient = nullptr;
+        if (StatusIsBad(r))
+            return r;
+        if (!d->isBroadcast())
+        {
+            r = d->port->readBuffer(unit, func, outBuff, maxSzBuff, szOutBuff);
+            if (StatusIsGood(r))
+            {
+                if (unit != d->unit)
+                    return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested unit (unit) is not equal to responsed"));
+
+                if ((func & MBF_EXCEPTION) == MBF_EXCEPTION)
+                {
+                    if (*szOutBuff > 0)
+                    {
+                        r = static_cast<StatusCode>(outBuff[0]); // Returned modbus exception
+                        return d->setError(static_cast<StatusCode>(Status_Bad | r), String(StringLiteral("Returned Modbus-exception with code "))+toModbusString(static_cast<int>(r)));
+                    }
+                    else
+                        return d->setError(Status_BadNotCorrectResponse, StringLiteral("Exception status missed"));
+                }
+
+                if (func != d->func)
+                    return d->setError(Status_BadNotCorrectResponse, StringLiteral("Not correct response. Requested function is not equal to responsed"));
+            }
+        }
+        return d->setPortStatus(r);
     }
-    return d->setPortStatus(r);
 }
 
 StatusCode ModbusClientPort::process()
@@ -1267,7 +1277,8 @@ StatusCode ModbusClientPort::process()
                 return r;
             }
             d->state = STATE_CLOSED;
-            //fRepeatAgain = true;
+            // Note: Function can not return Status_Processing in Blocking mode
+            //fRepeatAgain = d->port->isBlocking(); 
             break;
         case STATE_OPENED:
             if (d->port->isChanged())
@@ -1284,8 +1295,7 @@ StatusCode ModbusClientPort::process()
             if (!d->port->isOpen())
             {
                 d->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                return d->setError(Status_BadPortClosed, StringLiteral("Error: Port is closed when trying to write data"));
             }
             d->state = STATE_WRITE;
             // no need break

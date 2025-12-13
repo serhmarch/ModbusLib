@@ -82,12 +82,17 @@ StatusCode ModbusTcpPortPrivateWin::open()
         case STATE_UNKNOWN:
         case STATE_CLOSED:
         {
-            this->clearChanged();
             if (isOpen())
             {
-                this->state = STATE_OPENED;
-                return Status_Good;
+                if (this->isChanged())
+                    this->close();
+                else
+                {
+                    this->state = STATE_OPENED;
+                    return Status_Good;
+                }
             }
+            this->clearChanged();
             ADDRINFO hints;
             ZeroMemory(&hints, sizeof(hints));
             hints.ai_family = AF_INET;

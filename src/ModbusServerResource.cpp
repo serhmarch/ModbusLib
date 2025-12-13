@@ -58,6 +58,16 @@ bool ModbusServerResource::isOpen() const
     return d_ModbusServerResource(d_ptr)->port->isOpen();
 }
 
+uint32_t ModbusServerResource::timeout() const
+{
+    return d_ModbusServerResource(d_ptr)->port->timeout();
+}
+
+void ModbusServerResource::setTimeout(uint32_t timeout)
+{
+    d_ModbusServerResource(d_ptr)->port->setTimeout(timeout);
+}
+
 StatusCode ModbusServerResource::process()
 {
     ModbusServerResourcePrivate *d = d_ModbusServerResource(d_ptr);
@@ -424,92 +434,117 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 StatusCode ModbusServerResource::processDevice()
 {
     ModbusServerResourcePrivate *d = d_ModbusServerResource(d_ptr);
+    StatusCode r;
     switch (d->func)
     {
 
 #ifndef MBF_READ_COILS_DISABLE
     case MBF_READ_COILS:
-        return d->device->readCoils(d->unit, d->offset, d->count, d->valueBuff);
+        r = d->device->readCoils(d->unit, d->offset, d->count, d->valueBuff);
+        break;
 #endif // MBF_READ_COILS_DISABLE
 
 #ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
     case MBF_READ_DISCRETE_INPUTS:
-        return d->device->readDiscreteInputs(d->unit, d->offset, d->count, d->valueBuff);
+        r = d->device->readDiscreteInputs(d->unit, d->offset, d->count, d->valueBuff);
+        break;
 #endif // MBF_READ_DISCRETE_INPUTS_DISABLE
 
 #ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
     case MBF_READ_HOLDING_REGISTERS:
-        return d->device->readHoldingRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        r = d->device->readHoldingRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        break;
 #endif // MBF_READ_HOLDING_REGISTERS_DISABLE
 
 #ifndef MBF_READ_INPUT_REGISTERS_DISABLE
     case MBF_READ_INPUT_REGISTERS:
-        return d->device->readInputRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        r = d->device->readInputRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        break;
 #endif // MBF_READ_INPUT_REGISTERS_DISABLE
 
 #ifndef MBF_WRITE_SINGLE_COIL_DISABLE
     case MBF_WRITE_SINGLE_COIL:
-        return d->device->writeSingleCoil(d->unit, d->offset, d->valueBuff[0]);
+        r = d->device->writeSingleCoil(d->unit, d->offset, d->valueBuff[0]);
+        break;
 #endif // MBF_WRITE_SINGLE_COIL_DISABLE
 
 #ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
     case MBF_WRITE_SINGLE_REGISTER:
-        return d->device->writeSingleRegister(d->unit, d->offset, reinterpret_cast<uint16_t*>(d->valueBuff)[0]);
+        r = d->device->writeSingleRegister(d->unit, d->offset, reinterpret_cast<uint16_t*>(d->valueBuff)[0]);
+        break;
 #endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
 
 #ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
     case MBF_READ_EXCEPTION_STATUS:
-        return d->device->readExceptionStatus(d->unit, d->valueBuff);
+        r = d->device->readExceptionStatus(d->unit, d->valueBuff);
+        break;
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
     case MBF_DIAGNOSTICS:
-        return d->device->diagnostics(d->unit, d->subfunc, d->byteCount, d->valueBuff, &d->outByteCount, d->valueBuff);
+        r = d->device->diagnostics(d->unit, d->subfunc, d->byteCount, d->valueBuff, &d->outByteCount, d->valueBuff);
+        break;
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
     case MBF_GET_COMM_EVENT_COUNTER:
-        return d->device->getCommEventCounter(d->unit, &d->status, &d->count);
+        r = d->device->getCommEventCounter(d->unit, &d->status, &d->count);
+        break;
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
     case MBF_GET_COMM_EVENT_LOG:
-        return d->device->getCommEventLog(d->unit, &d->status, &d->count, &d->messageCount, &d->outByteCount, d->valueBuff);
+        r = d->device->getCommEventLog(d->unit, &d->status, &d->count, &d->messageCount, &d->outByteCount, d->valueBuff);
+        break;
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
     case MBF_WRITE_MULTIPLE_COILS:
-        return d->device->writeMultipleCoils(d->unit, d->offset, d->count, d->valueBuff);
+        r = d->device->writeMultipleCoils(d->unit, d->offset, d->count, d->valueBuff);
+        break;
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
     case MBF_WRITE_MULTIPLE_REGISTERS:
-        return d->device->writeMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        r = d->device->writeMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        break;
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
     case MBF_REPORT_SERVER_ID:
-        return d->device->reportServerID(d->unit, &d->outByteCount, d->valueBuff);
+        r = d->device->reportServerID(d->unit, &d->outByteCount, d->valueBuff);
+        break;
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     case MBF_MASK_WRITE_REGISTER:
-        return d->device->maskWriteRegister(d->unit, d->offset, d->andMask, d->orMask);
+        r = d->device->maskWriteRegister(d->unit, d->offset, d->andMask, d->orMask);
+        break;
 #endif // MBF_MASK_WRITE_REGISTER_DISABLE
 
 #ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
     case MBF_READ_WRITE_MULTIPLE_REGISTERS: 
-        return d->device->readWriteMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff), d->writeOffset, d->writeCount, reinterpret_cast<uint16_t*>(d->valueBuff));
+        r = d->device->readWriteMultipleRegisters(d->unit, d->offset, d->count, reinterpret_cast<uint16_t*>(d->valueBuff), d->writeOffset, d->writeCount, reinterpret_cast<uint16_t*>(d->valueBuff));
+        break;
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
     case MBF_READ_FIFO_QUEUE:
-        return d->device->readFIFOQueue(d->unit, d->offset, &d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        r = d->device->readFIFOQueue(d->unit, d->offset, &d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        break;
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
     default:
         return d->setError(Status_BadIllegalFunction, StringLiteral("Unsupported function"));
     }
+    if (StatusIsBad(r))
+    {
+        if (StatusIsStandardError(r))
+            d->setError(r, StringLiteral("Device returned a standard exception with code 0x") + toHexString<String, uint8_t>(r & 0xFF));
+        else
+            d->setError(r, StringLiteral("Device returned an error with code 0x") + toHexString<String, uint32_t>(r & 0xFF));
+    }
+    return r;
 }
 
 StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)

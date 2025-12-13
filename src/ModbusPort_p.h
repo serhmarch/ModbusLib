@@ -34,12 +34,15 @@ public:
     ModbusPortPrivate(uint16_t maxBuffSize, bool blocking)
     {
         this->state = STATE_UNKNOWN;
+        this->changed = false;
         this->modeServer = false;
         this->modeBlocking = blocking;
         this->clearChanged();
         this->buff = new uint8_t[maxBuffSize];
         this->c_buffSz = maxBuffSize;
         this->sz = 0;
+        this->errorStatus = Modbus::Status_Uncertain;
+        // this->settingsBase.timeout must be initialized in derived classes
     }
 
     virtual ~ModbusPortPrivate()
@@ -79,6 +82,7 @@ public:
     inline bool isBlocking() const { return modeBlocking; }
     inline bool isNonBlocking() const { return !modeBlocking; }
     inline bool isStateClosed() const { return state == STATE_CLOSED; }
+    inline bool isChanged() const { return changed; }
     inline void setChanged(bool changed) { this->changed = changed; }
     inline void clearChanged() { setChanged(false); }
     inline StatusCode lastErrorStatus() { return errorStatus; }

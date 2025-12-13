@@ -6,4 +6,3 @@ ModbusTcpPortPrivate *ModbusTcpPortPrivate::create(ModbusSocket *socket, bool bl
 {
     return new ModbusTcpPortPrivateWin(socket, blocking);
 }
-

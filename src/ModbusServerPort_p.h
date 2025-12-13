@@ -42,6 +42,7 @@ public:
         this->context = nullptr;
         this->settings.broadcastEnabled = true;
         this->settings.unitmap = nullptr;
+        this->errorStatus = Modbus::Status_Uncertain;
     }
 
     ~ModbusServerPortPrivate() override
@@ -75,6 +76,16 @@ public: // state
         if (settings.unitmap == nullptr || isBroadcast(unit))
             return true;
         return MB_UNITMAP_GET_BIT(settings.unitmap, unit);
+    }
+
+    inline void setUnitEnabled(uint8_t unit, bool enable)
+    {
+        if (settings.unitmap == nullptr)
+        {
+            settings.unitmap = reinterpret_cast<uint8_t*>(malloc(MB_UNITMAP_SIZE));
+            memset(settings.unitmap, 0, MB_UNITMAP_SIZE);
+        }
+        MB_UNITMAP_SET_BIT(settings.unitmap, unit, enable);
     }
 
     inline void timestampRefresh() { timestamp = timer(); }

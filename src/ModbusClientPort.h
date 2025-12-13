@@ -12,42 +12,91 @@
 
 class ModbusPort;
 
-/*! \brief The `ModbusClientPort` class implements the algorithm of the client part of the Modbus communication protocol port.
+/*! \brief The `ModbusClientPort` class implements the algorithm of the client partof the Modbus communication protocol port.
 
-    \details `ModbusClient` contains a list of Modbus functions that are implemented by the Modbus client program.
-    It implements functions for reading and writing various types of Modbus memory defined by the specification.
-    In the non blocking mode if the operation is not completed it returns the intermediate status `Modbus::Status_Processing`,
-    and then it must be called until it is successfully completed or returns an error status.
+    \details `ModbusClient` contains a list of Modbus functions that are implemented
+    by the Modbus client program. It implements functions for reading and writing
+    various types of Modbus memory defined by the specification.
 
-    `ModbusClientPort` has number of Modbus functions with interface like `readCoils(ModbusObject *client, ...)`. 
-    Several clients can automatically share a current `ModbusClientPort` resource. The first one to access the port seizes 
-    the resource until the operation with the remote device is completed. Then the first client will release the resource and 
-    the next client in the queue will capture it, and so on in a circle.
+    In the non blocking mode if the operation is not completed it returns
+    the intermediate status `Modbus::Status_Processing`, and then it must be called
+    until it is successfully completed or returns an error status.
 
-```cpp
-#include <ModbusClient.h>
-//...
-void main()
-{
-    //...
+    `ModbusClientPort` has number of Modbus functions with interface like
+    `readCoils(ModbusObject *client, ...)`. Several clients can automatically share
+    a current `ModbusClientPort` resource. The first one to access the port seizes 
+    the resource until the operation with the remote device is completed.
+    Then the first client will release the resource and the next client in the queue
+    will capture it, and so on in a circle.
+
+    Key characteristics:
+    - Implements complete Modbus client protocol stack
+    - Supports both blocking and non-blocking operation modes
+    - Manages automatic resource sharing between multiple clients
+    - Provides retry mechanism for failed requests
+    - Supports broadcast mode for unit address 0
+    - Works with any transport protocol (TCP, RTU, ASCII) through polymorphic port
+    
+    This implementation provides:
+    - All standard Modbus functions (01-24) with both ModbusInterface and client-aware variants
+    - Automatic request queuing and client multiplexing
+    - Configurable retry count for failed operations
+    - Comprehensive error reporting with status codes and text descriptions
+    - Signal callbacks for open/close, Tx/Rx data, and error events
+    - Optional bool array variants for discrete value operations
+    - Statistics tracking (tries count, timestamps)
+    
+    The class supports two usage patterns:
+    
+    1. Direct usage through ModbusInterface methods (single-threaded, simple):
+       These methods use the port object itself as the client and are suitable for
+       simple applications with single-threaded access.
+    
+    2. Multi-client usage through ModbusObject parameter methods (multi-threaded, advanced):
+       These methods accept a ModbusObject pointer as the first parameter, allowing
+       multiple ModbusClient instances to share the same port with automatic resource
+       arbitration. This pattern enables concurrent access from multiple threads or
+       multiple logical devices.
+    
+    Non-blocking mode operation:
+    When a function returns Status_Processing, the application must continue calling
+    the same function until it completes (returns Good status) or fails (returns error status).
+    This allows integration with event loops and asynchronous architectures without blocking.
+    
+    Resource sharing mechanism:
+    The port maintains a queue of client requests. When a client calls a function, it
+    checks if the port is available using getRequestStatus(). If available (Enable status),
+    the client becomes current and executes its request. If busy (Disable status), the
+    request is queued. When the current operation completes, the next client in queue
+    automatically becomes current.
+
+    \sa `ModbusClient` class
+
+    Usage pattern:
+    \code{.cpp}
+    // Create and configure the port (settings definition omitted for brevity)
     ModbusClientPort *port = Modbus::createClientPort(Modbus::TCP, &settings, false);
-    ModbusClient c1(1, port);
-    ModbusClient c2(2, port);
-    ModbusClient c3(3, port);
-    Modbus::StatusCode s1, s2, s3;
-    //...
+    // Modbus function parameters
+    const uint8_t unit = 1;
+    const uint16_t offset = 0;
+    const uint16_t count = 10;
+    // Ouput variables
+    Modbus::StatusCode s;
+    uint16_t regs[10];
     while(1)
     {
-        s1 = c1.readHoldingRegisters(0, 10, values);
-        s2 = c2.readHoldingRegisters(0, 10, values);
-        s3 = c3.readHoldingRegisters(0, 10, values);
-        doSomeOtherStuffInCurrentThread();
+        s = port.readHoldingRegisters(unit, offset, count, regs);
+        if (StatusIsGood(s))
+        {
+            // process output data ...
+        }
+        else if (StatusIsBad(s))
+        {
+            // handle error ...
+        }       
         Modbus::msleep(1);
     }
-    //...
-}
-//...
-```
+    \endcode
 
  */
 
@@ -82,7 +131,8 @@ public:
     /// \details Closes connection and returns status of the operation.
     Modbus::StatusCode close();
 
-    /// \details Returns `true` if the connection with the remote device is established, `false` otherwise.
+    /// \details Returns `true` if underlying port is opened or the connection with the remote device is established,
+    /// `false` otherwise.
     bool isOpen() const;
 
     /// \details Returns the setting of the number of tries of the Modbus request if it fails.
@@ -98,7 +148,7 @@ public:
     inline void setRepeatCount(uint32_t v) { setTries(v); }
 
     /// \details Returns `true` if broadcast mode for `0` unit address is enabled, `false` otherwise.
-    /// Broadcast mode for `0` unit address is required by Modbus protocol so it is enabled by default
+    /// Broadcast mode for `0` unit address is required by Modbus protocol so it is enabled by default.
     bool isBroadcastEnabled() const;
 
     /// \details Enables broadcast mode for `0` unit address. It is enabled by default.

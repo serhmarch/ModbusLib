@@ -53,7 +53,7 @@ StatusCode ModbusAscPort::readBuffer(uint8_t& unit, uint8_t &func, uint8_t* buff
     uint8_t ibuff[szIBuff];
 
     if (d_ptr->sz < 9) // Note: 9 = 1(':')+2(unit)+2(func)+2(lrc)+1('\r')+1('\n')
-        return this->setError(Status_BadNotCorrectRequest, StringLiteral("ASCII. Not correct response. Responsed data length to small"));
+        return this->setError(Status_BadNotCorrectRequest, StringLiteral("ASCII. Not correct response. Responsed data length is too small"));
 
     if (d_ptr->buff[0] != ':')
         return this->setError(Status_BadAscMissColon, StringLiteral("ASCII. Missed colon ':' symbol"));

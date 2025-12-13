@@ -61,12 +61,17 @@ StatusCode ModbusUdpPortPrivateUnix::open()
         case STATE_UNKNOWN:
         case STATE_CLOSED:
         case STATE_WAIT_FOR_OPEN:
-            this->clearChanged();
             if (isOpen())
             {
-                this->state = STATE_OPENED;
-                return Status_Good;
+                if (this->isChanged())
+                    this->close();
+                else
+                {
+                    this->state = STATE_OPENED;
+                    return Status_Good;
+                }
             }
+            this->clearChanged();
             if (this->modeServer)
             {
                 this->socket->create(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

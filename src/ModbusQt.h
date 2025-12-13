@@ -27,7 +27,8 @@ public:
     const QString unit              ; ///< Setting key for the unit number of remote device
     const QString type              ; ///< Setting key for the type of Modbus protocol
     const QString tries             ; ///< Setting key for the number of tries a Modbus request is repeated if it fails
-    const QString host              ; ///< Setting key for the IP address or DNS name of the remote device
+    const QString host              ; ///< Setting key for the IP address or DNS name of the remote device (TCP Client)
+    const QString ipaddr            ; ///< Setting key for the IP address to bind the server (TCP Server)
     const QString port              ; ///< Setting key for the TCP port number of the remote device
     const QString timeout           ; ///< Setting key for connection timeout (milliseconds)
     const QString maxconn           ; ///< Setting key for the maximum number of simultaneous connections to the server
@@ -70,7 +71,8 @@ public:
     const uint8_t      unit              ; ///< Default value for the unit number of remote device
     const ProtocolType type              ; ///< Default value for the type of Modbus protocol
     const uint32_t     tries             ; ///< Default value for number of tries a Modbus request is repeated if it fails
-    const QString      host              ; ///< Default value for the IP address or DNS name of the remote device
+    const QString      host              ; ///< Default value for the IP address or DNS name of the remote device (TCP Client)
+    const QString      ipaddr            ; ///< Default value for the IP address to bind the server (TCP Server)
     const uint16_t     port              ; ///< Default value for the TCP port number of the remote device
     const uint32_t     timeout           ; ///< Default value for connection timeout (milliseconds)
     const uint32_t     maxconn           ; ///< Default value for the maximum number of simultaneous connections to the server
@@ -103,9 +105,13 @@ MODBUS_EXPORT ProtocolType getSettingType(const Settings &s, bool *ok = nullptr)
 /// If value can't be retrieved that default value is returned and *ok = false (if provided).
 MODBUS_EXPORT uint32_t getSettingTries(const Settings &s, bool *ok = nullptr);
 
-/// \details Get settings value for the IP address or DNS name of the remote device.
+/// \details Get settings value for the IP address or DNS name of the remote device (TCP Client).
 /// If value can't be retrieved that default value is returned and *ok = false (if provided).
 MODBUS_EXPORT QString getSettingHost(const Settings &s, bool *ok = nullptr);
+
+/// \details Get settings value for the IP address or DNS name of the remote device (TCP Server).
+/// If value can't be retrieved that default value is returned and *ok = false (if provided).
+MODBUS_EXPORT QString getSettingIpaddr(const Settings &s, bool *ok = nullptr);
 
 /// \details Get settings value for the TCP port of the remote device.
 /// If value can't be retrieved that default value is returned and *ok = false (if provided).
@@ -164,8 +170,11 @@ MODBUS_EXPORT void setSettingType(Settings &s, ProtocolType v);
 /// \details Set settings value for number of tries a Modbus request is repeated if it fails.
 MODBUS_EXPORT void setSettingTries(Settings &s, uint32_t);
 
-/// \details Set settings value for the IP address or DNS name of the remote device.
+/// \details Set settings value for the IP address or DNS name of the remote device (TCP Client).
 MODBUS_EXPORT void setSettingHost(Settings &s, const QString &v);
+
+/// \details Set settings value for the IP address to bind the server (TCP Server).
+MODBUS_EXPORT void setSettingIpaddr(Settings &s, const QString &v);
 
 /// \details Set settings value for the TCP port number of the remote device.
 MODBUS_EXPORT void setSettingPort(Settings &s, uint16_t v);

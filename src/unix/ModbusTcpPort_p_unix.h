@@ -80,12 +80,17 @@ StatusCode ModbusTcpPortPrivateUnix::open()
         case STATE_UNKNOWN:
         case STATE_CLOSED:
         {
-            this->clearChanged();
             if (isOpen())
             {
-                this->state = STATE_OPENED;
-                return Status_Good;
+                if (this->isChanged())
+                    this->close();
+                else
+                {
+                    this->state = STATE_OPENED;
+                    return Status_Good;
+                }
             }
+            this->clearChanged();
             struct addrinfo hints;
             memset(&hints, 0, sizeof hints);
             hints.ai_family = AF_UNSPEC;

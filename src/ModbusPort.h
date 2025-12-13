@@ -17,8 +17,52 @@ class ModbusPortPrivate;
 
 /*! \brief The abstract class `ModbusPort` is the base class for a specific implementation of the Modbus communication protocol.
 
-    \details `ModbusPort` contains general functions for working with a specific port, implementing a specific version of the Modbus communication protocol.
+    \details `ModbusPort` contains general functions for working with a specific port,
+    implementing a specific version of the Modbus communication protocol.
     For example, versions for working with a TCP port or a serial port.
+
+    Key characteristics:
+    - Abstract base class for all protocol-specific port implementations
+    - Provides unified interface for TCP, RTU, and ASCII protocols
+    - Supports both client and server operation modes
+    - Supports both blocking (synchronous) and non-blocking (asynchronous) operation
+    - Manages connection lifecycle (open/close) and state
+    - Handles low-level packet assembly and parsing
+    - Provides error reporting with status codes and descriptive text
+    
+    This base class defines:
+    - Port lifecycle management (open, close, state checking)
+    - Operating mode configuration (client/server, blocking/non-blocking)
+    - Timeout settings for communication operations
+    - Buffer management for read and write operations
+    - Abstract packet handling interface (writeBuffer, readBuffer, write, read)
+    - Error status tracking and reporting
+    - Native handle access for platform-specific operations
+    
+    Derived classes implement protocol-specific behavior:
+    - ModbusTcpPort: TCP/IP socket communication with MBAP header handling
+    - ModbusRtuPort: Serial RTU protocol with binary encoding and CRC-16
+    - ModbusAscPort: Serial ASCII protocol with hexadecimal encoding and LRC
+    
+    The class provides two operational patterns:
+    
+    1. Blocking mode (synchronous):
+       Operations wait until completion or timeout. Suitable for simple
+       single-threaded applications where blocking is acceptable.
+    
+    2. Non-blocking mode (asynchronous):
+       Operations return immediately with Status_Processing if not complete.
+       The caller must repeatedly call the operation until it completes or fails.
+       Suitable for event-driven architectures and applications requiring responsiveness.
+    
+    Packet handling workflow:
+    1. writeBuffer() - Assemble protocol-specific packet with unit, function, data
+    2. write() - Transmit the assembled packet to the remote device
+    3. read() - Receive response packet from the remote device
+    4. readBuffer() - Parse and validate the received protocol-specific packet
+    
+    The port maintains internal read/write buffers accessible through buffer access methods,
+    allowing inspection of raw protocol data for debugging and logging purposes.
 
  */
 class MODBUS_EXPORT ModbusPort
@@ -32,26 +76,26 @@ public:
     virtual Modbus::ProtocolType type() const = 0;
 
     /// \details Returns the native handle value that depenp on OS used. For TCP it socket handle, for serial port - file handle.
-    Modbus::Handle handle() const;
+    virtual Modbus::Handle handle() const;
 
     /// \details Opens port (create connection) for further operations and returns the result status.
-    Modbus::StatusCode open();
+    virtual Modbus::StatusCode open();
 
     /// \details Closes the port (breaks the connection) and returns the status the result status.
-    Modbus::StatusCode close();
+    virtual Modbus::StatusCode close();
 
     /// \details Returns `true` if the port is open/communication with the remote device is established, `false` otherwise.
-    bool isOpen() const;
+    virtual bool isOpen() const;
 
     /// \details Implements the algorithm for writing to the port and returns the status of the operation.
-    Modbus::StatusCode write();
+    virtual Modbus::StatusCode write();
 
     /// \details Implements the algorithm for reading from the port and returns the status of the operation.
-    Modbus::StatusCode read();
+    virtual Modbus::StatusCode read();
 
     /// \details For the TCP version of the Modbus protocol. The identifier of each subsequent parcel is automatically increased by 1.
     /// If you set `setNextRequestRepeated(true)` then the next ID will not be increased by 1 but for only one next parcel.
-    void setNextRequestRepeated(bool v);
+    virtual void setNextRequestRepeated(bool v);
 
 public:
     /// \details Returns `true` if the port settings have been changed and the port needs to be reopened/reestablished communication with the remote device, `false` otherwise.
@@ -61,7 +105,7 @@ public:
     bool isServerMode() const;
 
     /// \details Sets server mode if `true`, `false` for client mode.
-    void setServerMode(bool mode);
+    virtual void setServerMode(bool mode);
 
     /// \details Returns `true` if the port works in synch (blocking) mode, `false` otherwise.
     bool isBlocking() const;
@@ -145,11 +189,11 @@ public: // errors
 
 public:
     /// \details The function places a raw packet in the buffer for further sending. Returns the status of the operation.
-    Modbus::StatusCode writeRawBuffer(const void *buff, uint16_t szInBuff);
+    virtual Modbus::StatusCode writeRawBuffer(const void *buff, uint16_t szInBuff);
 
     /// \details The function copies input packet that the `read()` function puts into the inner buffer to the output `buff` 
     /// and set it size into the output varaible `szOutBuff`. Returns the status of the operation.
-    Modbus::StatusCode readRawBuffer(void *buff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+    virtual Modbus::StatusCode readRawBuffer(void *buff, uint16_t maxSzBuff, uint16_t *szOutBuff);
     
     /// \details The function directly generates a packet and places it in the buffer for further sending. Returns the status of the operation.
     virtual Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff) = 0;
@@ -159,22 +203,22 @@ public:
     
 public: // buffer
     /// \details Returns pointer to data of read buffer.
-    const uint8_t *readBufferData() const;
+    virtual const uint8_t *readBufferData() const;
 
     /// \details Returns maximum size of read buffer.
-    uint16_t readBufferMaxSize() const;
+    virtual uint16_t readBufferMaxSize() const;
 
     /// \details Returns current size of read buffer.
-    uint16_t readBufferSize() const;
+    virtual uint16_t readBufferSize() const;
 
     /// \details Returns pointer to data of write buffer.
-    const uint8_t *writeBufferData() const;
+    virtual const uint8_t *writeBufferData() const;
 
     /// \details Returns maximum size of write buffer.
-    uint16_t writeBufferMaxSize() const;
+    virtual uint16_t writeBufferMaxSize() const;
 
     /// \details Returns size of data of write buffer.
-    uint16_t writeBufferSize() const;
+    virtual uint16_t writeBufferSize() const;
 
 protected:
     /// \details Sets the error parameters of the last operation performed.

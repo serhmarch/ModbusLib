@@ -39,6 +39,11 @@ public:
         return setErrorBase(status, text);
     }
 
+    inline StatusCode setError(StatusCode status, const String &text)
+    {
+        return setError(status, text.data());
+    }
+
     inline StatusCode setPortError(StatusCode status)
     {
         errorStatus = status;

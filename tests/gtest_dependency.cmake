@@ -2,7 +2,7 @@ if (NOT GOOGLETEST_DIR)
     set(GOOGLETEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external/googletest")
 endif()
 
-message("MB: GOOGLETEST_DIR: ${GOOGLETEST_DIR}")
+message(STATUS "MB: GOOGLETEST_DIR: ${GOOGLETEST_DIR}")
 
 if (EXISTS ${GOOGLETEST_DIR})
     set(GTEST_SRCDIR ${GOOGLETEST_DIR}/googletest)

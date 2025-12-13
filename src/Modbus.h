@@ -226,7 +226,8 @@ namespace Modbus {
 */
 struct MODBUS_EXPORT NetDefaults
 {
-    const Modbus::Char *host   ; ///< Default setting 'TCP host name (DNS or IP address)'
+    const Modbus::Char *host   ; ///< Default setting 'TCP host name (DNS or IP address)' (for client port)
+    const Modbus::Char *ipaddr ; ///< Default setting 'TCP host name (DNS or IP address)' (for server port)
     const uint16_t      port   ; ///< Default setting 'TCP port number' for the listening server
     const uint32_t      timeout; ///< Default setting for the read timeout of every single conncetion
     const uint32_t      maxconn; ///< Default setting for the maximum number of simultaneous connections to the server
@@ -444,6 +445,16 @@ MODBUS_EXPORT List<StopBits> availableStopBits();
 /// \details Return list of `FlowControl` values
 MODBUS_EXPORT List<FlowControl> availableFlowControl();
 
+/// \details Convert string like "1,3-8,10" to unit map bit array
+/// Returns true if success, false otherwise
+MODBUS_EXPORT bool fillUnitMap(const Modbus::Char *s, void *unitmap);
+
+/// \details Overloaded function
+inline bool fillUnitMap(const String &s, void *unitmap) { return fillUnitMap(s.data(), unitmap); }
+
+/// \details Return unit map bit array string repr like "1,3-8,10"
+MODBUS_EXPORT String unitMapToString(const void *unitmap);
+
 /// \details Function for creation `ModbusPort` with defined parameters:
 /// \param[in]  type        Protocol type: ASC, RTU, TCP, UDP, ASCvTCP, RTUvTCP, ASCvUDP, ASCvUDP.
 /// \param[in]  settings    For TCP must be pointer: `NetSettings*`, `SerialSettings*` otherwise.
@@ -503,10 +514,15 @@ inline StatusCode writeMemBits(uint32_t offset, uint32_t count, const void *valu
 
 #ifndef MB_ADDRESS_CLASS_DISABLE
 
+/// \brief IEC 61131-3 prefix for coils (0x addresses)
 #define sIEC61131Prefix0x "%Q"
+/// \brief IEC 61131-3 prefix for discrete inputs (1x addresses)
 #define sIEC61131Prefix1x "%I"
+/// \brief IEC 61131-3 prefix for input registers (3x addresses)
 #define sIEC61131Prefix3x "%IW"
+/// \brief IEC 61131-3 prefix for holding registers (4x addresses)
 #define sIEC61131Prefix4x "%MW"
+/// \brief IEC 61131-3 suffix character for hexadecimal notation
 #define cIEC61131SuffixHex 'h'
 
 /// \brief Modbus Data Address class. Represents Modbus Data Address.

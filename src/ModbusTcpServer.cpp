@@ -31,6 +31,7 @@
 #define MODBUS_TCPSERVER_OPEN_TIMOUT_ms 1000
 
 ModbusTcpServer::Defaults::Defaults() :
+    ipaddr (StringLiteral("0.0.0.0")),
     port   (STANDARD_TCP_PORT),
     timeout(3000),
     maxconn(10)
@@ -46,6 +47,16 @@ const ModbusTcpServer::Defaults &ModbusTcpServer::Defaults::instance()
 ModbusTcpServer::~ModbusTcpServer()
 {
     clearConnections();
+}
+
+const Modbus::Char *ModbusTcpServer::ipaddr() const
+{
+    return d_ModbusTcpServer(d_ptr)->ipaddr.data();
+}
+
+void ModbusTcpServer::setIpaddr(const Modbus::Char *ipaddr)
+{
+    d_ModbusTcpServer(d_ptr)->ipaddr = ipaddr;
 }
 
 uint16_t ModbusTcpServer::port() const
@@ -65,7 +76,10 @@ uint32_t ModbusTcpServer::timeout() const
 
 void ModbusTcpServer::setTimeout(uint32_t timeout)
 {
-    d_ModbusTcpServer(d_ptr)->timeout = timeout;
+    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    d->timeout = timeout;
+    for (auto& c : d->connections)
+        c->setTimeout(timeout);
 }
 
 uint32_t ModbusTcpServer::maxConnections() const
@@ -100,6 +114,14 @@ void ModbusTcpServer::setUnitMap(const void *unitmap)
     ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
     for (auto& c : d->connections)
         c->setUnitMap(unitmap);
+}
+
+void ModbusTcpServer::setUnitEnabled(uint8_t unit, bool enable)
+{
+    ModbusServerPort::setUnitEnabled(unit, enable);
+    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    for (auto& c : d->connections)
+        c->setUnitEnabled(unit, enable);
 }
 
 void ModbusTcpServer::clearConnections()

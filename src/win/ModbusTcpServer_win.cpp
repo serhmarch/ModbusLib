@@ -32,6 +32,7 @@ ModbusTcpServer::ModbusTcpServer(Modbus::ProtocolType type, ModbusInterface *dev
 StatusCode ModbusTcpServer::open()
 {
     ModbusTcpServerPrivateWin *d = d_win(d_ptr);
+    d->cmdClose = false;
     bool fRepeatAgain;
     do
     {
@@ -60,7 +61,8 @@ StatusCode ModbusTcpServer::open()
             // Bind the socket
             sockaddr_in serverAddr;
             serverAddr.sin_family = AF_INET;
-            serverAddr.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any available interface
+            if (inet_pton(serverAddr.sin_family, d->ipaddr.data(), &serverAddr.sin_addr) != 1) // error or invalid address
+                serverAddr.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any available interface
             serverAddr.sin_port = htons(d->tcpPort); // Port number
 
             if (d->socket->bind((sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
