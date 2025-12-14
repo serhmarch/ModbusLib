@@ -151,6 +151,31 @@
 
 
 // --------------------------------------------------------------------------------------------------------
+// ----------------------------------- Modbus diagnostic function codes -----------------------------------
+// --------------------------------------------------------------------------------------------------------
+
+/// \name Modbus Functions
+/// Modbus Function's codes.
+///\{ 
+#define MBDIAGN_RETURN_QUERY_DATA                      0
+#define MBDIAGN_RESTART_COMMUNICATIONS_OPTION          1
+#define MBDIAGN_RETURN_DIAGNOSTIC_REGISTER             2
+#define MBDIAGN_CHANGE_ASCII_INPUT_DELIMITER           3
+#define MBDIAGN_FORCE_LISTEN_ONLY_MODE                 4
+#define MBDIAGN_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER 10
+#define MBDIAGN_RETURN_BUS_MESSAGE_COUNT               11
+#define MBDIAGN_RETURN_BUS_COMMUNICATION_ERROR_COUNT   12
+#define MBDIAGN_RETURN_BUS_EXCEPTION_ERROR_COUNT       13
+#define MBDIAGN_RETURN_SERVER_MESSAGE_COUNT            14
+#define MBDIAGN_RETURN_SERVER_NO_RESPONSE_COUNT        15
+#define MBDIAGN_RETURN_SERVER_NAK_COUNT                16
+#define MBDIAGN_RETURN_SERVER_BUSY_COUNT               17
+#define MBDIAGN_RETURN_BUS_CHARACTER_OVERRUN_COUNT     18
+#define MBDIAGN_CLEAR_OVERRUN_COUNTER_AND_FLAGS        20
+///\}
+
+
+// --------------------------------------------------------------------------------------------------------
 // ---------------------------------------- Modbus count constants ----------------------------------------
 // --------------------------------------------------------------------------------------------------------
 
