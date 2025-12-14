@@ -125,13 +125,14 @@ StatusCode ModbusUdpPortPrivateUnix::open()
             this->state = STATE_OPENED;
             return Status_Good;
         default:
-            if (!isOpen())
+            if (isOpen() && !this->isChanged())
             {
-                this->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                this->state = STATE_OPENED;
+                return Status_Good;
             }
-            return Status_Good;
+            this->state = STATE_CLOSED;
+            fRepeatAgain = true;
+            break;
         }
     }
     while (fRepeatAgain);
@@ -245,8 +246,8 @@ StatusCode ModbusUdpPortPrivateUnix::read()
             {
                 close();
                 return this->setError(Status_BadUdpRead, StringLiteral("UDP. Error while reading from '") + this->settings.hostOrPortName + StringLiteral(":") + toModbusString(this->settings.port) +
-                                                      StringLiteral("'. Error code: ") + toModbusString(errno) +
-                                                      StringLiteral(". ") + getLastErrorText());
+                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
+                                                         StringLiteral(". ") + getLastErrorText());
             }
         }
     }

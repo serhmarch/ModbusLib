@@ -205,13 +205,14 @@ StatusCode ModbusTcpPortPrivateWin::open()
         }
             break;
         default:
-            if (!isOpen())
+            if (isOpen() && !this->isChanged())
             {
-                this->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                this->state = STATE_OPENED;
+                return Status_Good;
             }
-            return Status_Good;
+            this->state = STATE_CLOSED;
+            fRepeatAgain = true;
+            break;
         }
     }
     while (fRepeatAgain);

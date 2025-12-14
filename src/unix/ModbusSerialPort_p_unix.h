@@ -109,8 +109,8 @@ StatusCode ModbusSerialPortPrivateUnix::open()
             if (this->serialPortIsInvalid())
             {
                 return this->setError(Status_BadSerialOpen, StringLiteral("Failed to open '") + this->portName() +
-                                                         StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
-                                                         StringLiteral(". ") + getLastErrorText());
+                                                            StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
+                                                            StringLiteral(". ") + getLastErrorText());
             }
 
             //fcntl(this->serialPort, F_SETFL, 0); // Note: change file (serial port) flags
@@ -215,20 +215,20 @@ StatusCode ModbusSerialPortPrivateUnix::open()
             r = tcsetattr(this->serialPort, TCSANOW, &options);
             if (r < 0)
                 return this->setError(Status_BadSerialOpen, StringLiteral("Failed to set attributes for '") + this->portName() +
-                                                         StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
-                                                         StringLiteral(". ") + getLastErrorText());
+                                                            StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
+                                                            StringLiteral(". ") + getLastErrorText());
 
         }
             return Status_Good;
         default:
-            if (!isOpen())
+            if (isOpen() && !this->isChanged())
             {
-                this->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                this->state = STATE_OPENED;
+                return Status_Good;
             }
-            this->state = STATE_OPENED;
-            return Status_Good;
+            this->state = STATE_CLOSED;
+            fRepeatAgain = true;
+            break;
         }
     }
     while (fRepeatAgain);
