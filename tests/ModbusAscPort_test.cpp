@@ -2,7 +2,6 @@
 #include <gmock/gmock.h>
 
 #include <ModbusAscPort.h>
-#include <ModbusSerialPort.h>
 #include <ModbusPort_p.h>
 #include <ModbusSerialPort_p.h>
 #include <ModbusGlobal.h>
@@ -715,7 +714,7 @@ TEST_F(ModbusAscPortTest, DefaultSerialSettings)
 {
     port = new ModbusAscPortTestHelper();
     
-    const ModbusAscPort::Defaults &defaults = ModbusAscPort::Defaults::instance();
+    const Modbus::Defaults &defaults = Modbus::Defaults::instance();
     
     EXPECT_EQ(port->baudRate(), defaults.baudRate);
     EXPECT_EQ(port->dataBits(), defaults.dataBits);
