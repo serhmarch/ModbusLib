@@ -82,7 +82,6 @@ TEST(ModbusQtTest, SetAndGetSettings)
     const uint32_t maxconn = 11u;
 
     setSettingHost(s, host);
-    setSettingIpaddr(s, ipaddr);
     setSettingPort(s, port);
     setSettingTimeout(s, timeout);
     setSettingMaxconn(s, maxconn);
@@ -90,9 +89,6 @@ TEST(ModbusQtTest, SetAndGetSettings)
     bool ok = false;
 
     EXPECT_EQ(getSettingHost(s, &ok), host);
-    EXPECT_TRUE(ok);
-
-    EXPECT_EQ(getSettingIpaddr(s, &ok), ipaddr);
     EXPECT_TRUE(ok);
 
     EXPECT_EQ(getSettingPort(s, &ok), port);

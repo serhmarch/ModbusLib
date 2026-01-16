@@ -14,7 +14,7 @@ Strings::Strings() :
     type              (QStringLiteral("type")),
     tries             (QStringLiteral("tries")),
     host              (QStringLiteral("host")),
-    ipaddr            (QStringLiteral("ipaddr")),
+    ipaddr            (host),
     port              (QStringLiteral("port")),
     timeout           (QStringLiteral("timeout")),
     maxconn           (QStringLiteral("maxconn")),
