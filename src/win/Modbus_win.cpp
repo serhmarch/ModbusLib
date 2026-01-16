@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <initguid.h>
 #include <devguid.h>
+#include <ntddmodm.h>
 #include <setupapi.h>
 
 #define NANOSEC100_IN_MILLISEC      10000
@@ -31,12 +32,12 @@ void setConsoleColor(Color color)
     {
     case Color_Black  : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0); break;
     case Color_Red    : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED); break;
-    case Color_Green  : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN); break;    
-    case Color_Yellow : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED|FOREGROUND_GREEN); break; 
-    case Color_Blue   : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_BLUE); break;   
+    case Color_Green  : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN); break;
+    case Color_Yellow : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED|FOREGROUND_GREEN); break;
+    case Color_Blue   : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_BLUE); break;
     case Color_Magenta: SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED|FOREGROUND_BLUE); break;
-    case Color_Cyan   : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN|FOREGROUND_BLUE); break; 
-    case Color_White  : 
+    case Color_Cyan   : SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN|FOREGROUND_BLUE); break;
+    case Color_White  :
     case Color_Default:
     default:
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE); break;
@@ -90,7 +91,7 @@ String getLastErrorText()
         (LPWSTR)&messageBuffer,
         0,
         NULL
-    );
+        );
 
     if (size == 0)
         return StringLiteral("Unknown error"); // Failed to retrieve error message
@@ -105,100 +106,142 @@ String getLastErrorText()
     return errorMsg;
 }
 
+// Note: Next list of functions are adapted from qtserialport project (qserialportinfo_win.cpp):
+// * portNamesFromHardwareDeviceMap()
+// * devicePortName()
+// * availableSerialPorts()
+
+static List<String> portNamesFromHardwareDeviceMap()
+{
+    List<String> result;
+
+    HKEY hKey = nullptr;
+    if (::RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)
+        return result;
+
+    DWORD index = 0;
+
+    // This is a maximum length of value name, see:
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724872%28v=vs.85%29.aspx
+    enum { MaximumValueNameInChars = 16383 };
+
+    std::vector<char> outputValueName(MaximumValueNameInChars, 0);
+    std::vector<char> outputBuffer(MAX_PATH + 1, 0);
+    DWORD bytesRequired = MAX_PATH;
+    for (;;)
+    {
+        DWORD requiredValueNameChars = MaximumValueNameInChars;
+        const LONG ret = ::RegEnumValueA(hKey, index, &outputValueName[0], &requiredValueNameChars,
+                                         nullptr, nullptr, reinterpret_cast<PBYTE>(&outputBuffer[0]), &bytesRequired);
+        if (ret == ERROR_MORE_DATA)
+        {
+            outputBuffer.resize(bytesRequired+1, 0);
+        }
+        else if (ret == ERROR_SUCCESS)
+        {
+            result.push_back(outputBuffer.data());
+            ++index;
+        }
+        else
+        {
+            break;
+        }
+    }
+    ::RegCloseKey(hKey);
+    return result;
+}
+
+static String devicePortName(HDEVINFO deviceInfoSet, PSP_DEVINFO_DATA deviceInfoData)
+{
+    const HKEY key = ::SetupDiOpenDevRegKey(deviceInfoSet, deviceInfoData, DICS_FLAG_GLOBAL,
+                                            0, DIREG_DEV, KEY_READ);
+    if (key == INVALID_HANDLE_VALUE)
+        return String();
+
+    static const char * const keyTokens[] = {
+        "PortName\0",
+        "PortNumber\0"
+    };
+
+    String portName;
+    for (auto keyToken : keyTokens)
+    {
+        DWORD dataType = 0;
+        std::vector<char> outputBuffer(MAX_PATH + 1, 0);
+        DWORD bytesRequired = MAX_PATH;
+        for (;;)
+        {
+            const LONG ret = ::RegQueryValueExA(key, keyToken, nullptr, &dataType,
+                                                reinterpret_cast<PBYTE>(&outputBuffer[0]), &bytesRequired);
+            if (ret == ERROR_MORE_DATA)
+            {
+                outputBuffer.resize(bytesRequired + 1, 0);
+                continue;
+            }
+            else if (ret == ERROR_SUCCESS)
+            {
+                if (dataType == REG_SZ)
+                    portName = outputBuffer.data();
+                else if (dataType == REG_DWORD)
+                    portName = StringLiteral("COM") + toModbusString(*(PDWORD(&outputBuffer[0])));
+            }
+            break;
+        }
+
+        if (!portName.empty())
+            break;
+    }
+    ::RegCloseKey(key);
+    return portName;
+}
+
 List<String> availableSerialPorts()
 {
     List<String> ports;
 
-#if 0 //NTDDI_VERSION >= NTDDI_WIN10_RS4
-    const ULONG PortNumbersCount = 100;
-    ULONG PortNumbers[PortNumbersCount];
-    ULONG PortCount = 0;
-    // TODO:
-    GetCommPorts(PortNumbers, PortNumbersCount, &PortCount);
-    for (ULONG i = 0; i < PortCount; i++)
-        ports.push_back(StringLiteral("COM")+std::to_string(PortNumbers[i]));
-#else
-//    for (ULONG i = 1; i <= PortNumbersCount; i++)
-//    {
-//        String portName = StringLiteral("COM")+std::to_string(i);
-//        HANDLE serialPort = CreateFileA(
-//            portName.data(),
-//            GENERIC_READ | GENERIC_WRITE,
-//            0,
-//            NULL,
-//            OPEN_EXISTING,
-//            0,
-//            NULL);
-//        if (serialPort != INVALID_HANDLE_VALUE)
-//        {
-//            ports.push_back(portName);
-//            CloseHandle(serialPort);
-//        }
-//    }
-    HDEVINFO hDevInfo = SetupDiGetClassDevs(
-        &GUID_DEVINTERFACE_COMPORT, // Ports class GUID
-        NULL,
-        NULL,
-        DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+    static const struct {
+        GUID guid; DWORD flags;
+    } setupTokens[] =  {
+        { GUID_DEVCLASS_PORTS, DIGCF_PRESENT },
+        { GUID_DEVCLASS_MODEM, DIGCF_PRESENT },
+        { GUID_DEVINTERFACE_COMPORT, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE },
+        { GUID_DEVINTERFACE_MODEM, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE }
+    };
 
-    if (hDevInfo == INVALID_HANDLE_VALUE)
-        return ports;
-
-    SP_DEVICE_INTERFACE_DATA DeviceInterfaceData;
-    DeviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
-
-    DWORD i = 0;
-    while (SetupDiEnumDeviceInterfaces(hDevInfo, NULL, &GUID_DEVINTERFACE_COMPORT, i, &DeviceInterfaceData))
+    for (const auto& setupToken : setupTokens)
     {
-        DWORD requiredSize = 0;
+        HDEVINFO hDevInfo = SetupDiGetClassDevs(&setupToken.guid, // Ports class GUID
+                                                NULL,
+                                                NULL,
+                                                setupToken.flags);
 
-        // First, get the size of the buffer needed
-        SetupDiGetDeviceInterfaceDetail(hDevInfo, &DeviceInterfaceData, NULL, 0, &requiredSize, NULL);
+        if (hDevInfo == INVALID_HANDLE_VALUE)
+            return ports;
 
-        if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-            break;
+        SP_DEVINFO_DATA deviceInfoData{};
+        deviceInfoData.cbSize = sizeof(deviceInfoData);
 
-        std::vector<BYTE> buffer(requiredSize);
-        SP_DEVICE_INTERFACE_DETAIL_DATA* DeviceInterfaceDetailData = reinterpret_cast<SP_DEVICE_INTERFACE_DETAIL_DATA*>(&buffer[0]);
-        DeviceInterfaceDetailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
-
-        SP_DEVINFO_DATA DeviceInfoData;
-        DeviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
-
-        // Now, get the device interface detail
-        if (!SetupDiGetDeviceInterfaceDetail(hDevInfo, &DeviceInterfaceData, DeviceInterfaceDetailData, requiredSize, NULL, &DeviceInfoData))
-            break;
-
-        // Get the friendly name of the device
-        char buffer2[256];
-        if (SetupDiGetDeviceRegistryPropertyA(
-                hDevInfo,
-                &DeviceInfoData,
-                SPDRP_FRIENDLYNAME,
-                NULL,
-                (PBYTE)buffer2,
-                sizeof(buffer2),
-                NULL))
+        DWORD i = 0;
+        while (::SetupDiEnumDeviceInfo(hDevInfo, i++, &deviceInfoData))
         {
-            std::string deviceName = buffer2;
+            const String portName = devicePortName(hDevInfo, &deviceInfoData);
+            if (portName.empty() || portName.find("LPT") != std::string::npos)
+                continue;
+            
+            if (std::find(ports.begin(), ports.end(), portName) != ports.end())
+                continue;
 
-            // Check if the device name contains "COM"
-            size_t pos = deviceName.find("(COM");
-            if (pos != std::string::npos)
-            {
-                // Extract the COM port number from the device name
-                size_t endPos = deviceName.find(")", pos);
-                if (endPos != std::string::npos)
-                {
-                    std::string comPort = deviceName.substr(pos + 1, endPos - pos - 1);
-                    ports.push_back(comPort);
-                }
-            }
+            ports.push_back(portName);
         }
-
-        i++;
     }
-#endif
+
+    const auto portNames = portNamesFromHardwareDeviceMap();
+    for (const auto &portName : portNames)
+    {
+        if (std::find(ports.begin(), ports.end(), portName) == ports.end())
+            ports.push_back(portName);
+    }
+
     return ports;
 }
 

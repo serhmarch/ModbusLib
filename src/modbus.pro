@@ -84,6 +84,7 @@ SOURCES +=                              \
 LIBS += -lWs2_32
 LIBS += -lWinmm
 LIBS += -lsetupapi
+LIBS += -lAdvapi32
 
 }
 

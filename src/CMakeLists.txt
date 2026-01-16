@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13) # 2.2 - case insensitive syntax
                                      # 3.13 included policy CMP0077
 
-project(ModbusLib VERSION 0.4.8 LANGUAGES C CXX)
+project(ModbusLib VERSION 0.4.9 LANGUAGES C CXX)
 
 set(MB_LIBRARY_NAME modbus CACHE INTERNAL "Name of the modbus library")
 set(MB_LIBRARY_VERSION ${PROJECT_VERSION} CACHE INTERNAL "Version of the modbus library")
@@ -239,7 +239,7 @@ set_target_properties(
     )
         
 if (WIN32)
-    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm setupapi)
+    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm setupapi Advapi32)
 endif()
 
 if (MB_QT_ENABLED)
