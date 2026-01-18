@@ -251,7 +251,7 @@ set_target_properties(
     )
         
 if (WIN32)
-    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm setupapi)
+    target_link_libraries(${MB_LIBRARY_NAME} PRIVATE Ws2_32 Winmm setupapi Advapi32)
 endif()
 
 if (MB_QT_ENABLED)
