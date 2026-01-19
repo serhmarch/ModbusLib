@@ -409,6 +409,7 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
     uint16_t szOutBuff, outSubfunc;
+    uint8_t sz;
 
     ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
     switch (status)
@@ -416,7 +417,11 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
     case ModbusClientPort::Enable:
         buff[0] = reinterpret_cast<uint8_t*>(&subfunc)[1]; // Sub function - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&subfunc)[0]; // Sub function - LS BYTE
-        memcpy(&buff[2], indata, insize);
+        for (uint8_t i = 0; i < insize; i++)
+        {
+            buff[i*2+2] = reinterpret_cast<const uint8_t*>(indata)[i*2+1];
+            buff[i*2+3] = reinterpret_cast<const uint8_t*>(indata)[i*2];    
+        }
         d->subfunc = subfunc;
         // no need break
     case ModbusClientPort::Process:
@@ -436,8 +441,16 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
         outSubfunc = buff[1] | (buff[0] << 8);
         if (outSubfunc != d->subfunc)
             return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Subfunc' is not match received one"));
-        *outsize = static_cast<uint8_t>(szOutBuff-2);
-        memcpy(outdata, &buff[2], *outsize);
+        sz = static_cast<uint8_t>(szOutBuff-2);
+        if (sz > insize)
+            sz = insize;
+        for (uint8_t i = 0; i < sz; i++)
+        {
+            reinterpret_cast<uint8_t*>(outdata)[i*2  ] = buff[i*2+3];
+            reinterpret_cast<uint8_t*>(outdata)[i*2+1] = buff[i*2+2];    
+        }
+        if (outsize)
+            *outsize = sz;
         return d->setGoodStatus();
     default:
         return Status_Processing;
@@ -915,6 +928,230 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoilsAsBoolArray(ModbusObject 
     return Status_Processing;
 }
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_DISABLE
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
+{
+    return diagnostics(client,unit, MBDIAGN_RETURN_QUERY_DATA, insize, indata, outsize, outdata);
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(ModbusObject *client, uint8_t unit, bool clearEventLog)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = clearEventLog ? 0xFF00 : 0x0000;
+    uint16_t outbuff;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RESTART_COMMUNICATIONS_OPTION, sizeof(buff), &buff, &outsize, &outbuff);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(outbuff))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+        if (outbuff != buff)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Restart Option' is not match received one"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(ModbusObject *client, uint8_t unit, uint16_t *value)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_DIAGNOSTIC_REGISTER, sizeof(buff), &buff, &outsize, value);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*value))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(ModbusObject *client, uint8_t unit, char delimiter)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = delimiter;
+    uint16_t outbuff;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_CHANGE_ASCII_INPUT_DELIMITER, sizeof(buff), &buff, &outsize, &outbuff);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(outbuff))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+        if (outbuff != buff)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Restart Option' is not match received one"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(ModbusObject *client, uint8_t unit)
+{
+    uint16_t buff = 0x0000;
+    uint16_t outbuff;
+    uint8_t outsize;
+    return diagnostics(client, unit, MBDIAGN_FORCE_LISTEN_ONLY_MODE, sizeof(buff), &buff, &outsize, &outbuff);
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(ModbusObject *client, uint8_t unit)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint16_t outbuff;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER, sizeof(buff), &buff, &outsize, &outbuff);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(outbuff))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+        if (outbuff != buff)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Restart Option' is not match received one"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_BUS_MESSAGE_COUNT, sizeof(buff), &buff, &outsize, count);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*count))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_BUS_COMMUNICATION_ERROR_COUNT, sizeof(buff), &buff, &outsize, count);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*count))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_BUS_EXCEPTION_ERROR_COUNT, sizeof(buff), &buff, &outsize, count);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*count))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_SERVER_MESSAGE_COUNT, sizeof(buff), &buff, &outsize, count);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*count))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_SERVER_NO_RESPONSE_COUNT, sizeof(buff), &buff, &outsize, count);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*count))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_SERVER_NAK_COUNT, sizeof(buff), &buff, &outsize, count);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*count))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_SERVER_BUSY_COUNT, sizeof(buff), &buff, &outsize, count);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*count))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_RETURN_BUS_CHARACTER_OVERRUN_COUNT, sizeof(buff), &buff, &outsize, count);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(*count))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+    }
+    return status;
+}
+
+Modbus::StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(ModbusObject *client, uint8_t unit)
+{
+    ModbusClientPortPrivate *d = d_ModbusClientPort(d_ptr);
+
+    uint16_t buff = 0x0000;
+    uint16_t outbuff;
+    uint8_t outsize;
+    auto status = diagnostics(client, unit, MBDIAGN_CLEAR_OVERRUN_COUNTER_AND_FLAG, sizeof(buff), &buff, &outsize, &outbuff);
+    if (Modbus::StatusIsGood(status))
+    {
+        if (outsize != sizeof(outbuff))
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+        if (outbuff != buff)
+            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Restart Option' is not match received one"));
+    }
+    return status;
+}
+
+#endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_READ_COILS_DISABLE
 StatusCode ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)

@@ -117,12 +117,13 @@ public:
 #ifndef MBF_DIAGNOSTICS_DISABLE
     /// \details Function provides a series of tests for checking the communication system between a client device and a server,
     /// or for checking various internal error conditions within a server.
-    /// \param[in]  unit    Address of the remote Modbus device.
-    /// \param[in]  subfunc Address of the remote Modbus device.
-    /// \param[in]  insize  Size of the input buffer (in bytes).
-    /// \param[in]  indata  Pointer to the buffer where the input (request) data is stored.
-    /// \param[out] outsize Size of the buffer (in bytes) where the output data is stored.
-    /// \param[out] outdata Pointer to the buffer where the output data is stored.
+    /// \param[in]  unit       Address of the remote Modbus device.
+    /// \param[in]  subfunc    Address of the remote Modbus device.
+    /// \param[in]  insize     Size of the input buffer (in bytes).
+    /// \param[in]  indata     Pointer to the buffer where the input (request) data is stored.
+    /// \param[in]  maxOutsize Maximum size of the buffer (in bytes) where the output data is stored.
+    /// \param[out] outdata    Pointer to the buffer where the output data is stored.
+    /// \param[out] outsize    Size of the buffer (in bytes) where the output data is stored.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
 #endif // MBF_DIAGNOSTICS_DISABLE
