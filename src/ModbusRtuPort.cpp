@@ -23,6 +23,8 @@
 #include "ModbusRtuPort.h"
 #include "ModbusSerialPort_p.h"
 
+inline ModbusSerialPortPrivate *d_cast(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivate*>(d_ptr); }
+
 ModbusRtuPort::ModbusRtuPort(bool blocking) :
     ModbusPort(ModbusSerialPortPrivate::create(MB_RTU_IO_BUFF_SZ, blocking))
 {

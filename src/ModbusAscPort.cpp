@@ -23,6 +23,8 @@
 #include "ModbusAscPort.h"
 #include "ModbusSerialPort_p.h"
 
+inline ModbusSerialPortPrivate *d_cast(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivate*>(d_ptr); }
+
 ModbusAscPort::ModbusAscPort(bool blocking) :
     ModbusPort(ModbusSerialPortPrivate::create(MB_ASC_IO_BUFF_SZ, blocking))
 {

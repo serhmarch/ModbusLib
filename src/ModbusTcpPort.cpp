@@ -1,6 +1,8 @@
 #include "ModbusTcpPort.h"
 #include "ModbusTcpPort_p.h"
 
+inline ModbusTcpPortPrivate *d_cast(ModbusPortPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivate*>(d_ptr); }
+
 ModbusTcpPort::ModbusTcpPort(ModbusSocket *socket, bool blocking) :
     ModbusPort(ModbusTcpPortPrivate::create(socket, blocking))
 {
@@ -13,7 +15,7 @@ ModbusTcpPort::ModbusTcpPort(bool blocking) :
 
 StatusCode ModbusTcpPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff)
 {
-    ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
+    ModbusTcpPortPrivate *d = d_cast(d_ptr);
     if (!d->modeServer)
     {
         d->transaction += d->autoIncrement;
@@ -40,7 +42,7 @@ StatusCode ModbusTcpPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t 
 
 StatusCode ModbusTcpPort::readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
-    ModbusTcpPortPrivate *d = d_ModbusTcpPort(d_ptr);
+    ModbusTcpPortPrivate *d = d_cast(d_ptr);
     if (d->sz < 8)
         return d->setError(Status_BadNotCorrectResponse, StringLiteral("TCP. Not correct response. Responsed data length to small"));
 

@@ -101,6 +101,8 @@ public: // server port interface
 
     Modbus::StatusCode process() override;
 
+    const Modbus::Char *lastErrorText() const override;
+
 protected:
     /// \details Process input data `buff` with `size` and returns status of the operation.
     virtual Modbus::StatusCode processInputData(const uint8_t *buff, uint16_t sz);

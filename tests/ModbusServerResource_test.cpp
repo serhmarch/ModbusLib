@@ -582,7 +582,7 @@ TEST_F(ModbusServerResourceTest, DeviceReturnsStandardException)
         .WillOnce(Return(Status_Good));
     
     StatusCode result = serverResource->process();
-    EXPECT_TRUE(StatusIsGood(result) || StatusIsProcessing(result));
+    EXPECT_TRUE(StatusIsBad(result));
 }
 
 TEST_F(ModbusServerResourceTest, PortOpenFails)
@@ -597,7 +597,7 @@ TEST_F(ModbusServerResourceTest, PortOpenFails)
     StatusCode result = serverResource->process();
     
     // Should handle open failure gracefully
-    EXPECT_TRUE(StatusIsGood(result) || StatusIsProcessing(result) || StatusIsBad(result));
+    EXPECT_TRUE(StatusIsBad(result));
 }
 
 TEST_F(ModbusServerResourceTest, PortReadFails)
@@ -611,7 +611,7 @@ TEST_F(ModbusServerResourceTest, PortReadFails)
     StatusCode result = serverResource->process();
     
     // Should handle read failure
-    EXPECT_TRUE(StatusIsGood(result) || StatusIsProcessing(result) || StatusIsBad(result));
+    EXPECT_TRUE(StatusIsBad(result));
 }
 
 TEST_F(ModbusServerResourceTest, PortWriteFails)
@@ -668,3 +668,332 @@ TEST_F(ModbusServerResourceTest, SignalsExist)
     });
 }
 
+// ============================================================================
+// Test signals emitted by ModbusServerResource (e.g., opened, closed etc.)
+// ============================================================================
+
+struct ModbusServerResourceSignalHandler
+{
+    uint32_t openCount     {0};
+    uint32_t closeCount    {0};
+    uint32_t txCount       {0};
+    uint32_t rxCount       {0};
+    uint32_t errorCount    {0};
+    uint32_t completeCount {0};
+
+    void onOpened(const Modbus::Char *)
+    {
+        openCount++;
+    }
+
+    void onClosed(const Modbus::Char *)
+    {
+        closeCount++;
+    };
+
+    void onTx(const Modbus::Char *, const uint8_t *, uint16_t)
+    {
+        txCount++;
+    };
+
+    void onRx(const Modbus::Char *, const uint8_t *, uint16_t)
+    {
+        rxCount++;
+    };
+
+    void onError(const Modbus::Char *, Modbus::StatusCode, const Modbus::Char *)
+    {
+        errorCount++;
+    };
+
+    void onCompleted(const Modbus::Char *, Modbus::StatusCode)
+    {
+        completeCount++;
+    };
+};
+
+TEST(ModbusServerResourceSignalsTest, testSignals)
+{
+    // NiceMock for ignoring uninteresting calls
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>(true);
+    port->setTimeout(0); // Non-blocking for test
+    NiceMock<MockModbusDevice> device;
+    
+    
+    ModbusServerResource serverPort(port, &device);
+    ModbusServerResourceSignalHandler signalHandler;
+
+    serverPort.connect(&ModbusServerResource::signalOpened   , &signalHandler, &ModbusServerResourceSignalHandler::onOpened   );
+    serverPort.connect(&ModbusServerResource::signalClosed   , &signalHandler, &ModbusServerResourceSignalHandler::onClosed   );
+    serverPort.connect(&ModbusServerResource::signalTx       , &signalHandler, &ModbusServerResourceSignalHandler::onTx       );
+    serverPort.connect(&ModbusServerResource::signalRx       , &signalHandler, &ModbusServerResourceSignalHandler::onRx       );
+    serverPort.connect(&ModbusServerResource::signalError    , &signalHandler, &ModbusServerResourceSignalHandler::onError    );
+    serverPort.connect(&ModbusServerResource::signalCompleted, &signalHandler, &ModbusServerResourceSignalHandler::onCompleted);
+
+    const uint8_t  unit   = 1;
+    const uint8_t  func   = MBF_READ_HOLDING_REGISTERS;
+    const uint16_t offset = 0;
+    const uint16_t count  = 16;
+    
+    // Request preparation
+    const auto szReadData = 4;    
+    uint8_t readData[szReadData];
+    readData[0] = reinterpret_cast<const uint8_t*>(&offset)[1];
+    readData[1] = reinterpret_cast<const uint8_t*>(&offset)[0];
+    readData[2] = reinterpret_cast<const uint8_t*>(&count)[1];
+    readData[3] = reinterpret_cast<const uint8_t*>(&count)[0];
+    
+    // Response data: byte count + 16 registers (32 bytes)
+    const auto szWriteData = 33;
+    uint8_t writeData[szWriteData];
+    writeData[0] = 32; // byte count
+    for (int i = 0; i < 32; i++)
+        writeData[i + 1] = static_cast<uint8_t>(i);
+    
+    
+    EXPECT_CALL(*port, readBufferData()) // Each step
+        .WillRepeatedly(Return(readData))
+        ;
+
+    EXPECT_CALL(*port, readBufferSize()) // Each step
+        .WillRepeatedly(Return(szReadData))
+        ;
+    
+    EXPECT_CALL(*port, writeBufferData()) // Each step
+        .WillRepeatedly(Return(writeData))
+        ;
+
+    EXPECT_CALL(*port, writeBufferSize()) // Each step
+        .WillRepeatedly(Return(szWriteData))
+        ;
+    
+    uint32_t expected_openCount     {0};
+    uint32_t expected_closeCount    {0};
+    uint32_t expected_txCount       {0};
+    uint32_t expected_rxCount       {0};
+    uint32_t expected_errorCount    {0};
+    uint32_t expected_completeCount {0};
+
+    // Step 1: Successful transaction
+    EXPECT_CALL(*port, isOpen())
+        .WillOnce(Return(false))
+        .WillRepeatedly(Return(true))
+        ;
+    EXPECT_CALL(*port, read())
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(func),
+            SetArrayArgument<2>(readData, readData + szReadData),
+            SetArgPointee<4>(szReadData),
+            Return(Status_Good)))
+        ;
+    EXPECT_CALL(device, readHoldingRegisters(unit,offset,count,_))
+        .WillOnce(Return(Modbus::Status_Good))
+        ;
+    EXPECT_CALL(*port, writeBuffer(unit, func, _, szWriteData))
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, write())
+        .WillOnce(Return(Status_Good))
+        ;
+
+    StatusCode result = serverPort.process();
+    EXPECT_EQ(signalHandler.openCount    , ++expected_openCount    );
+    EXPECT_EQ(signalHandler.closeCount   ,   expected_closeCount   );
+    EXPECT_EQ(signalHandler.rxCount      , ++expected_rxCount      );
+    EXPECT_EQ(signalHandler.txCount      , ++expected_txCount      );
+    EXPECT_EQ(signalHandler.errorCount   ,   expected_errorCount   );
+    EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
+    EXPECT_TRUE(Modbus::StatusIsGood(result));
+    
+    // Step 2: Read inner port error
+    EXPECT_CALL(*port, isOpen())
+        .WillRepeatedly(Return(true))
+        ;
+    EXPECT_CALL(*port, read())
+        .WillOnce(Return(Status_Bad))
+        ;
+
+    result = serverPort.process();
+    EXPECT_EQ(signalHandler.openCount    ,   expected_openCount    );
+    EXPECT_EQ(signalHandler.closeCount   ,   expected_closeCount   );
+    EXPECT_EQ(signalHandler.rxCount      ,   expected_rxCount      );
+    EXPECT_EQ(signalHandler.txCount      ,   expected_txCount      );
+    EXPECT_EQ(signalHandler.errorCount   , ++expected_errorCount   );
+    EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
+    EXPECT_TRUE(Modbus::StatusIsBad(result));
+    
+    // Step 3: readBuffer error
+    EXPECT_CALL(*port, isOpen())
+        .WillRepeatedly(Return(true))
+        ;
+    EXPECT_CALL(*port, read())
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(func),
+            SetArrayArgument<2>(readData, readData + szReadData),
+            SetArgPointee<4>(szReadData),
+            Return(Status_Bad)))
+        ;
+
+    result = serverPort.process();
+    EXPECT_EQ(signalHandler.openCount    ,   expected_openCount    );
+    EXPECT_EQ(signalHandler.closeCount   ,   expected_closeCount   );
+    EXPECT_EQ(signalHandler.rxCount      , ++expected_rxCount      );
+    EXPECT_EQ(signalHandler.txCount      ,   expected_txCount      );
+    EXPECT_EQ(signalHandler.errorCount   , ++expected_errorCount   );
+    EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
+    EXPECT_TRUE(Modbus::StatusIsBad(result));
+
+    // Step 4: Read device - status bad
+    EXPECT_CALL(*port, isOpen())
+        .WillRepeatedly(Return(true))
+        ;
+    EXPECT_CALL(*port, read())
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(func),
+            SetArrayArgument<2>(readData, readData + szReadData),
+            SetArgPointee<4>(szReadData),
+            Return(Status_Good)))
+        ;
+    EXPECT_CALL(device, readHoldingRegisters(unit,offset,count,_)) // Each step
+        .WillOnce(Return(Modbus::Status_Bad )) // Step 4
+        ;
+    EXPECT_CALL(*port, writeBuffer(unit, 0x80 | func, _, 1))
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, write())
+        .WillOnce(Return(Status_Good))
+        ;
+
+    result = serverPort.process();
+    EXPECT_EQ(signalHandler.openCount    ,   expected_openCount    );
+    EXPECT_EQ(signalHandler.closeCount   ,   expected_closeCount   );
+    EXPECT_EQ(signalHandler.rxCount      , ++expected_rxCount      );
+    EXPECT_EQ(signalHandler.txCount      , ++expected_txCount      ); // Note: tx called to send device failure response
+    EXPECT_EQ(signalHandler.errorCount   , ++expected_errorCount   );
+    EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
+    EXPECT_TRUE(Modbus::StatusIsBad(result));
+
+    // Step 5: Read device - status bad (Standard Exception)
+    EXPECT_CALL(*port, isOpen())
+        .WillRepeatedly(Return(true))
+        ;
+    EXPECT_CALL(*port, read())
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(func),
+            SetArrayArgument<2>(readData, readData + szReadData),
+            SetArgPointee<4>(szReadData),
+            Return(Status_Good)))
+        ;
+    EXPECT_CALL(device, readHoldingRegisters(unit,offset,count,_)) 
+        .WillOnce(Return(Modbus::Status_BadIllegalDataAddress))
+        ;
+    EXPECT_CALL(*port, writeBuffer(unit, 0x80 | func, _, 1))
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, write())
+        .WillOnce(Return(Status_Good))
+        ;
+
+    result = serverPort.process();
+    EXPECT_EQ(signalHandler.openCount    ,   expected_openCount    );
+    EXPECT_EQ(signalHandler.closeCount   ,   expected_closeCount   );
+    EXPECT_EQ(signalHandler.rxCount      , ++expected_rxCount      );
+    EXPECT_EQ(signalHandler.txCount      , ++expected_txCount      );
+    EXPECT_EQ(signalHandler.errorCount   , ++expected_errorCount   );
+    EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
+    EXPECT_TRUE(Modbus::StatusIsBad(result));
+
+    // Step 6: Read device - path unavailable
+    EXPECT_CALL(*port, isOpen())
+        .WillRepeatedly(Return(true))
+        ;
+    EXPECT_CALL(*port, read())
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(func),
+            SetArrayArgument<2>(readData, readData + szReadData),
+            SetArgPointee<4>(szReadData),
+            Return(Status_Good)))
+        ;
+    EXPECT_CALL(device, readHoldingRegisters(unit,offset,count,_)) 
+        .WillOnce(Return(Modbus::Status_BadGatewayPathUnavailable))
+        ;
+
+    result = serverPort.process();
+    EXPECT_EQ(signalHandler.openCount    ,   expected_openCount    );
+    EXPECT_EQ(signalHandler.closeCount   ,   expected_closeCount   );
+    EXPECT_EQ(signalHandler.rxCount      , ++expected_rxCount      );
+    EXPECT_EQ(signalHandler.txCount      ,   expected_txCount      );
+    EXPECT_EQ(signalHandler.errorCount   ,   expected_errorCount   );
+    EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
+    EXPECT_TRUE(Modbus::StatusIsGood(result));
+
+    // Step 7: Successful transaction
+    EXPECT_CALL(*port, isOpen())
+        .WillRepeatedly(Return(true))
+        ;
+    EXPECT_CALL(*port, read())
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(func),
+            SetArrayArgument<2>(readData, readData + szReadData),
+            SetArgPointee<4>(szReadData),
+            Return(Status_Good)))
+        ;
+    EXPECT_CALL(device, readHoldingRegisters(unit,offset,count,_))
+        .WillOnce(Return(Modbus::Status_Good))
+        ;
+    EXPECT_CALL(*port, writeBuffer(unit, func, _, szWriteData))
+        .WillOnce(Return(Status_Good))
+        ;
+    EXPECT_CALL(*port, write())
+        .WillOnce(Return(Status_Good))
+        ;
+
+    result = serverPort.process();
+    EXPECT_EQ(signalHandler.openCount    ,   expected_openCount    );
+    EXPECT_EQ(signalHandler.closeCount   ,   expected_closeCount   );
+    EXPECT_EQ(signalHandler.rxCount      , ++expected_rxCount      );
+    EXPECT_EQ(signalHandler.txCount      , ++expected_txCount      );
+    EXPECT_EQ(signalHandler.errorCount   ,   expected_errorCount   );
+    EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
+    EXPECT_TRUE(Modbus::StatusIsGood(result));
+    
+    // Step 8: Read port success but closed
+    EXPECT_CALL(*port, isOpen())
+        .WillRepeatedly(Return(false));    
+    EXPECT_CALL(*port, read())
+        .WillRepeatedly(Return(Status_Good))
+        ;
+
+    result = serverPort.process();
+    EXPECT_EQ(signalHandler.openCount    ,   expected_openCount    );
+    EXPECT_EQ(signalHandler.closeCount   , ++expected_closeCount   );
+    EXPECT_EQ(signalHandler.rxCount      ,   expected_rxCount      );
+    EXPECT_EQ(signalHandler.txCount      ,   expected_txCount      );
+    EXPECT_EQ(signalHandler.errorCount   ,   expected_errorCount   );
+    EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
+
+}

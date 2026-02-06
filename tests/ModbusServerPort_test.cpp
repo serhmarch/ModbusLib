@@ -158,6 +158,50 @@ TEST(ModbusServerPort_NonVirtual, UnitMapSetAndQuery)
     EXPECT_FALSE(sp.isUnitEnabled(5));
 }
 
+TEST(ModbusServerPort_NonVirtual, UnitMapStringSetAndQuery)
+{
+    NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;
+    NiceMock<MockModbusDevice> device;
+    EXPECT_CALL(*port, setServerMode(true)).Times(AtLeast(0));
+
+    ModbusServerResource sp(port, &device);
+
+    // Initially no unit map string is set
+    EXPECT_EQ(sp.unitMap(), nullptr);
+    EXPECT_TRUE(sp.unitMapString().empty());
+
+    // Set via string: mix of singles and ranges
+    sp.setUnitMapString("2, 7, 10-12, 200");
+    sp.setBroadcastEnabled(false); // disable broadcast to test map directly
+
+    ASSERT_NE(sp.unitMap(), nullptr);
+    EXPECT_EQ(sp.unitMapString(), "2,7,10-12,200"); // normalized order and ranges
+
+    EXPECT_FALSE(sp.isUnitEnabled(0));
+    EXPECT_FALSE(sp.isUnitEnabled(1));
+    EXPECT_TRUE (sp.isUnitEnabled(2));
+    EXPECT_TRUE (sp.isUnitEnabled(7));
+    EXPECT_FALSE(sp.isUnitEnabled(9));
+    EXPECT_TRUE (sp.isUnitEnabled(10));
+    EXPECT_TRUE (sp.isUnitEnabled(11));
+    EXPECT_TRUE (sp.isUnitEnabled(12));
+    EXPECT_FALSE(sp.isUnitEnabled(13));
+    EXPECT_TRUE (sp.isUnitEnabled(200));
+    EXPECT_FALSE(sp.isUnitEnabled(201));
+
+    // Invalid string should not change current map
+    sp.setUnitMapString("bad-input");
+    EXPECT_EQ(sp.unitMapString(), "2,7,10-12,200");
+
+    // Clear map by empty string -> all units enabled
+    sp.setUnitMapString("");
+    EXPECT_EQ(sp.unitMap(), nullptr);
+    EXPECT_TRUE(sp.unitMapString().empty());
+    EXPECT_TRUE(sp.isUnitEnabled(0));
+    EXPECT_TRUE(sp.isUnitEnabled(1));
+    EXPECT_TRUE(sp.isUnitEnabled(255));
+}
+
 TEST(ModbusServerPort_NonVirtual, ContextGetterSetter)
 {
     NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>;

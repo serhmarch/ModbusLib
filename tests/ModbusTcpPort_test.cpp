@@ -26,20 +26,20 @@ public:
     // Access to private data for test setup
     void setInternalBuffer(const uint8_t *data, uint16_t size)
     {
-        ModbusTcpPortPrivate *d = d_ModbusTcpPort(this->d_ptr);
+        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
         memcpy(d->buff, data, size);
         d->sz = size;
     }
 
     void setInternalTransaction(uint16_t trans)
     {
-        ModbusTcpPortPrivate *d = d_ModbusTcpPort(this->d_ptr);
+        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
         d->transaction = trans;
     }
 
     uint16_t getInternalTransaction() const
     {
-        ModbusTcpPortPrivate *d = d_ModbusTcpPort(this->d_ptr);
+        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
         return d->transaction;
     }
 
@@ -57,13 +57,13 @@ public:
     // Get internal buffer for verification
     const uint8_t* getInternalBuffer() const
     {
-        ModbusTcpPortPrivate *d = d_ModbusTcpPort(this->d_ptr);
+        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
         return d->buff;
     }
 
     uint16_t getInternalBufferSize() const
     {
-        ModbusTcpPortPrivate *d = d_ModbusTcpPort(this->d_ptr);
+        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
         return d->sz;
     }
 };
@@ -1147,22 +1147,22 @@ TEST_F(ModbusTcpPortTest, WriteMethodWhenNotOpen)
 {
     port = new ModbusTcpPortTestHelper();
     
-    // Port is not open, so write should return error or Status_Processing
+    // Port is not open, so write should return error
     StatusCode result = port->testWrite();
     
     // When not opened, write returns Status_Processing
-    EXPECT_EQ(result, Status_Processing);
+    EXPECT_TRUE(StatusIsBad(result));
 }
 
 TEST_F(ModbusTcpPortTest, ReadMethodWhenNotOpen)
 {
     port = new ModbusTcpPortTestHelper();
     
-    // Port is not open, so read should return error or Status_Processing
+    // Port is not open, so read should return error
     StatusCode result = port->testRead();
     
-    // When not opened, read returns Status_Processing
-    EXPECT_EQ(result, Status_Processing);
+    // When not opened, read returns error
+    EXPECT_TRUE(StatusIsBad(result));
 }
 
 TEST_F(ModbusTcpPortTest, WriteMethodWithValidData)

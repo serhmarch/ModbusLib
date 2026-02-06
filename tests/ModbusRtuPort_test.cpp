@@ -29,21 +29,9 @@ public:
     // Access to private data for test setup
     void setInternalBuffer(const uint8_t *data, uint16_t size)
     {
-        ModbusSerialPortPrivate *d = d_ModbusSerialPort(this->d_ptr);
+        ModbusSerialPortPrivate *d = static_cast<ModbusSerialPortPrivate*>(this->d_ptr);
         memcpy(d->buff, data, size);
         d->sz = size;
-    }
-
-    const uint8_t* getInternalBuffer() const
-    {
-        ModbusSerialPortPrivate *d = d_ModbusSerialPort(this->d_ptr);
-        return d->buff;
-    }
-
-    uint16_t getInternalBufferSize() const
-    {
-        ModbusSerialPortPrivate *d = d_ModbusSerialPort(this->d_ptr);
-        return d->sz;
     }
 
     // Expose write() and read() for testing

@@ -17,6 +17,4 @@ public:
     ModbusClientPort *port;
 };
 
-inline ModbusClientPrivate *d_ModbusClient(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusClientPrivate*>(d_ptr); }
-
 #endif // MODBUSCLIENT_P_H

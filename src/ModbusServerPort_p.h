@@ -42,7 +42,9 @@ public:
         this->context = nullptr;
         this->settings.broadcastEnabled = true;
         this->settings.unitmap = nullptr;
-        this->errorStatus = Modbus::Status_Uncertain;
+        this->lastStatus = Modbus::Status_Uncertain;
+        this->lastErrorStatus = Modbus::Status_Uncertain;
+        this->lastStatusTimestamp = 0;
     }
 
     ~ModbusServerPortPrivate() override
@@ -91,12 +93,11 @@ public: // state
     inline void timestampRefresh() { timestamp = timer(); }
     inline bool isStateClosed() const { return state == STATE_CLOSED || state == STATE_TIMEOUT; }
     inline const Char *getName() const { return objectName.data(); }
-    inline StatusCode lastErrorStatus() const { return errorStatus; }
-    inline const Char *lastErrorText() const { return errorText.data(); }
+    inline const Char *lastErrorTextData() const { return this->lastErrorText.data(); }
     inline StatusCode setErrorBase(StatusCode status, const Char *text)
     {
-        errorStatus = status;
-        errorText = text;
+        lastErrorStatus = status;
+        lastErrorText = text;
         return status;
     }
 
@@ -104,9 +105,11 @@ public:
     ModbusInterface *device;
     State state;
     bool cmdClose;
-    StatusCode errorStatus;
-    String errorText;
+    StatusCode lastStatus;
+    StatusCode lastErrorStatus;
+    String lastErrorText;
     Timer timestamp;
+    Timestamp lastStatusTimestamp;
     void *context;
     struct
     {
@@ -115,6 +118,12 @@ public:
     } settings;
 };
 
-inline ModbusServerPortPrivate *d_ModbusServerPort(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerPortPrivate*>(d_ptr); }
+#define SET_ERROR(status, text) { d->setError(status, text); signalError(d->getName(), status, text); }
+#define RAISE_ERROR(status, text) { SET_ERROR(status, text) return status; }
+#define RAISE_COMPLETED(status) { d->lastStatus = status; signalCompleted(d->getName(), status); return status; }
+#define RAISE_ERROR_COMPLETED(status, text) { SET_ERROR(status, text) signalCompleted(d->getName(), status); return status; }
+
+#define SET_PORT_ERROR(status) { d->setPortError(status); signalError(d->getName(), status, d->port->lastErrorText()); }
+#define RAISE_PORT_ERROR(status) { SET_PORT_ERROR(status) return status; }
 
 #endif // MODBUSSERVERPORT_P_H

@@ -303,6 +303,9 @@ typedef enum _StatusCode
     Status_BadMemoryParityError                  = Status_Bad | 0x08, ///< Standard error. The server attempted to read a record file but detected a parity error in memory
     Status_BadGatewayPathUnavailable             = Status_Bad | 0x0A, ///< Standard error. Indicates that the gateway was unable to allocate an internal communication path from the input port o the output port for processing the request. Usually means that the gateway is misconfigured or overloaded
     Status_BadGatewayTargetDeviceFailedToRespond = Status_Bad | 0x0B, ///< Standard error. Indicates that no response was obtained from the target device. Usually means that the device is not present on the network
+
+    Status_BadStandardBegin = Status_BadIllegalFunction                   , ///< First standard error code, same as `Status_BadIllegalFunction`
+    Status_BadStandardEnd   = Status_BadGatewayTargetDeviceFailedToRespond, ///< Last standard error code, same as `Status_BadGatewayTargetDeviceFailedToRespond`
     //------- Modbus standart errors end --------
                                                           
     //------- Modbus common errors begin --------         
@@ -489,7 +492,7 @@ inline bool StatusIsBad(StatusCode status) { return (status & Status_Bad) != 0; 
 inline bool StatusIsUncertain(StatusCode status) { return (status & Status_Uncertain) != 0; }
 
 /// \details Returns a general sign that the result is standard error.
-inline bool StatusIsStandardError(StatusCode status) { return (status & Status_Bad) && ((status & 0xFF00) == 0); }
+inline bool StatusIsStandardError(StatusCode status) { return (status >= Status_BadStandardBegin) && (status <= Status_BadStandardEnd); }
 
 /// \details Returns the value of the bit with number `bitNum' from the bit array `bitBuff'.
 inline bool getBit(const void *bitBuff, uint16_t bitNum) { return GET_BIT (bitBuff, bitNum); }

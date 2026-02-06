@@ -550,6 +550,9 @@ public: // SIGNALS
     /// \details Calls each callback of the port when error is occured with error's status and text.
     void signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text);
 
+    /// \details Calls each callback of the port when operation is completed.
+    void signalCompleted(const Modbus::Char *source, Modbus::StatusCode status);
+
 private:
     Modbus::StatusCode request(uint8_t unit, uint8_t func, const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
     Modbus::StatusCode process();

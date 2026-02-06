@@ -128,6 +128,19 @@ public: // server port interface
     /// \sa `unitMap()`
     virtual void setUnitMap(const void *unitmap);
 
+    /// \details Clear units map of current server. All unit addresses will be enabled for processing.
+    /// Equivalent to `setUnitMap(nullptr)`.
+    inline void clearUnitMap() { setUnitMap(nullptr); }
+
+    /// \details Return unit map bit array string repr like "1,3-8,10"
+    Modbus::String unitMapString() const;
+
+    /// \details Set units map of current server as string like "1,3-8,10"
+    void setUnitMapString(const Modbus::Char *s);
+
+    /// \details Set units map of current server as string like "1,3-8,10"
+    inline void setUnitMapString(const Modbus::String &s) {  setUnitMapString(s.data()); }
+
     /// \details Returns `true` if unit address `unit` is enabled for processing, `false` otherwise.
     /// If unit map is not set (nullptr) then all unit addresses are enabled by default.
     /// If broadcast mode is enabled then function always returns `true` for unit address `0`.
@@ -147,6 +160,19 @@ public: // server port interface
     /// \details Main function of the class. Must be called in the cycle. 
     /// Return statuc code is not very useful but can indicate that inner server operations are good, bad or in process.
     virtual Modbus::StatusCode process() = 0;
+
+public:
+    /// \details Returns the status of the last operation performed.
+    Modbus::StatusCode lastStatus() const;
+
+    /// \details Returns the timestamp of the last operation performed.
+    Modbus::Timestamp lastStatusTimestamp() const;
+
+    /// \details Returns the status of the last error of the performed operation.
+    Modbus::StatusCode lastErrorStatus() const;
+
+    /// \details Returns the text of the last error of the performed operation.
+    virtual const Modbus::Char *lastErrorText() const;
 
 public:
     /// \details Returns `true` if current port has closed inner state, `false` otherwise.
@@ -169,6 +195,9 @@ public: // SIGNALS
 
     /// \details Signal occured when  error is occured with error's `status` and `text`. `source` - current port name.
     void signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text);
+
+    /// \details Calls each callback of the port when operation is completed.
+    void signalCompleted(const Modbus::Char *source, Modbus::StatusCode status);
 
 protected:
     using ModbusObject::ModbusObject;

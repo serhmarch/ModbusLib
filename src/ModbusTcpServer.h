@@ -178,10 +178,16 @@ public: // SIGNALS
 
 protected:
     /// \details Checks for incoming connections and returns pointer `ModbusSocket` if new connection established, `nullptr` otherwise.
-    ModbusSocket *nextPendingConnection();
+    virtual ModbusSocket *nextPendingConnection();
 
     /// \details Clear all allocated memory for previously established connections.
     void clearConnections();
+
+protected:
+    /// \cond
+    void setErrorInner(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text);
+    void setCompletedInner(const Modbus::Char *source, Modbus::StatusCode status);
+    /// \endcond
 
 protected:
     using ModbusServerPort::ModbusServerPort;

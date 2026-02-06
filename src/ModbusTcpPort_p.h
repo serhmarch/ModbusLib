@@ -33,6 +33,4 @@ public:
     uint16_t transaction;
 };
 
-inline ModbusTcpPortPrivate *d_ModbusTcpPort(ModbusPortPrivate *d_ptr) { return static_cast<ModbusTcpPortPrivate*>(d_ptr); }
-
 #endif // MODBUSTCPPORT_P_H

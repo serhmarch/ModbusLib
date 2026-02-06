@@ -30,6 +30,8 @@
 
 #define MODBUS_TCPSERVER_OPEN_TIMOUT_ms 1000
 
+inline ModbusTcpServerPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpServerPrivate*>(d_ptr); }
+
 ModbusTcpServer::Defaults::Defaults() :
     ipaddr (StringLiteral("0.0.0.0")),
     port   (STANDARD_TCP_PORT),
@@ -51,32 +53,32 @@ ModbusTcpServer::~ModbusTcpServer()
 
 const Modbus::Char *ModbusTcpServer::ipaddr() const
 {
-    return d_ModbusTcpServer(d_ptr)->ipaddr.data();
+    return d_cast(d_ptr)->ipaddr.data();
 }
 
 void ModbusTcpServer::setIpaddr(const Modbus::Char *ipaddr)
 {
-    d_ModbusTcpServer(d_ptr)->ipaddr = ipaddr;
+    d_cast(d_ptr)->ipaddr = ipaddr;
 }
 
 uint16_t ModbusTcpServer::port() const
 {
-    return d_ModbusTcpServer(d_ptr)->tcpPort;
+    return d_cast(d_ptr)->tcpPort;
 }
 
 void ModbusTcpServer::setPort(uint16_t port)
 {
-    d_ModbusTcpServer(d_ptr)->tcpPort = port;
+    d_cast(d_ptr)->tcpPort = port;
 }
 
 uint32_t ModbusTcpServer::timeout() const
 {
-    return d_ModbusTcpServer(d_ptr)->timeout;
+    return d_cast(d_ptr)->timeout;
 }
 
 void ModbusTcpServer::setTimeout(uint32_t timeout)
 {
-    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    ModbusTcpServerPrivate *d = d_cast(d_ptr);
     d->timeout = timeout;
     for (auto& c : d->connections)
         c->setTimeout(timeout);
@@ -84,26 +86,26 @@ void ModbusTcpServer::setTimeout(uint32_t timeout)
 
 uint32_t ModbusTcpServer::maxConnections() const
 {
-    return d_ModbusTcpServer(d_ptr)->maxconn;
+    return d_cast(d_ptr)->maxconn;
 }
 
 void ModbusTcpServer::setMaxConnections(uint32_t maxconn)
 {
     if (maxconn)
-        d_ModbusTcpServer(d_ptr)->maxconn = maxconn;
+        d_cast(d_ptr)->maxconn = maxconn;
     else
-        d_ModbusTcpServer(d_ptr)->maxconn = 1;
+        d_cast(d_ptr)->maxconn = 1;
 }
 
 ProtocolType ModbusTcpServer::type() const
 {
-    return d_ModbusTcpServer(d_ptr)->type;
+    return d_cast(d_ptr)->type;
 }
 
 void ModbusTcpServer::setBroadcastEnabled(bool enable)
 {
     ModbusServerPort::setBroadcastEnabled(enable);
-    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    ModbusTcpServerPrivate *d = d_cast(d_ptr);
     for (auto& c : d->connections)
         c->setBroadcastEnabled(enable);
 }
@@ -111,7 +113,7 @@ void ModbusTcpServer::setBroadcastEnabled(bool enable)
 void ModbusTcpServer::setUnitMap(const void *unitmap)
 {
     ModbusServerPort::setUnitMap(unitmap);
-    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    ModbusTcpServerPrivate *d = d_cast(d_ptr);
     for (auto& c : d->connections)
         c->setUnitMap(unitmap);
 }
@@ -119,14 +121,14 @@ void ModbusTcpServer::setUnitMap(const void *unitmap)
 void ModbusTcpServer::setUnitEnabled(uint8_t unit, bool enable)
 {
     ModbusServerPort::setUnitEnabled(unit, enable);
-    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    ModbusTcpServerPrivate *d = d_cast(d_ptr);
     for (auto& c : d->connections)
         c->setUnitEnabled(unit, enable);
 }
 
 void ModbusTcpServer::clearConnections()
 {
-    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    ModbusTcpServerPrivate *d = d_cast(d_ptr);
     for (auto& c : d->connections)
     {
         signalCloseConnection(c->objectName());
@@ -137,7 +139,7 @@ void ModbusTcpServer::clearConnections()
 
 StatusCode ModbusTcpServer::process()
 {
-    ModbusTcpServerPrivate *d = d_ModbusTcpServer(d_ptr);
+    ModbusTcpServerPrivate *d = d_cast(d_ptr);
     StatusCode r;
     bool fRepeatAgain;
     do
@@ -166,7 +168,7 @@ StatusCode ModbusTcpServer::process()
                 return r;
             if (StatusIsBad(r))  // an error occured
             {
-                signalError(d->getName(), r, d->lastErrorText());
+                signalError(d->getName(), r, d->lastErrorTextData());
                 d->state = STATE_TIMEOUT;
                 return r;
             }
@@ -180,7 +182,7 @@ StatusCode ModbusTcpServer::process()
                 return r;
             if (StatusIsBad(r))  // an error occured
             {
-                signalError(d->getName(), r, d->lastErrorText());
+                signalError(d->getName(), r, d->lastErrorTextData());
             }
             d->state = STATE_CLOSED;
             signalClosed(d->getName());
@@ -211,9 +213,10 @@ StatusCode ModbusTcpServer::process()
                     String name = host + StringLiteral(":") + service;
                     c->setObjectName(name.data());
                 }
-                c->connect(&ModbusServerPort::signalTx   , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalTx   );
-                c->connect(&ModbusServerPort::signalRx   , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalRx   );
-                c->connect(&ModbusServerPort::signalError, static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalError);
+                c->connect(&ModbusServerPort::signalTx       , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalTx   );
+                c->connect(&ModbusServerPort::signalRx       , static_cast<ModbusServerPort*>(this), &ModbusTcpServer::signalRx   );
+                c->connect(&ModbusServerPort::signalError    , this, &ModbusTcpServer::setErrorInner    );
+                c->connect(&ModbusServerPort::signalCompleted, this, &ModbusTcpServer::setCompletedInner);
                 c->setBroadcastEnabled(isBroadcastEnabled());
                 c->setUnitMap(unitMap());
                 d->connections.push_back(c);
@@ -258,7 +261,7 @@ StatusCode ModbusTcpServer::process()
 
 ModbusPort *ModbusTcpServer::createModbusPort(ModbusSocket *socket)
 {
-    switch (d_ModbusTcpServer(d_ptr)->type)
+    switch (d_cast(d_ptr)->type)
     {
     case Modbus::ASCvTCP:
         return new ModbusAscOverTcpPort(socket);
@@ -278,3 +281,24 @@ void ModbusTcpServer::signalCloseConnection(const Modbus::Char *source)
 {
     this->emitSignal(__func__, &ModbusTcpServer::signalCloseConnection, source);
 }
+
+void ModbusTcpServer::setErrorInner(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text)
+{
+    ModbusTcpServerPrivate *d = d_cast(d_ptr);
+    d->lastStatus = status;
+    d->lastErrorStatus = status;
+    d->lastErrorText = text;
+    d->lastStatusTimestamp = currentTimestamp();
+    signalError(source, status, text);
+}
+
+void ModbusTcpServer::setCompletedInner(const Modbus::Char *source, Modbus::StatusCode status)
+{
+    ModbusTcpServerPrivate *d = d_cast(d_ptr);
+    d->lastStatus = status;
+    if (!StatusIsBad(status)) // Note: timestamp must be updated in setErrorInner function
+        d->lastStatusTimestamp = currentTimestamp();
+    signalCompleted(source, status);
+
+}
+

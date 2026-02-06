@@ -28,14 +28,14 @@ public:
     inline const Char *lastPortErrorText() const { return port->lastErrorText(); }
     inline const Char *getLastErrorText() const
     {
-        if (isErrorPort)
+        if (isLastPortError)
             return lastPortErrorText();
-        return errorText.data();
+        return lastErrorText.data();
     }
 
     inline StatusCode setError(StatusCode status, const Char *text)
     {
-        isErrorPort = false;
+        isLastPortError = false;
         return setErrorBase(status, text);
     }
 
@@ -46,8 +46,8 @@ public:
 
     inline StatusCode setPortError(StatusCode status)
     {
-        errorStatus = status;
-        isErrorPort = true;
+        lastErrorStatus = status;
+        isLastPortError = true;
         return status;
     }
 
@@ -80,10 +80,8 @@ public:
     };
 
     uint8_t valueBuff[MBSERVER_SZ_VALUE_BUFF];
-    bool isErrorPort;
+    bool isLastPortError;
 
 };
-
-inline ModbusServerResourcePrivate *d_ModbusServerResource(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerResourcePrivate*>(d_ptr); }
 
 #endif // MODBUSSERVERRESOURCE_P_H
