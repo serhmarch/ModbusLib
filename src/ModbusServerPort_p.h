@@ -39,7 +39,6 @@ public:
         this->state = STATE_UNKNOWN;
         this->cmdClose = false;
         this->timestamp = 0;
-        this->context = nullptr;
         this->settings.broadcastEnabled = true;
         this->settings.unitmap = nullptr;
         this->lastStatus = Modbus::Status_Uncertain;
@@ -110,7 +109,6 @@ public:
     String lastErrorText;
     Timer timestamp;
     Timestamp lastStatusTimestamp;
-    void *context;
     struct
     {
         bool broadcastEnabled;

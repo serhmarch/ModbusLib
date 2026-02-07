@@ -62,11 +62,6 @@
     codes that indicate the current state (good, processing, error). This design
     enables integration with event loops and asynchronous architectures without
     blocking the application.
-    
-    Context storage:
-    The context pointer allows applications to associate custom data with the server
-    port instance, useful for callbacks and signal handlers that need access to
-    application-specific state without global variables.
 
  */
 class MODBUS_EXPORT ModbusServerPort : public ModbusObject

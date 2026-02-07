@@ -117,6 +117,12 @@ public:
     /// \details Returns a pointer to the object that sent the signal. 
     /// This pointer is valid in thread where signal was occured only. 
     /// So this function must be called only within the slot that is a callback of signal occured.
+    ///     
+    /// Context storage:
+    /// The context pointer allows applications to associate custom data with the
+    /// object instance, useful for callbacks and signal handlers that need access to
+    /// application-specific state without global variables.
+
     static ModbusObject *sender();
 
 public:
