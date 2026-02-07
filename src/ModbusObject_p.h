@@ -17,6 +17,10 @@ public:
     using iterator = SignalHash::iterator;
 
 public:
+    ModbusObjectPrivate() : context(nullptr)
+    {
+    }
+    
     virtual ~ModbusObjectPrivate()
     {
     }
@@ -42,6 +46,7 @@ public:
 
 public:
     String objectName;
+    void *context;
     SignalHash signalHash;
 };
 

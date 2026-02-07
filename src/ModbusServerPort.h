@@ -151,12 +151,6 @@ public: // server port interface
     /// all unit addresses will be disabled by default except the `unit` address that is enabled/disabled by this function.
     virtual void setUnitEnabled(uint8_t unit, bool enable);
 
-    /// \details Return context of the port previously set by `setContext` function or `nullptr` by default.
-    void *context() const;
-
-    /// \details Set context of the port. 
-    void setContext(void *context);
-
     /// \details Main function of the class. Must be called in the cycle. 
     /// Return statuc code is not very useful but can indicate that inner server operations are good, bad or in process.
     virtual Modbus::StatusCode process() = 0;

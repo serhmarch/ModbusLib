@@ -26,6 +26,7 @@ void ModbusObject::popSender()
 ModbusObject::ModbusObject() :
     ModbusObject(new ModbusObjectPrivate)
 {
+    
 }
 
 ModbusObject::ModbusObject(ModbusObjectPrivate *d) :
@@ -53,6 +54,16 @@ const Char *ModbusObject::objectName() const
 void ModbusObject::setObjectName(const Modbus::Char *name)
 {
     d_ptr->objectName = name;
+}
+
+void *ModbusObject::context() const
+{
+    return d_ptr->context;
+}
+
+void ModbusObject::setContext(void *context)
+{
+    d_ptr->context = context;
 }
 
 void *ModbusObject::slot(void *signalMethodPtr, int i) const

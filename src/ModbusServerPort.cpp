@@ -90,16 +90,6 @@ void ModbusServerPort::setUnitEnabled(uint8_t unit, bool enable)
     d_cast(d_ptr)->setUnitEnabled(unit, enable);
 }
 
-void *ModbusServerPort::context() const
-{
-    return d_cast(d_ptr)->context;
-}
-
-void ModbusServerPort::setContext(void *context)
-{
-    d_cast(d_ptr)->context = context;
-}
-
 StatusCode ModbusServerPort::lastStatus() const
 {
     return d_cast(d_ptr)->lastStatus;

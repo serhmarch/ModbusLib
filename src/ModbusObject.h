@@ -133,6 +133,12 @@ public:
     /// \details Set name of current object. 
     void setObjectName(const Modbus::Char *name);
 
+    /// \details Return context of the object previously set by `setContext` function or `nullptr` by default.
+    void *context() const;
+
+    /// \details Set context of the object. 
+    void setContext(void *context);
+
 public:
     /// \details Connect `this` object's signal `signalMethodPtr` to the `object`s method `objectMethodPtr`.
     /// ```cpp
