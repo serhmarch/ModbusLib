@@ -1381,39 +1381,44 @@ StatusCode ModbusClientPort::rawRequest(const void *inBuff, uint16_t szInBuff, v
     ModbusClientPortPrivate *d = d_cast(d_ptr);
     while (1)
     {
-        // TODO: set `d->unit = 0` and find reason of the crash
-        d->unit = 1; // Note: prevent broadcast false recognition
-        d->func = 0;
-        d->lastTries = 0;
-        StatusCode s = d->port->writeRawBuffer(inBuff, szInBuff);
-        if (StatusIsBad(s))
+        if (!d->isWriteBufferBlocked())
         {
-            SET_PORT_ERROR(s);
-            RAISE_COMPLETED(s);
+            // TODO: set `d->unit = 0` and find reason of the crash
+            d->unit = 1; // Note: prevent broadcast false recognition
+            d->func = 0;
+            d->lastTries = 0;
+            StatusCode s = d->port->writeRawBuffer(inBuff, szInBuff);
+            if (StatusIsBad(s))
+            {
+                SET_PORT_ERROR(s);
+                RAISE_COMPLETED(s);
+            }
+            d->blockWriteBuffer();
         }
-        d->blockWriteBuffer();
-    }
-    StatusCode r = process();
-    if (StatusIsProcessing(r))
-        return r;
-    d->lastTries = ++d->repeats;
-    if (StatusIsBad(r) && (d->repeats < d->settings.tries))
-    {
-        d->port->setNextRequestRepeated(true);
-        return Status_Processing;
-    }
-    d->freeWriteBuffer();
-    d->repeats = 0;
-    //d->currentClient = nullptr;
-    if (StatusIsBad(r))
-        RAISE_COMPLETED(r);
-    if (!d->isBroadcast())
-    {
-        r = d->port->readRawBuffer(outBuff, maxSzBuff, szOutBuff);
+        StatusCode r = process();
+        if (StatusIsProcessing(r))
+            return r;
+        d->lastTries = ++d->repeats;
+        if (StatusIsBad(r) && (d->repeats < d->settings.tries))
+        {
+            d->port->setNextRequestRepeated(true);
+            if (d->port->isNonBlocking())
+                return Status_Processing;
+            continue;
+        }
+        d->freeWriteBuffer();
+        d->repeats = 0;
+        //d->currentClient = nullptr;
         if (StatusIsBad(r))
-            SET_PORT_ERROR(r);
+            RAISE_COMPLETED(r);
+        if (!d->isBroadcast())
+        {
+            r = d->port->readRawBuffer(outBuff, maxSzBuff, szOutBuff);
+            if (StatusIsBad(r))
+                SET_PORT_ERROR(r);
+        }
+        RAISE_COMPLETED(r);
     }
-    RAISE_COMPLETED(r);
 }
 
 StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
