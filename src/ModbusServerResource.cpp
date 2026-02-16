@@ -277,11 +277,21 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #endif // MBF_READ_DISCRETE_INPUTS
 #if !defined(MBF_READ_COILS_DISABLE) || !defined(MBF_READ_DISCRETE_INPUTS_DISABLE)
         if (sz != 4) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset = buff[1] | (buff[0] << 8);
         d->count  = buff[3] | (buff[2] << 8);
         if (d->count > MB_MAX_DISCRETS) // prevent valueBuff overflow
-            return d->setError(Status_BadIllegalDataValue, StringLiteral("Incorrect data value"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Requested count of bits %hu is too large (max=%hu)"), d->func, d->count, (uint16_t)MB_MAX_DISCRETS);
+            return d->setError(Status_BadIllegalDataValue, errbuff);
+        }
         break;
 #endif // !defined(MBF_READ_COILS_DISABLE) || !defined(MBF_READ_DISCRETE_INPUTS_DISABLE)
 
@@ -293,20 +303,40 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #endif // MBF_READ_INPUT_REGISTERS_DISABLE
 #if !defined(MBF_READ_HOLDING_REGISTERS_DISABLE) || !defined(MBF_READ_INPUT_REGISTERS_DISABLE)
         if (sz != 4) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset = buff[1] | (buff[0]<<8);
         d->count = buff[3] | (buff[2]<<8);
         if (d->count > MB_MAX_REGISTERS) // prevent valueBuff overflow
-            return d->setError(Status_BadIllegalDataValue, StringLiteral("Incorrect data value"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Requested count of registers %hu is too large (max=%hu)"), d->func, d->count, (uint16_t)MB_MAX_REGISTERS);
+            return d->setError(Status_BadIllegalDataValue, errbuff);
+        }
         break;
 #endif // !defined(MBF_READ_HOLDING_REGISTERS_DISABLE) || !defined(MBF_READ_INPUT_REGISTERS_DISABLE)
 
 #ifndef MBF_WRITE_SINGLE_COIL_DISABLE
     case MBF_WRITE_SINGLE_COIL:
         if (sz != 4) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         if (!(buff[2] == 0x00 || buff[2] == 0xFF) || (buff[3] != 0))  // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect data value"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect data value"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset = buff[1] | (buff[0]<<8);
         d->valueBuff[0] = buff[2];
         break;
@@ -315,7 +345,12 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
     case MBF_WRITE_SINGLE_REGISTER:
         if (sz != 4) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset = buff[1] | (buff[0]<<8);
         d->valueBuff[0] = buff[3];
         d->valueBuff[1] = buff[2];
@@ -325,14 +360,24 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
     case MBF_READ_EXCEPTION_STATUS:
         if (sz > 0) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         break;
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
     case MBF_DIAGNOSTICS:
         if (sz < 2) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->subfunc = buff[1] | (buff[0]<<8);
         d->count = sz - 2;
         memcpy(d->valueBuff, &buff[2], d->count);
@@ -342,29 +387,59 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
     case MBF_GET_COMM_EVENT_COUNTER:
         if (sz > 0) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         break;
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
     case MBF_GET_COMM_EVENT_LOG:
         if (sz > 0) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         break;
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
     case MBF_WRITE_MULTIPLE_COILS: // Write multiple coils
         if (sz < 5) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         if (sz != buff[4]+5) // don't match readed bytes and number of data bytes to follow
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset = buff[1] | (buff[0]<<8);
         d->count = buff[3] | (buff[2]<<8);
         if ((d->count+7)/8 != buff[4]) // don't match count bites and bytes
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         if (d->count > MB_MAX_DISCRETS) // prevent valueBuff overflow
-            return d->setError(Status_BadIllegalDataValue, StringLiteral("Incorrect data value"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect data value"), d->func);
+            return d->setError(Status_BadIllegalDataValue, errbuff);
+        }
         memcpy(d->valueBuff, &buff[5], (d->count+7)/8);
         break;
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
@@ -372,15 +447,35 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
     case MBF_WRITE_MULTIPLE_REGISTERS:
         if (sz < 5) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         if (sz != buff[4]+5) // don't match readed bytes and number of data bytes to follow
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset = buff[1] | (buff[0]<<8);
         d->count = buff[3] | (buff[2]<<8);
         if (d->count*2 != buff[4]) // don't match count values and bytes
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         if (d->count > MB_MAX_REGISTERS) // prevent valueBuff overflow
-            return d->setError(Status_BadIllegalDataValue, StringLiteral("Incorrect data value"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect data value"), d->func);
+            return d->setError(Status_BadIllegalDataValue, errbuff);
+        }
         for (uint16_t i = 0; i < d->count; i++)
         {
             d->valueBuff[i*2]   = buff[6+i*2];
@@ -392,14 +487,24 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
     case MBF_REPORT_SERVER_ID:
         if (sz > 0) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         break;
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     case MBF_MASK_WRITE_REGISTER:
         if (sz != 6) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset  = buff[1] | (buff[0]<<8);
         d->andMask = buff[3] | (buff[2]<<8);
         d->orMask  = buff[5] | (buff[4]<<8);
@@ -409,17 +514,37 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
     case MBF_READ_WRITE_MULTIPLE_REGISTERS:
         if (sz < 9) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         if (sz != buff[8]+9) // don't match readed bytes and number of data bytes to follow
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset      = buff[1] | (buff[0]<<8);
         d->count       = buff[3] | (buff[2]<<8);
         d->writeOffset = buff[5] | (buff[4]<<8);
         d->writeCount  = buff[7] | (buff[6]<<8);
         if (d->writeCount*2 != buff[8]) // don't match count values and bytes
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         if ((d->count > MB_MAX_REGISTERS) || (d->writeCount > MB_MAX_REGISTERS)) // prevent valueBuff overflow
-            return d->setError(Status_BadIllegalDataValue, StringLiteral("Incorrect data value"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect data value"), d->func);
+            return d->setError(Status_BadIllegalDataValue, errbuff);
+        }
         for (uint16_t i = 0; i < d->count; i++)
         {
             d->valueBuff[i*2]   = buff[10+i*2];
@@ -431,13 +556,23 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
     case MBF_READ_FIFO_QUEUE:
         if (sz < 2) // Incorrect request from client - don't respond
-            return d->setError(Status_BadNotCorrectRequest, StringLiteral("Incorrect received data size"));
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
         d->offset  = buff[1] | (buff[0]<<8);
         break;
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
     default:
-        return d->setError(Status_BadIllegalFunction, StringLiteral("Unsupported function"));
+    {
+        const size_t len = 100;
+        Char errbuff[len];
+        snprintf(errbuff, len, StringLiteral("FC%02hhu. Unsupported function"), d->func);
+        return d->setError(Status_BadIllegalFunction, errbuff);
+    }
     }
     return Status_Good;
 }

@@ -125,11 +125,19 @@
 * Update tests
 * Update docs
 
+# 0.4.9
+
+* Extend `Modbus::availableSerialPorts()` for Windows
+* Add functions `ModbusServerPort::unitMapString()`, `ModbusServerPort::setUnitMapString()`
+* Add signal functions `ModbusClientPort::signalCompleted()` and `ModbusServerPort::signalCompleted()`
+* Improve error text messages
+* Improve unit tests
+
 # 0.5.0
 
 * Added support for Modbus protocol versions:
-    * UDP
-    * RTU over TCP
-    * ASCII over TCP
-    * RTU over UDP
-    * ASCII over UDP
+    * `UDP`
+    * `RTU` over `TCP`
+    * `ASCII` over `TCP`
+    * `RTU` over `UDP`
+    * `ASCII` over `UDP`

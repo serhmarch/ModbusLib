@@ -70,7 +70,7 @@ Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t uni
         {
             const size_t len = 200;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readCoils(offset=%hu, count=%hu): Requested count of coils is too large"), offset, count);
+            snprintf(errbuff, len, StringLiteral("FC01. Requested count of coils %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_DISCRETS);
             this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
@@ -88,15 +88,17 @@ Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t uni
                           buff,             // out buffer
                           szBuff,           // maximum size of buffer
                           &szOutBuff);      // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
         if (!szOutBuff)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC01. No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC01. Incorrect received data size"));
         if (fcBytes != ((d->count + 7) / 8))
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC01. 'ByteCount' is not match received one"));
         memcpy(values, &buff[1], fcBytes);
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
@@ -124,7 +126,7 @@ Modbus::StatusCode ModbusClientPort::readDiscreteInputs(ModbusObject *client, ui
         {
             const size_t len = 200;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readDiscreteInputs(offset=%hu, count=%hu): Requested count of inputs is too large"), offset, count);
+            snprintf(errbuff, len, StringLiteral("FC02. Requested count of inputs %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_DISCRETS);
             this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
@@ -142,15 +144,17 @@ Modbus::StatusCode ModbusClientPort::readDiscreteInputs(ModbusObject *client, ui
                           buff,                     // out buffer
                           szBuff,                   // maximum size of buffer
                           &szOutBuff);              // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
         if (!szOutBuff)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC02. No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC02. Incorrect received data size"));
         if (fcBytes != ((d->count + 7) / 8))
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC02. 'ByteCount' is not match received one"));
         memcpy(values, &buff[1], fcBytes);
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
@@ -178,7 +182,7 @@ Modbus::StatusCode ModbusClientPort::readHoldingRegisters(ModbusObject *client, 
         {
             const size_t len = 200;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readHoldingRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
+            snprintf(errbuff, len, StringLiteral("FC03. Requested count of registers %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_REGISTERS);
             this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
@@ -196,16 +200,18 @@ Modbus::StatusCode ModbusClientPort::readHoldingRegisters(ModbusObject *client, 
                           buff,                         // out buffer
                           szBuff,                       // maximum size of buffer
                           &szOutBuff);                  // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
         if (!szOutBuff)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC03. No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC03. Incorrect received data size"));
         fcRegs = fcBytes / sizeof(uint16_t); // count values received
         if (fcRegs != d->count)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Count' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC03. Count of registers is not match received one"));
         for (i = 0; i < fcRegs; i++)
             values[i] = (buff[i*2+1] << 8) | buff[i*2+2];
         RAISE_COMPLETED(Modbus::Status_Good);
@@ -234,7 +240,7 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
         {
             const size_t len = 200;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readInputRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
+            snprintf(errbuff, len, StringLiteral("FC04. Requested count of registers %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_REGISTERS);
             this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
@@ -252,16 +258,18 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
                           buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast()) // processing
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast()) // processing
             RAISE_COMPLETED(r);
         if (!szOutBuff)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC04. No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC04. Incorrect received data size"));
         fcRegs = fcBytes / sizeof(uint16_t); // count values received
         if (fcRegs != d->count)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Count' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC04. Count of registers is not match received one"));
         for (i = 0; i < fcRegs; i++)
             values[i] = (buff[i*2+1] << 8) | buff[i*2+2];
         RAISE_COMPLETED(Modbus::Status_Good);
@@ -300,14 +308,16 @@ Modbus::StatusCode ModbusClientPort::writeSingleCoil(ModbusObject *client, uint8
                           buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
         if (szOutBuff != 4)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC05. Incorrect received data size"));
 
         outOffset = buff[1] | (buff[0] << 8);
         if (outOffset != d->offset)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC05. Requested offset is not match received one"));
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
         return Status_Processing;
@@ -345,18 +355,20 @@ Modbus::StatusCode ModbusClientPort::writeSingleRegister(ModbusObject *client, u
                           buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
 
         if (szOutBuff != 4)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC06. Incorrect received data size"));
 
         outOffset = buff[1] | (buff[0] << 8);
         if (outOffset != d->offset)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC06. Requested offset is not match received one"));
         outValue = buff[3] | (buff[2] << 8);
         if (outValue != d->value)   
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Value' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC06. Requested value is not match received one"));
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
         return Status_Processing;
@@ -381,18 +393,19 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
     case ModbusClientPort::Enable:
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,                           // unit ID
-                          MBF_READ_EXCEPTION_STATUS,      // modbus function number
-                          buff,                           // in buffer
-                          0,                              // count of input data bytes
-                          buff,                           // out buffer
-                          szBuff,                         // maximum size of buffer
-                          &szOutBuff);                    // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        r = this->request(unit,                      // unit ID
+                          MBF_READ_EXCEPTION_STATUS, // modbus function number
+                          buff,                      // in-out buffer
+                          0,                         // count of input data bytes
+                          szBuff,                    // maximum size of buffer
+                          &szOutBuff);               // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
 
         if (szOutBuff != 1)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC07. Incorrect received data size"));
         *value = buff[0];
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
@@ -434,11 +447,13 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
                           buff,             // out buffer
                           szBuff,           // maximum size of buffer
                           &szOutBuff);      // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
 
         if (szOutBuff < 2)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. Incorrect received data size"));
 
         outSubfunc = buff[1] | (buff[0] << 8);
         if (outSubfunc != d->subfunc)
@@ -484,11 +499,13 @@ Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, u
                           buff,                       // out buffer
                           szBuff,                     // maximum size of buffer
                           &szOutBuff);                // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
 
         if (szOutBuff != 4)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC11. Incorrect received data size"));
         *status = buff[1] | (buff[0] << 8);
         *eventCount = buff[3] | (buff[2] << 8);
         RAISE_COMPLETED(Modbus::Status_Good);
@@ -522,21 +539,23 @@ Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8
                           buff,                   // out buffer
                           szBuff,                 // maximum size of buffer
                           &szOutBuff);            // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
 
         if (szOutBuff < 7)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC12. Incorrect received data size"));
         byteCount = buff[0];
         if (szOutBuff != (byteCount+1))
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC12. 'ByteCount' doesn't match with received data size"));
         *status       = buff[2] | (buff[1] << 8);
         *eventCount   = buff[4] | (buff[3] << 8);
         *messageCount = buff[6] | (buff[5] << 8);
 
         byteCount = byteCount-6;
         if (byteCount > GET_COMM_EVENT_LOG_MAX)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'EventCount' is bigger than 64"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC12. 'EventCount' is bigger than 64"));
         *eventBuffSize = byteCount;
         memcpy(eventBuff, &buff[7], byteCount);
         RAISE_COMPLETED(Modbus::Status_Good);
@@ -566,7 +585,7 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
         {
             const size_t len = 200;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("ModbusClientPort::writeMultipleCoils(offset=%hu, count=%hu): Requested count of coils is too large"), offset, count);
+            snprintf(errbuff, len, StringLiteral("FC01. Requested count of coils %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_DISCRETS);
             this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
@@ -588,16 +607,18 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
                           buff,                     // out buffer
                           szBuff,                   // maximum size of buffer
                           &szOutBuff);              // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
         if (szOutBuff != 4)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC15. Incorrect received data size"));
         outOffset = (buff[0] << 8) | buff[1];
         if (outOffset != d->offset)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC15. Requested offset is not match received one"));
         outCount = (buff[2] << 8) | buff[3];
         if (outCount != d->count)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Count' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC15. Requested count is not match received one"));
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
         return Status_Processing;
@@ -625,7 +646,7 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
         {
             const size_t len = 200;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("ModbusClientPort::writeMultipleRegisters(offset=%hu, count=%hu): Requested count of registers is too large"), offset, count);
+            snprintf(errbuff, len, StringLiteral("FC16. Requested count of registers %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_REGISTERS);
             this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
@@ -644,23 +665,24 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
         d->count = count;
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
-                          MBF_WRITE_MULTIPLE_REGISTERS,   // modbus function number
-                          buff,                           // in buffer
-                          5 + buff[4],                    // count of input data bytes
-                          buff,                           // out buffer
-                          szBuff,                         // maximum size of buffer
-                          &szOutBuff);                    // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        r = this->request(unit,                         // unit ID
+                          MBF_WRITE_MULTIPLE_REGISTERS, // modbus function number
+                          buff,                         // in-out buffer
+                          5 + buff[4],                  // count of input data bytes
+                          szBuff,                       // maximum size of buffer
+                          &szOutBuff);                  // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
         if (szOutBuff != 4)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC16. Incorrect received data size"));
         outOffset = (buff[0] << 8) | buff[1];
         if (outOffset != d->offset)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC16. Requested offset is not match received one"));
         outCount = (buff[2] << 8) | buff[3];
         if (outCount != d->count)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Count' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC16. Requested count is not match received one"));
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
         return Status_Processing;
@@ -693,14 +715,16 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
                           buff,                 // out buffer
                           szBuff,               // maximum size of buffer
                           &szOutBuff);          // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
 
         if (szOutBuff == 0)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC17. Incorrect received data size"));
         byteCount = buff[0];
         if (szOutBuff != (byteCount+1))
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC17. 'ByteCount' parameter doesn't match actual data size"));
         *count = byteCount;
         memcpy(data, &buff[1], byteCount);
         RAISE_COMPLETED(Modbus::Status_Good);
@@ -743,21 +767,23 @@ StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t uni
                           buff,                           // out buffer
                           szBuff,                         // maximum size of buffer
                           &szOutBuff);                    // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
 
         if (szOutBuff != 6)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC22. Incorrect received data size"));
 
         outOffset  = buff[1] | (buff[0] << 8);
         outAndMask = buff[3] | (buff[2] << 8);
         outOrMask  = buff[5] | (buff[4] << 8);
         if (outOffset != d->offset)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Offset' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC22. Requested offset is not match received one"));
         if (outAndMask != d->andMask)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'AndMask' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC22. Requested 'AndMask' is not match received one"));
         if (outOrMask != d->orMask)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'OrMask' is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC22. Requested 'OrMask' is not match received one"));
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
         return Status_Processing;
@@ -785,7 +811,7 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
         {
             const size_t len = 200;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("ModbusClientPort::readWriteMultipleRegisters(): Requested count of registers is too large"));
+            snprintf(errbuff, len, StringLiteral("FC23. Requested count of registers (read=%hu, write=%hu) is too large (max=%hu)"), readCount, writeCount, (uint16_t)MB_MAX_REGISTERS);
             this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
@@ -814,16 +840,18 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
                           buff,                             // out buffer
                           szBuff,                           // maximum size of buffer
                           &szOutBuff);                      // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast())
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
         if (!szOutBuff)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("No data was received"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC23. No data was received"));
         fcBytes = buff[0];  // count of bytes received
         if (fcBytes != szOutBuff - 1)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC23. Incorrect received data size"));
         fcRegs = fcBytes / sizeof(uint16_t); // count values received
         if (fcRegs != d->count)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Count registers to read is not match received one"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC23. Count registers to read is not match received one"));
         for (i = 0; i < fcRegs; i++)
             readValues[i] = (buff[i * 2 + 1] << 8) | buff[i * 2 + 2];
         RAISE_COMPLETED(Modbus::Status_Good);
@@ -859,18 +887,20 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
                           buff,                // out buffer
                           szBuff,              // maximum size of buffer
                           &szOutBuff);         // count of output data bytes
-        if ((r != Status_Good) || d->isBroadcast()) // processing
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
             RAISE_COMPLETED(r);
         if (szOutBuff < 4)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC24. Incorrect received data size"));
         bytesCount = buff[1] | (buff[0] << 8);
         if (bytesCount != (szOutBuff - 2))
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC24. 'ByteCount' parameter doesn't match actual data size"));
         FIFOCount  = buff[3] | (buff[2] << 8);
         if (bytesCount != (FIFOCount + 1) * 2)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'ByteCount' doesn't match with 'FIFOCount'"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC24. 'ByteCount' parameter doesn't match 'FIFOCount'"));
         if (FIFOCount > MB_READ_FIFO_QUEUE_MAX)
-            RAISE_ERROR_COMPLETED(Status_BadIllegalDataValue, StringLiteral("'FIFOCount' is bigger than 31"));
+            RAISE_ERROR_COMPLETED(Status_BadIllegalDataValue, StringLiteral("FC24. 'FIFOCount' is bigger than 31"));
         for (i = 0; i < FIFOCount; i++)
             values[i] = buff[i*2+5] | (buff[i*2+4] << 8);
         *count = FIFOCount;
@@ -887,7 +917,7 @@ Modbus::StatusCode ModbusClientPort::readCoilsAsBoolArray(ModbusObject *client, 
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 
     Modbus::StatusCode r = readCoils(client, unit, offset, count, d->buff);
-    if ((r != Status_Good) || d->isBroadcast())
+    if (!StatusIsGood(r) || d->isBroadcast())
         return r;
     for (int i = 0; i < count; ++i)
         values[i] = (d->buff[i / 8] & static_cast<uint8_t>(1 << (i % 8))) != 0;
@@ -901,7 +931,7 @@ Modbus::StatusCode ModbusClientPort::readDiscreteInputsAsBoolArray(ModbusObject 
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 
     Modbus::StatusCode r = readDiscreteInputs(client, unit, offset, count, d->buff);
-    if ((r != Status_Good) || d->isBroadcast())
+    if (!StatusIsGood(r) || d->isBroadcast())
         return r;
     for (int i = 0; i < count; ++i)
         values[i] = (d->buff[i / 8] & static_cast<uint8_t>(1 << (i % 8))) != 0;

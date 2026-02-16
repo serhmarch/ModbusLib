@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
+#include <sys/select.h>
 
 #include "../Modbus.h"
 

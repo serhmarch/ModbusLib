@@ -163,5 +163,6 @@ public:
 
 #define SET_PORT_ERROR(status) { d->setPortError(status); signalError(d->getName(), status, d->port->lastErrorText()); }
 #define RAISE_PORT_ERROR(status) { SET_PORT_ERROR(status) return status; }
+#define RAISE_PORT_ERROR_COMPLETED(status) { SET_PORT_ERROR(status) SET_COMPLETED(status) return status; }
 
 #endif // MODBUSCLIENTPORT_P_H

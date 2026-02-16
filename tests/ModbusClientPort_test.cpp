@@ -17,8 +17,55 @@ using namespace Modbus;
 class ModbusClientPortTest : public ::testing::Test
 {
 protected:
+    struct SignalCounter
+{
+    uint32_t openCount     {0};
+    uint32_t closeCount    {0};
+    uint32_t txCount       {0};
+    uint32_t rxCount       {0};
+    uint32_t errorCount    {0};
+    uint32_t completeCount {0};
+
+    void onOpened(const Modbus::Char *)
+    {
+        openCount++;
+    }
+
+    void onClosed(const Modbus::Char *)
+    {
+        closeCount++;
+    };
+
+    void onTx(const Modbus::Char *, const uint8_t *, uint16_t)
+    {
+        txCount++;
+    };
+
+    void onRx(const Modbus::Char *, const uint8_t *, uint16_t)
+    {
+        rxCount++;
+    };
+
+    void onError(const Modbus::Char *, Modbus::StatusCode, const Modbus::Char *)
+    {
+        errorCount++;
+    };
+
+    void onCompleted(const Modbus::Char *, Modbus::StatusCode)
+    {
+        completeCount++;
+    };
+};
+
+
+protected:
     MockModbusPort *mockPort;
     ModbusClientPort *clientPort;
+    SignalCounter signalCounter;
+
+    MockModbusPort *mockPortNonBlock {nullptr};
+    ModbusClientPort *clientPortNonBlock {nullptr};
+    SignalCounter signalCounterNonBlock;
 
     void SetUp() override
     {
@@ -32,7 +79,10 @@ protected:
     void TearDown() override
     {
         delete clientPort;
-        // mockPort is deleted by clientPort
+        delete clientPortNonBlock;
+        clientPortNonBlock = nullptr;
+        // mockPort and mockPortNonBlock are deleted by clientPort and clientPortNonBlock respectively,
+        // so we don't delete them here to avoid double deletion.
     }
 
     // Helper to setup successful write/read cycle
@@ -40,6 +90,15 @@ protected:
                                     const uint8_t *requestData, uint16_t requestSize,
                                     const uint8_t *responseData, uint16_t responseSize)
     {
+        // Reset signal counters
+        signalCounter = SignalCounter();
+        clientPort->connect(&ModbusClientPort::signalOpened   , &signalCounter, &SignalCounter::onOpened   );
+        clientPort->connect(&ModbusClientPort::signalClosed   , &signalCounter, &SignalCounter::onClosed   );
+        clientPort->connect(&ModbusClientPort::signalTx       , &signalCounter, &SignalCounter::onTx       );
+        clientPort->connect(&ModbusClientPort::signalRx       , &signalCounter, &SignalCounter::onRx       );
+        clientPort->connect(&ModbusClientPort::signalError    , &signalCounter, &SignalCounter::onError    );
+        clientPort->connect(&ModbusClientPort::signalCompleted, &signalCounter, &SignalCounter::onCompleted);
+
         EXPECT_CALL(*mockPort, isOpen())
             .WillRepeatedly(Return(true));
 
@@ -73,7 +132,65 @@ protected:
         EXPECT_CALL(*mockPort, readBufferData())
             .WillRepeatedly(Return(responseData));
     }
+
+    // Helper to setup successful write/read cycle
+    void setupSuccessfulNonBlockTransaction(uint8_t unit, uint8_t func, 
+                                            const uint8_t *requestData, uint16_t requestSize,
+                                            const uint8_t *responseData, uint16_t responseSize)
+    {
+        mockPortNonBlock = new MockModbusPort(false);
+
+        // Expect client to switch port into client mode
+        EXPECT_CALL(*mockPortNonBlock, setServerMode(false)).Times(AtLeast(0));
+        //mockPortNonBlock->setTimeout(1); // Set minimal timeout for tests
+        clientPortNonBlock = new ModbusClientPort(mockPortNonBlock);
+
+        // Reset signal counters
+        signalCounterNonBlock = SignalCounter();
+        clientPortNonBlock->connect(&ModbusClientPort::signalOpened   , &signalCounterNonBlock, &SignalCounter::onOpened   );
+        clientPortNonBlock->connect(&ModbusClientPort::signalClosed   , &signalCounterNonBlock, &SignalCounter::onClosed   );
+        clientPortNonBlock->connect(&ModbusClientPort::signalTx       , &signalCounterNonBlock, &SignalCounter::onTx       );
+        clientPortNonBlock->connect(&ModbusClientPort::signalRx       , &signalCounterNonBlock, &SignalCounter::onRx       );
+        clientPortNonBlock->connect(&ModbusClientPort::signalError    , &signalCounterNonBlock, &SignalCounter::onError    );
+        clientPortNonBlock->connect(&ModbusClientPort::signalCompleted, &signalCounterNonBlock, &SignalCounter::onCompleted);
+
+        EXPECT_CALL(*mockPortNonBlock, isOpen())
+            .WillRepeatedly(Return(true));
+
+        EXPECT_CALL(*mockPortNonBlock, writeBuffer(unit, func, _, requestSize))
+            .WillOnce(Return(Status_Good));
+        
+        // Mock buffer size/data methods to eliminate warnings
+        EXPECT_CALL(*mockPortNonBlock, writeBufferSize())
+            .WillRepeatedly(Return(requestSize));
+        
+        EXPECT_CALL(*mockPortNonBlock, writeBufferData())
+            .WillRepeatedly(Return(requestData));
+
+        EXPECT_CALL(*mockPortNonBlock, write())
+            .WillOnce(Return(Status_Processing))
+            .WillOnce(Return(Status_Good));
+
+        EXPECT_CALL(*mockPortNonBlock, read())
+            .WillOnce(Return(Status_Processing))
+            .WillOnce(Return(Status_Good));
+
+        EXPECT_CALL(*mockPortNonBlock, readBuffer(_, _, _, _, _))
+            .WillOnce(DoAll(
+                SetArgReferee<0>(unit),
+                SetArgReferee<1>(func),
+                SetArrayArgument<2>(responseData, responseData + responseSize),
+                SetArgPointee<4>(responseSize),
+                Return(Status_Good)));
+        
+        EXPECT_CALL(*mockPortNonBlock, readBufferSize())
+            .WillRepeatedly(Return(responseSize));
+        
+        EXPECT_CALL(*mockPortNonBlock, readBufferData())
+            .WillRepeatedly(Return(responseData));
+    }
 };
+
 
 // ============================================================================
 // Basic Initialization and Configuration Tests
@@ -185,10 +302,47 @@ TEST_F(ModbusClientPortTest, ReadCoilsSuccess)
     setupSuccessfulTransaction(unit, MBF_READ_COILS, requestData, 4, responseData, 2);
     
     uint8_t values[1];
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value 
+
     StatusCode result = clientPort->readCoils(unit, offset, count, values);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
     EXPECT_EQ(values[0], 0xAA);
+
+    // Non-blocking version
+    values[0] = 0; // Clear values buffer before non-blocking test  
+    setupSuccessfulNonBlockTransaction(unit, MBF_READ_COILS, requestData, 4, responseData, 2);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value 
+
+    result = clientPortNonBlock->readCoils(unit, offset, count, values);    
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing 
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet 
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet 
+
+    result = clientPortNonBlock->readCoils(unit, offset, count, values);    
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readCoils(unit, offset, count, values);    
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(values[0], 0xAA); // Verify that values buffer is correctly filled after non-blocking operation completes
 }
 
 TEST_F(ModbusClientPortTest, ReadCoilsWithClient)
@@ -226,9 +380,9 @@ TEST_F(ModbusClientPortTest, ReadCoilsAsBoolArray)
     
     EXPECT_EQ(result, Status_Good);
     EXPECT_FALSE(values[0]);
-    EXPECT_TRUE(values[1]);
+    EXPECT_TRUE (values[1]);
     EXPECT_FALSE(values[2]);
-    EXPECT_TRUE(values[3]);
+    EXPECT_TRUE (values[3]);
 }
 
 // ============================================================================
@@ -247,10 +401,47 @@ TEST_F(ModbusClientPortTest, ReadDiscreteInputsSuccess)
     setupSuccessfulTransaction(unit, MBF_READ_DISCRETE_INPUTS, requestData, 4, responseData, 2);
     
     uint8_t values[1];
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->readDiscreteInputs(unit, offset, count, values);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
     EXPECT_EQ(values[0], 0xF0);
+
+    // Non-blocking version
+    values[0] = 0; // Clear values buffer before non-blocking test
+    setupSuccessfulNonBlockTransaction(unit, MBF_READ_DISCRETE_INPUTS, requestData, 4, responseData, 2);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->readDiscreteInputs(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readDiscreteInputs(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readDiscreteInputs(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(values[0], 0xF0); // Verify that values buffer is correctly filled after non-blocking operation completes
 }
 
 TEST_F(ModbusClientPortTest, ReadDiscreteInputsAsBoolArray)
@@ -288,10 +479,49 @@ TEST_F(ModbusClientPortTest, ReadHoldingRegistersSuccess)
     setupSuccessfulTransaction(unit, MBF_READ_HOLDING_REGISTERS, requestData, 4, responseData, 5);
     
     uint16_t values[2];
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->readHoldingRegisters(unit, offset, count, values);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
     EXPECT_EQ(values[0], 0x000A);
+    EXPECT_EQ(values[1], 0x0014);
+
+    // Non-blocking version
+    values[0] = 0; // Clear values buffer before non-blocking test
+    values[1] = 0;
+    setupSuccessfulNonBlockTransaction(unit, MBF_READ_HOLDING_REGISTERS, requestData, 4, responseData, 5);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->readHoldingRegisters(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readHoldingRegisters(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readHoldingRegisters(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(values[0], 0x000A); // Verify that values buffer is correctly filled after non-blocking operation completes
     EXPECT_EQ(values[1], 0x0014);
 }
 
@@ -336,10 +566,51 @@ TEST_F(ModbusClientPortTest, ReadInputRegistersSuccess)
     setupSuccessfulTransaction(unit, MBF_READ_INPUT_REGISTERS, requestData, 4, responseData, 7);
     
     uint16_t values[3];
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->readInputRegisters(unit, offset, count, values);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
     EXPECT_EQ(values[0], 0x1234);
+    EXPECT_EQ(values[1], 0x5678);
+    EXPECT_EQ(values[2], 0x9ABC);
+
+    // Non-blocking version
+    values[0] = 0; // Clear values buffer before non-blocking test
+    values[1] = 0;
+    values[2] = 0;
+    setupSuccessfulNonBlockTransaction(unit, MBF_READ_INPUT_REGISTERS, requestData, 4, responseData, 7);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->readInputRegisters(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readInputRegisters(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readInputRegisters(unit, offset, count, values);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(values[0], 0x1234); // Verify that values buffer is correctly filled after non-blocking operation completes
     EXPECT_EQ(values[1], 0x5678);
     EXPECT_EQ(values[2], 0x9ABC);
 }
@@ -358,10 +629,42 @@ TEST_F(ModbusClientPortTest, WriteSingleCoilOn)
     uint8_t responseData[4] = {0x00, 0x0A, 0xFF, 0x00};
     
     setupSuccessfulTransaction(unit, MBF_WRITE_SINGLE_COIL, requestData, 4, responseData, 4);
-    
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->writeSingleCoil(unit, offset, value);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    // Non-blocking version
+    setupSuccessfulNonBlockTransaction(unit, MBF_WRITE_SINGLE_COIL, requestData, 4, responseData, 4);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->writeSingleCoil(unit, offset, value);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeSingleCoil(unit, offset, value);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeSingleCoil(unit, offset, value);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
 }
 
 TEST_F(ModbusClientPortTest, WriteSingleCoilOff)
@@ -374,10 +677,42 @@ TEST_F(ModbusClientPortTest, WriteSingleCoilOff)
     uint8_t responseData[4] = {0x00, 0x0A, 0x00, 0x00};
     
     setupSuccessfulTransaction(unit, MBF_WRITE_SINGLE_COIL, requestData, 4, responseData, 4);
-    
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->writeSingleCoil(unit, offset, value);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    // Non-blocking version
+    setupSuccessfulNonBlockTransaction(unit, MBF_WRITE_SINGLE_COIL, requestData, 4, responseData, 4);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->writeSingleCoil(unit, offset, value);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeSingleCoil(unit, offset, value);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeSingleCoil(unit, offset, value);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
 }
 
 // ============================================================================
@@ -394,10 +729,42 @@ TEST_F(ModbusClientPortTest, WriteSingleRegisterSuccess)
     uint8_t responseData[4] = {0x00, 0x14, 0x12, 0x34};
     
     setupSuccessfulTransaction(unit, MBF_WRITE_SINGLE_REGISTER, requestData, 4, responseData, 4);
-    
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->writeSingleRegister(unit, offset, value);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    // Non-blocking version
+    setupSuccessfulNonBlockTransaction(unit, MBF_WRITE_SINGLE_REGISTER, requestData, 4, responseData, 4);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->writeSingleRegister(unit, offset, value);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeSingleRegister(unit, offset, value);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeSingleRegister(unit, offset, value);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
 }
 
 // ============================================================================
@@ -435,10 +802,42 @@ TEST_F(ModbusClientPortTest, WriteMultipleCoilsSuccess)
     uint8_t responseData[4] = {0x00, 0x0A, 0x00, 0x0A};
     
     setupSuccessfulTransaction(unit, MBF_WRITE_MULTIPLE_COILS, requestData, 7, responseData, 4);
-    
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->writeMultipleCoils(unit, offset, count, coilValues);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    // Non-blocking version
+    setupSuccessfulNonBlockTransaction(unit, MBF_WRITE_MULTIPLE_COILS, requestData, 7, responseData, 4);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->writeMultipleCoils(unit, offset, count, coilValues);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeMultipleCoils(unit, offset, count, coilValues);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeMultipleCoils(unit, offset, count, coilValues);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
 }
 
 TEST_F(ModbusClientPortTest, WriteMultipleCoilsAsBoolArray)
@@ -476,9 +875,41 @@ TEST_F(ModbusClientPortTest, WriteMultipleRegistersSuccess)
     
     setupSuccessfulTransaction(unit, MBF_WRITE_MULTIPLE_REGISTERS, requestData, 9, responseData, 4);
 
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->writeMultipleRegisters(unit, offset, count, regValues);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    // Non-blocking version
+    setupSuccessfulNonBlockTransaction(unit, MBF_WRITE_MULTIPLE_REGISTERS, requestData, 9, responseData, 4);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->writeMultipleRegisters(unit, offset, count, regValues);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeMultipleRegisters(unit, offset, count, regValues);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->writeMultipleRegisters(unit, offset, count, regValues);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
 }
 
 // ============================================================================
@@ -496,10 +927,42 @@ TEST_F(ModbusClientPortTest, MaskWriteRegisterSuccess)
     uint8_t responseData[6] = {0x00, 0x32, 0xFF, 0x00, 0x00, 0x12};
     
     setupSuccessfulTransaction(unit, MBF_MASK_WRITE_REGISTER, requestData, 6, responseData, 6);
-    
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->maskWriteRegister(unit, offset, andMask, orMask);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    // Non-blocking version
+    setupSuccessfulNonBlockTransaction(unit, MBF_MASK_WRITE_REGISTER, requestData, 6, responseData, 6);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->maskWriteRegister(unit, offset, andMask, orMask);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->maskWriteRegister(unit, offset, andMask, orMask);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->maskWriteRegister(unit, offset, andMask, orMask);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
 }
 
 // ============================================================================
@@ -522,11 +985,48 @@ TEST_F(ModbusClientPortTest, ReadWriteMultipleRegistersSuccess)
     
     setupSuccessfulTransaction(unit, MBF_READ_WRITE_MULTIPLE_REGISTERS, requestData, 13, responseData, 5);
     
-    StatusCode result = clientPort->readWriteMultipleRegisters(
-        unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
+    StatusCode result = clientPort->readWriteMultipleRegisters(unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
     EXPECT_EQ(readValues[0], 0x1234);
+    EXPECT_EQ(readValues[1], 0x5678);
+
+    // Non-blocking version
+    readValues[0] = 0; // Clear values buffer before non-blocking test
+    readValues[1] = 0;
+    setupSuccessfulNonBlockTransaction(unit, MBF_READ_WRITE_MULTIPLE_REGISTERS, requestData, 13, responseData, 5);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->readWriteMultipleRegisters(unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readWriteMultipleRegisters(unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readWriteMultipleRegisters(unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(readValues[0], 0x1234); // Verify that values buffer is correctly filled after non-blocking operation completes
     EXPECT_EQ(readValues[1], 0x5678);
 }
 
@@ -546,10 +1046,47 @@ TEST_F(ModbusClientPortTest, ReadFIFOQueueSuccess)
     
     uint16_t count;
     uint16_t values[3];
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
     StatusCode result = clientPort->readFIFOQueue(unit, fifoAddr, &count, values);
     
     EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
     EXPECT_EQ(count, 3);
+
+    // Non-blocking version
+    count = 0; // Clear count before non-blocking test
+    setupSuccessfulNonBlockTransaction(unit, MBF_READ_FIFO_QUEUE, requestData, 2, responseData, 10);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->readFIFOQueue(unit, fifoAddr, &count, values);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readFIFOQueue(unit, fifoAddr, &count, values);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readFIFOQueue(unit, fifoAddr, &count, values);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(count, 3); // Verify that count is correctly filled after non-blocking operation completes
 }
 
 // ============================================================================
@@ -1036,11 +1573,11 @@ TEST(ModbusClientPort, testSignals)
     ModbusClientPort clientPort(port);
     ModbusClientPortSignalTest signalHandler;
 
-    clientPort.connect(&ModbusClientPort::signalOpened, &signalHandler, &ModbusClientPortSignalTest::onOpened);
-    clientPort.connect(&ModbusClientPort::signalClosed, &signalHandler, &ModbusClientPortSignalTest::onClosed);
-    clientPort.connect(&ModbusClientPort::signalTx, &signalHandler, &ModbusClientPortSignalTest::onTx);
-    clientPort.connect(&ModbusClientPort::signalRx, &signalHandler, &ModbusClientPortSignalTest::onRx);
-    clientPort.connect(&ModbusClientPort::signalError, &signalHandler, &ModbusClientPortSignalTest::onError);
+    clientPort.connect(&ModbusClientPort::signalOpened   , &signalHandler, &ModbusClientPortSignalTest::onOpened   );
+    clientPort.connect(&ModbusClientPort::signalClosed   , &signalHandler, &ModbusClientPortSignalTest::onClosed   );
+    clientPort.connect(&ModbusClientPort::signalTx       , &signalHandler, &ModbusClientPortSignalTest::onTx       );
+    clientPort.connect(&ModbusClientPort::signalRx       , &signalHandler, &ModbusClientPortSignalTest::onRx       );
+    clientPort.connect(&ModbusClientPort::signalError    , &signalHandler, &ModbusClientPortSignalTest::onError    );
     clientPort.connect(&ModbusClientPort::signalCompleted, &signalHandler, &ModbusClientPortSignalTest::onCompleted);
 
     const uint8_t  unit   = 1;
@@ -1176,4 +1713,141 @@ TEST(ModbusClientPort, testSignals)
     EXPECT_EQ(signalHandler.completeCount, ++expected_completeCount);    
     EXPECT_TRUE(Modbus::StatusIsGood(result));
 
+}
+
+// ============================================================================
+// Test multiple clients
+// ============================================================================
+
+TEST(ModbusClientPort, testMultipleClients)
+{
+    // NiceMock for ignoring uninteresting calls
+    NiceMock<MockModbusPort> *mockPort = new NiceMock<MockModbusPort>(true);
+
+    uint8_t func = MBF_READ_HOLDING_REGISTERS;
+    uint8_t requestData[4] = {0x00, 0x00, 0x00, 0x02};
+    uint8_t responseData[5] = {0x04, 0x00, 0x0A, 0x00, 0x14};
+    uint16_t requestSize = sizeof(requestData);
+    uint16_t responseSize = sizeof(responseData);
+
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, func, _, requestSize))
+        .WillRepeatedly(Return(Status_Good));
+    
+    // Mock buffer size/data methods to eliminate warnings
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(requestSize));
+    
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(requestData));
+
+    EXPECT_CALL(*mockPort, write())
+        .WillRepeatedly(Return(Status_Good));
+
+    EXPECT_CALL(*mockPort, read())
+        .WillOnce(Return(Status_Processing))
+        .WillOnce(Return(Status_Good))
+        .WillOnce(Return(Status_Processing))
+        .WillOnce(Return(Status_Good))
+        .WillOnce(Return(Status_Processing))
+        .WillOnce(Return(Status_Good))
+        ;
+
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillRepeatedly(DoAll(
+                SetArgReferee<1>(func),
+                SetArrayArgument<2>(responseData, responseData + responseSize),
+                SetArgPointee<4>(responseSize),
+                Return(Status_Good)));
+    
+    EXPECT_CALL(*mockPort, readBufferSize())
+        .WillRepeatedly(Return(responseSize));
+    
+    EXPECT_CALL(*mockPort, readBufferData())
+        .WillRepeatedly(Return(responseData));
+
+    ModbusClientPort clientPort(mockPort);
+    auto signalCounter = ModbusClientPortSignalTest();
+    clientPort.connect(&ModbusClientPort::signalTx       , &signalCounter, &ModbusClientPortSignalTest::onTx       );
+    clientPort.connect(&ModbusClientPort::signalRx       , &signalCounter, &ModbusClientPortSignalTest::onRx       );
+    clientPort.connect(&ModbusClientPort::signalCompleted, &signalCounter, &ModbusClientPortSignalTest::onCompleted);
+
+    ModbusClient client1(1, &clientPort);
+    ModbusClient client2(2, &clientPort);
+    ModbusClient client3(3, &clientPort);
+
+    uint16_t readValues[2];
+    StatusCode status1, status2, status3;
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
+    // -----------------------------------------------------------------------------
+    // Step 1. All client begin their operation but 1st client holds the client port
+    status1 = client1.readHoldingRegisters(0, 2, readValues);
+    status2 = client2.readHoldingRegisters(0, 2, readValues);
+    status3 = client3.readHoldingRegisters(0, 2, readValues);
+
+    EXPECT_EQ(status1, Status_Processing);
+    EXPECT_EQ(status2, Status_Processing);
+    EXPECT_EQ(status3, Status_Processing);
+
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Rx signal should not be emitted because read() is returns Processing for 1st client
+    EXPECT_EQ(signalCounter.completeCount, 0); // Complete signal should not be emitted yet because all operations are not complete yet
+
+    EXPECT_EQ(clientPort.currentClient(), &client1); // First client should be current client
+
+    // -----------------------------------------------------------------------------
+    // Step 2. 1st client's read() returns Good, so 2nd client becomes current client
+    // and its read() is called, but 3rd client's read() is not called yet because
+    // 2nd client's read() is still processing
+    status1 = client1.readHoldingRegisters(0, 2, readValues);
+    status2 = client2.readHoldingRegisters(0, 2, readValues);
+    status3 = client3.readHoldingRegisters(0, 2, readValues);
+
+    EXPECT_EQ(status1, Status_Good      );
+    EXPECT_EQ(status2, Status_Processing);
+    EXPECT_EQ(status3, Status_Processing);
+
+    EXPECT_EQ(signalCounter.txCount      , 2); // Tx signal should be emitted for 2nd client because 1st client's read() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good for the first client
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because 1st client's operation is complete
+
+    EXPECT_EQ(clientPort.currentClient(), &client2); // Second client should be current client
+
+    // -----------------------------------------------------------------------------
+    // Step 3. 2nd client's read() returns Good, so 3rd client becomes current client
+    status1 = client1.readHoldingRegisters(0, 2, readValues);
+    status2 = client2.readHoldingRegisters(0, 2, readValues);
+    status3 = client3.readHoldingRegisters(0, 2, readValues);
+
+    EXPECT_EQ(status1, Status_Processing); // First client's read() should return Processing because it's already completed and current client is now 2nd client
+    EXPECT_EQ(status2, Status_Good      ); // Second client's read() should return Good because it's current client and its operation is complete
+    EXPECT_EQ(status3, Status_Processing);
+
+    EXPECT_EQ(signalCounter.txCount      , 3); // Tx signal should be emitted for 3rd client because 2nd client's read() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 2); // Rx signal should be emitted because read() returned Good for the 2nd client
+    EXPECT_EQ(signalCounter.completeCount, 2); // Complete signal should be emitted because 2nd client's operation is complete
+
+    EXPECT_EQ(clientPort.currentClient(), &client3); // Third client should be current client
+
+    // -----------------------------------------------------------------------------
+    // Step 4. 3rd client's read() returns Good, so all clients have completed their operations
+    status1 = client1.readHoldingRegisters(0, 2, readValues);
+    status2 = client2.readHoldingRegisters(0, 2, readValues);
+    status3 = client3.readHoldingRegisters(0, 2, readValues);
+
+    EXPECT_EQ(status1, Status_Processing); // First client's read() should return Processing because it's already completed and current client is now 3rd client
+    EXPECT_EQ(status2, Status_Processing); // Second client's read() should return Processing because it's already completed and current client is now 3rd client
+    EXPECT_EQ(status3, Status_Good      ); // Third client's read() should return Good because it's current client and its operation is complete
+
+    EXPECT_EQ(signalCounter.txCount      , 3); // Tx signal should not be emitted for 3rd client because it was already emitted for 3rd client in previous step
+    EXPECT_EQ(signalCounter.rxCount      , 3); // Rx signal should be emitted because read() returned Good for the 3rd client
+    EXPECT_EQ(signalCounter.completeCount, 3); // Complete signal should be emitted because 3rd client's operation is complete
+
+    EXPECT_EQ(clientPort.currentClient(), nullptr); // Current client should be nullptr because all clients have completed their operations
 }
