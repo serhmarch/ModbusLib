@@ -395,8 +395,9 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
     case ModbusClientPort::Process:
         r = this->request(unit,                      // unit ID
                           MBF_READ_EXCEPTION_STATUS, // modbus function number
-                          buff,                      // in-out buffer
+                          buff,                      // in buffer
                           0,                         // count of input data bytes
+                          buff,                      // out buffer
                           szBuff,                    // maximum size of buffer
                           &szOutBuff);               // count of output data bytes
         if (StatusIsProcessing(r))
@@ -667,8 +668,9 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
     case ModbusClientPort::Process:
         r = this->request(unit,                         // unit ID
                           MBF_WRITE_MULTIPLE_REGISTERS, // modbus function number
-                          buff,                         // in-out buffer
+                          buff,                         // in buffer
                           5 + buff[4],                  // count of input data bytes
+                          buff,                         // out buffer
                           szBuff,                       // maximum size of buffer
                           &szOutBuff);                  // count of output data bytes
         if (StatusIsProcessing(r))

@@ -53,8 +53,8 @@
         },
         {
             "name": "Win64-Default",
-            "description": "Using compilers for Visual Studio 17 2022 (x64 architecture)",
-            "generator": "Visual Studio 17 2022",
+            "description": "Using compilers for Visual Studio (x64 architecture)",
+            "generator": "Visual Studio 18 2026",
             "toolset": "host=x64",
             "architecture": "x64",
             "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win64",
@@ -149,8 +149,8 @@
         {
             "name": "Win32-Default",
             "displayName": "Win32 Config Default MSVC",
-            "description": "Using compilers for Visual Studio 17 2022 (x64_x86 architecture)",
-            "generator": "Visual Studio 17 2022",
+            "description": "Using compilers for Visual Studio 18 2026 (x64_x86 architecture)",
+            "generator": "Visual Studio 18 2026",
             "toolset": "host=x64",
             "architecture": "win32",
             "binaryDir": "$env{USERPROFILE}/tmp/cmake/ModbusLib/Win32",
