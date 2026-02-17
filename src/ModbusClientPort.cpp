@@ -251,13 +251,13 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
         d->count = count;
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
-                          MBF_READ_INPUT_REGISTERS,       // modbus function number
-                          buff,                           // in buffer
-                          4,                              // count of input data bytes
-                          buff,                           // out buffer
-                          szBuff,                         // maximum size of buffer
-                          &szOutBuff);                    // count of output data bytes
+        r = this->request(unit,                     // unit ID
+                          MBF_READ_INPUT_REGISTERS, // modbus function number
+                          buff,                     // in buffer
+                          4,                        // count of input data bytes
+                          buff,                     // out buffer
+                          szBuff,                   // maximum size of buffer
+                          &szOutBuff);              // count of output data bytes
         if (StatusIsProcessing(r))
             return r;
         if (!StatusIsGood(r) || d->isBroadcast()) // processing
@@ -433,7 +433,7 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
     case ModbusClientPort::Enable:
         buff[0] = reinterpret_cast<uint8_t*>(&subfunc)[1]; // Sub function - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&subfunc)[0]; // Sub function - LS BYTE
-        for (uint8_t i = 0; i < insize; i++)
+        for (int i = 0; i < insize; i++)
         {
             buff[i*2+2] = reinterpret_cast<const uint8_t*>(indata)[i*2+1];
             buff[i*2+3] = reinterpret_cast<const uint8_t*>(indata)[i*2];    
@@ -462,7 +462,7 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
         sz = static_cast<uint8_t>(szOutBuff-2);
         if (sz > insize)
             sz = insize;
-        for (uint8_t i = 0; i < sz; i++)
+        for (int i = 0; i < sz; i++)
         {
             reinterpret_cast<uint8_t*>(outdata)[i*2  ] = buff[i*2+3];
             reinterpret_cast<uint8_t*>(outdata)[i*2+1] = buff[i*2+2];    
@@ -586,7 +586,7 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
         {
             const size_t len = 200;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("FC01. Requested count of coils %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_DISCRETS);
+            snprintf(errbuff, len, StringLiteral("FC15. Requested count of coils %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_DISCRETS);
             this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
