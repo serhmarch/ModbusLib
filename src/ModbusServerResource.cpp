@@ -762,8 +762,13 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
     case MBF_DIAGNOSTICS:
         buff[0] = static_cast<uint8_t>(d->subfunc >> 8);      // address of register (Hi-byte)
         buff[1] = static_cast<uint8_t>(d->subfunc & 0xFF);    // address of register (Lo-byte)
-        memcpy(&buff[2], d->valueBuff, d->outByteCount);
         sz = d->outByteCount+2;
+        for (int i = 0; i < sz; i++)
+        {
+            buff[i*2+2] = d->valueBuff[i*2+1];
+            buff[i*2+3] = d->valueBuff[i*2  ];
+        }
+
         break;
 #endif // MBF_DIAGNOSTICS_DISABLE
 
