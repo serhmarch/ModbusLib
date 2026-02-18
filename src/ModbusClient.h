@@ -167,6 +167,15 @@ public:
     Modbus::StatusCode readFIFOQueue(uint16_t fifoadr, uint16_t *count, uint16_t *values);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+    /// \details Read Device Identification (FC43/MEI 0x0E) from the bound device.
+    /// \param[in]  readDevId Read Device ID code: 1=Basic, 2=Regular, 3=Extended, 4=Specific.
+    /// \param[in]  objectId  Starting object ID to read from (0x00-0xFF).
+    /// \param[out] data      Pointer to output buffer for raw MEI response data.
+    /// \param[out] dataSize  Number of bytes written into data buffer.
+    Modbus::StatusCode readDeviceIdentification(uint8_t readDevId, uint8_t objectId, uint8_t *data, uint8_t *dataSize);
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+
 #ifndef MBF_READ_COILS_DISABLE
     /// \details Same as `ModbusClientPort::readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode readCoilsAsBoolArray(uint16_t offset, uint16_t count, bool *values);

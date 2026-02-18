@@ -566,6 +566,29 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         break;
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+    case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
+        // FC43 request must have at least 3 bytes: MEI Type + Read Dev ID Code + Object ID
+        if (sz < 3)
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
+        // Verify MEI type is Read Device Identification (0x0E)
+        if (buff[0] != MB_MEI_TYPE_READ_DEVICE_ID)
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Unsupported MEI Type 0x%02hhX"), d->func, buff[0]);
+            return d->setError(Status_BadIllegalFunction, errbuff);
+        }
+        d->subfunc = buff[1];       // Read Device ID code (1-4)
+        d->valueBuff[0] = buff[2];  // Object ID to start from
+        break;
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+
     default:
     {
         const size_t len = 100;
@@ -679,6 +702,13 @@ StatusCode ModbusServerResource::processDevice()
         r = d->device->readFIFOQueue(d->unit, d->offset, &d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
         break;
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
+
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+    case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
+        // subfunc = Read Device ID code, valueBuff[0] = starting Object ID
+        r = d->device->readDeviceIdentification(d->unit, d->subfunc, d->valueBuff[0], d->valueBuff, &d->outByteCount);
+        break;
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
     default:
         return d->setError(Status_BadIllegalFunction, StringLiteral("Unsupported function"));
@@ -843,6 +873,14 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
     }
         break;
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
+
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+    case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
+        // Copy raw response from device handler directly into wire buffer
+        memcpy(buff, d->valueBuff, d->outByteCount);
+        sz = d->outByteCount;
+        break;
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
     }
     return Status_Good;
