@@ -8,17 +8,17 @@
 #ifndef MODBUSRTUOVERTCPPORT_H
 #define MODBUSRTUOVERTCPPORT_H
 
-#include "ModbusRtuPort.h"
+#include "ModbusTcpPortBase.h"
 
 class ModbusSocket;
 
 /*! \brief Implements RTU over TCP version of the Modbus communication protocol.
 
-    \details `ModbusRtuPort` derived from `ModbusSerialPort` and implements `writeBuffer` and `readBuffer`
+    \details `ModbusTcpPortBase` derived from `ModbusSerialPort` and implements `writeBuffer` and `readBuffer`
     for RTU version of Modbus communication protocol.
 
  */
-class MODBUS_EXPORT ModbusRtuOverTcpPort : public ModbusRtuPort
+class MODBUS_EXPORT ModbusRtuOverTcpPort : public ModbusTcpPortBase
 {
 public:
     /// \details Constructor of the class.
@@ -34,7 +34,7 @@ public:
     Modbus::ProtocolType type() const override { return Modbus::RTUvTCP; }
 
 protected:
-    using ModbusRtuPort::ModbusRtuPort;
+    using ModbusTcpPortBase::ModbusTcpPortBase;
 };
 
 #endif // MODBUSRTUOVERTCPPORT_H

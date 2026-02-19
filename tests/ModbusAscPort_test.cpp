@@ -28,9 +28,9 @@ public:
     // Access to private data for test setup
     void setInternalBuffer(const uint8_t *data, uint16_t size)
     {
-        ModbusSerialPortPrivate *d = static_cast<ModbusSerialPortPrivate*>(this->d_ptr);
-        memcpy(d->buff, data, size);
-        d->sz = size;
+        auto buff = d_ptr->buff();
+        memcpy(buff, data, size);
+        d_ptr->setBuffSz(size);
     }
 
     // Expose write() and read() for testing
@@ -702,13 +702,13 @@ TEST_F(ModbusAscPortTest, DefaultSerialSettings)
 {
     port = new ModbusAscPortTestHelper();
     
-    const Modbus::Defaults &defaults = Modbus::Defaults::instance();
+    const Modbus::SerialDefaults &defaults = Modbus::SerialDefaults::instance();
     
-    EXPECT_EQ(port->baudRate(), defaults.baudRate);
-    EXPECT_EQ(port->dataBits(), defaults.dataBits);
-    EXPECT_EQ(port->parity(), defaults.parity);
-    EXPECT_EQ(port->stopBits(), defaults.stopBits);
-    EXPECT_EQ(port->flowControl(), defaults.flowControl);
+    EXPECT_EQ(port->baudRate    (), defaults.baudRate    );
+    EXPECT_EQ(port->dataBits    (), defaults.dataBits    );
+    EXPECT_EQ(port->parity      (), defaults.parity      );
+    EXPECT_EQ(port->stopBits    (), defaults.stopBits    );
+    EXPECT_EQ(port->flowControl (), defaults.flowControl );
 }
 
 // ============================================================================

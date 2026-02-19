@@ -2,7 +2,8 @@ message(STATUS "MB: Tests included")
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/gtest_dependency.cmake)
 
-set(MB_TESTS_HEADERS 
+set(MB_TESTS_HEADERS
+    TestModbus.h
     MockModbusPort.h
     MockModbusDevice.h
     )
@@ -14,11 +15,26 @@ set(MB_TESTS_SOURCES
     ModbusServerPort_test.cpp
     ModbusServerResource_test.cpp
     ModbusTcpPort_test.cpp
+    ModbusUdpPort_test.cpp
     ModbusTcpServer_test.cpp
     ModbusRtuPort_test.cpp
     ModbusAscPort_test.cpp
+    ModbusRtuOverTcpPort_test.cpp
+    ModbusAscOverTcpPort_test.cpp
+    ModbusRtuOverUdpPort_test.cpp
+    ModbusAscOverUdpPort_test.cpp
     main.cpp
     )
+
+if (WIN32)
+    set (MB_TESTS_SOURCES ${MB_TESTS_SOURCES}
+    win/TestModbus_win.cpp
+    )
+else()
+    set (MB_TESTS_SOURCES ${MB_TESTS_SOURCES}
+    unix/TestModbus_unix.cpp
+    )
+endif()
 
 # Add Qt-specific tests when Qt support is enabled in the library
 if (MB_QT_ENABLED)

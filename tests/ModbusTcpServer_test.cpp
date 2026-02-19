@@ -5,6 +5,7 @@
 #include <ModbusTcpServer.h>
 #include <ModbusServerResource.h>
 
+#include "TestModbus.h"
 #include "MockModbusPort.h"
 #include "MockModbusDevice.h"
 
@@ -24,7 +25,7 @@ protected:
     void SetUp() override
     {
         mockDevice = new MockModbusDevice();
-        tcpServer = new ModbusTcpServer(mockDevice);
+        tcpServer = new ModbusTcpServer(TCP, mockDevice);
     }
 
     void TearDown() override
@@ -148,7 +149,7 @@ TEST_F(ModbusTcpServerTest, IpaddrSetterPersistsAfterClose)
 TEST_F(ModbusTcpServerTest, DifferentServersDifferentIpaddr)
 {
     MockModbusDevice *device2 = new MockModbusDevice();
-    ModbusTcpServer *server2 = new ModbusTcpServer(device2);
+    ModbusTcpServer *server2 = new ModbusTcpServer(TCP, device2);
 
     const char* ip1 = "127.0.0.1";
     const char* ip2 = "192.168.10.50";
@@ -387,7 +388,7 @@ TEST_F(ModbusTcpServerTest, BindToNonStandardPort)
 TEST_F(ModbusTcpServerTest, MultipleServersDifferentPorts)
 {
     MockModbusDevice *device2 = new MockModbusDevice();
-    ModbusTcpServer *server2 = new ModbusTcpServer(device2);
+    ModbusTcpServer *server2 = new ModbusTcpServer(TCP, device2);
     
     tcpServer->setPort(50300);
     server2->setPort(50301);
@@ -518,13 +519,13 @@ struct ModbusTcpServerSignalHandler
 class MockModbusTcpServer : public ModbusTcpServer
 {
 public:
-    MockModbusTcpServer(ModbusInterface *device) : ModbusTcpServer(device) {}
+    MockModbusTcpServer(ModbusInterface *device) : ModbusTcpServer(TCP, device) {}
 
 public:
     MOCK_METHOD(bool, isOpen, (), (const, override));
     MOCK_METHOD(StatusCode, open, (), (override));
-    MOCK_METHOD(ModbusServerPort*, createTcpPort, (ModbusTcpSocket *socket), (override));
-    MOCK_METHOD(ModbusTcpSocket*, nextPendingConnection, (), (override));
+    MOCK_METHOD(ModbusPort*, createModbusPort, (ModbusSocket *socket), (override));
+    MOCK_METHOD(ModbusSocket*, nextPendingConnection, (), (override));
 };
 
 TEST(ModbusTcpServerSignalsTest, testSignals)
@@ -533,15 +534,15 @@ TEST(ModbusTcpServerSignalsTest, testSignals)
 
     // NiceMock for ignoring uninteresting calls
     NiceMock<MockModbusPort> *port = new NiceMock<MockModbusPort>(true);
-    port->setTimeout(0); // Non-blocking for test
     NiceMock<MockModbusDevice> device;
 
     NiceMock<MockModbusTcpServer> tcpServer(&device);
-    EXPECT_CALL(tcpServer, createTcpPort(_))
-        .WillOnce(Return(new ModbusServerResource(port,&device)))
+    tcpServer.setTimeout(0); // Set non-blocking mode for testing
+    EXPECT_CALL(tcpServer, createModbusPort(_))
+        .WillOnce(Return(port))
         ;
     EXPECT_CALL(tcpServer, nextPendingConnection())
-        .WillOnce(Return(reinterpret_cast<ModbusTcpSocket*>(0xFFFFFFFF))) // Return dummy pointer to trigger connection handling
+        .WillOnce(Return(createTestSocket()))
         .WillRepeatedly(Return(nullptr)) // No more connections
         ;
     

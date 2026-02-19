@@ -1,12 +1,13 @@
 #include "ModbusRtuOverTcpPort.h"
-#include "ModbusTcpPort_p.h"
+#include "ModbusTcpPortBase_p.h"
+#include "ModbusRtuFrame_p.h"
 
 ModbusRtuOverTcpPort::ModbusRtuOverTcpPort(ModbusSocket *socket, bool blocking) :
-    ModbusRtuPort(ModbusTcpPortPrivate::create(socket, blocking))
+    ModbusTcpPortBase(ModbusTcpPortBasePrivate::create(new ModbusRtuFramePrivate(), socket, blocking))
 {
 }
 
 ModbusRtuOverTcpPort::ModbusRtuOverTcpPort(bool blocking) :
-    ModbusRtuPort(ModbusTcpPortPrivate::create(nullptr, blocking))
+    ModbusTcpPortBase(ModbusTcpPortBasePrivate::create(new ModbusRtuFramePrivate(), nullptr, blocking))
 {
 }

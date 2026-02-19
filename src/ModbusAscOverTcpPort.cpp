@@ -1,12 +1,13 @@
 #include "ModbusAscOverTcpPort.h"
-#include "ModbusTcpPort_p.h"
+#include "ModbusTcpPortBase_p.h"
+#include "ModbusAscFrame_p.h"
 
 ModbusAscOverTcpPort::ModbusAscOverTcpPort(ModbusSocket *socket, bool blocking) :
-    ModbusAscPort(ModbusTcpPortPrivate::create(socket, blocking))
+    ModbusTcpPortBase(ModbusTcpPortBasePrivate::create(new ModbusAscFramePrivate(), socket, blocking))
 {
 }
 
 ModbusAscOverTcpPort::ModbusAscOverTcpPort(bool blocking) :
-    ModbusAscPort(ModbusTcpPortPrivate::create(nullptr, blocking))
+    ModbusTcpPortBase(ModbusTcpPortBasePrivate::create(new ModbusAscFramePrivate(), nullptr, blocking))
 {
 }

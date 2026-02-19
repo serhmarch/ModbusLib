@@ -5,6 +5,13 @@
 
 #include <Modbus.h>
 #include <ModbusTcpPort.h>
+#include <ModbusUdpPort.h>
+#include <ModbusRtuPort.h>
+#include <ModbusAscPort.h>
+#include <ModbusRtuOverTcpPort.h>
+#include <ModbusAscOverTcpPort.h>
+#include <ModbusRtuOverUdpPort.h>
+#include <ModbusAscOverUdpPort.h>
 
 using namespace testing;
 using namespace Modbus;
@@ -168,15 +175,39 @@ TEST(ModbusTest, createPortTcp)
     tcp.host    = "localhost";
     tcp.port    = STANDARD_TCP_PORT;
     tcp.timeout = 5000;
-    ModbusPort *port = createPort(TCP, &tcp, false);
-    ASSERT_NE(port, nullptr);
-    EXPECT_EQ(port->type(), TCP);
-    EXPECT_STREQ(reinterpret_cast<ModbusTcpPort*>(port)->host(), tcp.host);
-    EXPECT_EQ(reinterpret_cast<ModbusTcpPort*>(port)->port(), tcp.port);
-    EXPECT_EQ(reinterpret_cast<ModbusTcpPort*>(port)->timeout(), tcp.timeout);
+
+    ModbusPort *p = createPort(TCP, &tcp, false);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->type(), TCP);
+
+    auto port = static_cast<ModbusTcpPort*>(p);
+
+    EXPECT_STREQ(port->host   (), tcp.host   );
+    EXPECT_EQ   (port->port   (), tcp.port   );
+    EXPECT_EQ   (port->timeout(), tcp.timeout);
+
     delete port;
 }
 
+TEST(ModbusTest, createPortUdp)
+{
+    NetSettings net;
+    net.host    = "localhost";
+    net.port    = STANDARD_UDP_PORT;
+    net.timeout = 5000;
+
+    ModbusPort *p = createPort(UDP, &net, false);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->type(), UDP);
+
+    auto port = static_cast<ModbusUdpPort*>(p);
+
+    EXPECT_STREQ(port->host   (), net.host   );
+    EXPECT_EQ   (port->port   (), net.port   );
+    EXPECT_EQ   (port->timeout(), net.timeout);
+
+    delete port;
+}
 
 TEST(ModbusTest, createPortRtu)
 {
@@ -190,10 +221,12 @@ TEST(ModbusTest, createPortRtu)
     ser.timeoutFirstByte = 5000;
     ser.timeoutInterByte = 100;
 
-    ModbusPort *port = createPort(RTU, &ser, false);
-    ASSERT_NE(port, nullptr);
+    ModbusPort *p = createPort(RTU, &ser, false);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->type(), RTU);
 
-    EXPECT_EQ   (port->type            (), RTU                 );
+    auto port = static_cast<ModbusRtuPort*>(p);
+
     EXPECT_STREQ(port->portName        (), ser.portName        );
     EXPECT_EQ   (port->baudRate        (), ser.baudRate        );
     EXPECT_EQ   (port->dataBits        (), ser.dataBits        );
@@ -202,6 +235,7 @@ TEST(ModbusTest, createPortRtu)
     EXPECT_EQ   (port->flowControl     (), ser.flowControl     );
     EXPECT_EQ   (port->timeoutFirstByte(), ser.timeoutFirstByte);
     EXPECT_EQ   (port->timeoutInterByte(), ser.timeoutInterByte);
+
     delete port;
 }
 
@@ -217,11 +251,12 @@ TEST(ModbusTest, createPortAsc)
     ser.timeoutFirstByte = 5000;
     ser.timeoutInterByte = 100;
 
+    ModbusPort *p = createPort(ASC, &ser, false);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->type(), ASC);
 
-    ModbusPort *port = createPort(ASC, &ser, false);
-    ASSERT_NE(port, nullptr);
+    auto port = static_cast<ModbusAscPort*>(p);
 
-    EXPECT_EQ   (port->type            (), ASC                 );
     EXPECT_STREQ(port->portName        (), ser.portName        );
     EXPECT_EQ   (port->baudRate        (), ser.baudRate        );
     EXPECT_EQ   (port->dataBits        (), ser.dataBits        );
@@ -230,5 +265,86 @@ TEST(ModbusTest, createPortAsc)
     EXPECT_EQ   (port->flowControl     (), ser.flowControl     );
     EXPECT_EQ   (port->timeoutFirstByte(), ser.timeoutFirstByte);
     EXPECT_EQ   (port->timeoutInterByte(), ser.timeoutInterByte);
+
+    delete port;
+}
+
+TEST(ModbusTest, createPortRtuOverTcp)
+{
+    NetSettings net;
+    net.host    = "localhost";
+    net.port    = STANDARD_TCP_PORT;
+    net.timeout = 5000;
+
+    ModbusPort *p = createPort(RTUvTCP, &net, false);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->type(), RTUvTCP);
+
+    auto port = static_cast<ModbusRtuOverTcpPort*>(p);
+
+    EXPECT_STREQ(port->host   (), net.host   );
+    EXPECT_EQ   (port->port   (), net.port   );
+    EXPECT_EQ   (port->timeout(), net.timeout);
+
+    delete port;
+}
+
+TEST(ModbusTest, createPortAscOverTcp)
+{
+    NetSettings net;
+    net.host    = "localhost";
+    net.port    = STANDARD_TCP_PORT;
+    net.timeout = 5000;
+
+    ModbusPort *p = createPort(ASCvTCP, &net, false);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->type(), ASCvTCP);
+
+    auto port = static_cast<ModbusAscOverTcpPort*>(p);
+
+    EXPECT_STREQ(port->host   (), net.host   );
+    EXPECT_EQ   (port->port   (), net.port   );
+    EXPECT_EQ   (port->timeout(), net.timeout);
+
+    delete port;
+}
+
+TEST(ModbusTest, createPortRtuOverUdp)
+{
+    NetSettings net;
+    net.host    = "localhost";
+    net.port    = STANDARD_UDP_PORT;
+    net.timeout = 5000;
+
+    ModbusPort *p = createPort(RTUvUDP, &net, false);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->type(), RTUvUDP);
+
+    auto port = static_cast<ModbusRtuOverUdpPort*>(p);
+
+    EXPECT_STREQ(port->host   (), net.host   );
+    EXPECT_EQ   (port->port   (), net.port   );
+    EXPECT_EQ   (port->timeout(), net.timeout);
+    delete port;
+}
+
+TEST(ModbusTest, createPortAscOverUdp)
+{
+    NetSettings net;
+    net.host    = "localhost";
+    net.port    = STANDARD_UDP_PORT;
+    net.timeout = 5000;
+
+    ModbusPort *p = createPort(ASCvUDP, &net, false);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->type(), ASCvUDP);
+    EXPECT_EQ(p->timeout(), net.timeout);
+
+    auto port = static_cast<ModbusAscOverUdpPort*>(p);
+
+    EXPECT_STREQ(port->host   (), net.host   );
+    EXPECT_EQ   (port->port   (), net.port   );
+    EXPECT_EQ   (port->timeout(), net.timeout);
+
     delete port;
 }

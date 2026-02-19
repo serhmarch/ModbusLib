@@ -380,7 +380,12 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         }
         d->subfunc = buff[1] | (buff[0]<<8);
         d->count = sz - 2;
-        memcpy(d->valueBuff, &buff[2], d->count);
+        for (uint16_t i = 0; i < d->count; i++)
+        {
+            d->valueBuff[i*2  ] = buff[3+i*2];
+            d->valueBuff[i*2+1] = buff[2+i*2];
+        }
+        //memcpy(d->valueBuff, &buff[2], d->count);
         break;
 #endif // MBF_DIAGNOSTICS_DISABLE
 
@@ -478,7 +483,7 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         }
         for (uint16_t i = 0; i < d->count; i++)
         {
-            d->valueBuff[i*2]   = buff[6+i*2];
+            d->valueBuff[i*2  ] = buff[6+i*2];
             d->valueBuff[i*2+1] = buff[5+i*2];
         }
         break;

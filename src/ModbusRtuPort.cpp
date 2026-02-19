@@ -22,48 +22,9 @@
 */
 #include "ModbusRtuPort.h"
 #include "ModbusSerialPort_p.h"
-
-inline ModbusSerialPortPrivate *d_cast(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivate*>(d_ptr); }
+#include "ModbusRtuFrame_p.h"
 
 ModbusRtuPort::ModbusRtuPort(bool blocking) :
-    ModbusPort(ModbusSerialPortPrivate::create(MB_RTU_IO_BUFF_SZ, blocking))
+    ModbusSerialPort(ModbusSerialPortPrivate::create(new ModbusRtuFramePrivate, blocking))
 {
-}
-
-StatusCode ModbusRtuPort::writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff)
-{
-    uint16_t crc;
-    // 2 is unit and function bytes + 2 bytes CRC16
-    if (szInBuff > MB_RTU_IO_BUFF_SZ-(sizeof(crc)+2))
-        return this->setError(Status_BadWriteBufferOverflow, StringLiteral("RTU. Write-buffer overflow"));
-    d_ptr->buff[0] = unit;
-    d_ptr->buff[1] = func;
-    memcpy(&d_ptr->buff[2], buff, szInBuff);
-    d_ptr->sz = szInBuff + 2;
-    crc = crc16(d_ptr->buff, d_ptr->sz);
-    d_ptr->buff[d_ptr->sz  ] = reinterpret_cast<uint8_t*>(&crc)[0];
-    d_ptr->buff[d_ptr->sz+1] = reinterpret_cast<uint8_t*>(&crc)[1];
-    d_ptr->sz += 2;
-    return Status_Good;
-}
-
-StatusCode ModbusRtuPort::readBuffer(uint8_t& unit, uint8_t& func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff)
-{
-    uint16_t crc;
-    if (d_ptr->sz < 4) // Note: Unit + Func + 2 bytes CRC
-        return this->setError(Status_BadNotCorrectRequest, StringLiteral("RTU. Not correct input. Input data length to small"));
-
-    crc = d_ptr->buff[d_ptr->sz-2] | (d_ptr->buff[d_ptr->sz-1] << 8);
-    if (crc16(d_ptr->buff, d_ptr->sz-2) != crc)
-        return this->setError(Status_BadCrc, StringLiteral("RTU. Wrong CRC"));
-
-    unit = d_ptr->buff[0];
-    func = d_ptr->buff[1];
-
-    d_ptr->sz -= 4;
-    if (d_ptr->sz > maxSzBuff)
-        return d_ptr->setError(Status_BadReadBufferOverflow, StringLiteral("RTU. Read-buffer overflow"));
-    memcpy(buff, &d_ptr->buff[2], d_ptr->sz);
-    *szOutBuff = d_ptr->sz;
-    return Status_Good;
 }

@@ -8,15 +8,15 @@
 #ifndef MODBUSASCOVERUDPPORT_H
 #define MODBUSASCOVERUDPPORT_H
 
-#include "ModbusAscPort.h"
+#include "ModbusUdpPortBase.h"
 
 /*! \brief Implements ASC over UDP version of the Modbus communication protocol.
 
-    \details `ModbusAscPort` derived from `ModbusSerialPort` and implements `writeBuffer` and `readBuffer`
+    \details `ModbusUdpPortBase` derived from `ModbusSerialPort` and implements `writeBuffer` and `readBuffer`
     for ASC version of Modbus communication protocol.
 
  */
-class MODBUS_EXPORT ModbusAscOverUdpPort : public ModbusAscPort
+class MODBUS_EXPORT ModbusAscOverUdpPort : public ModbusUdpPortBase
 {
 public:
     ///  \details Constructor of the class. if `blocking = true` then defines blocking mode, non blocking otherwise.
@@ -27,7 +27,7 @@ public:
     Modbus::ProtocolType type() const override { return Modbus::ASCvUDP; }
 
 protected:
-    using ModbusAscPort::ModbusAscPort;
+    using ModbusUdpPortBase::ModbusUdpPortBase;
 };
 
 #endif // MODBUSASCOVERUDPPORT_H

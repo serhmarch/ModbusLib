@@ -997,8 +997,8 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticRequest)
     subfunc = 0x0000; // Return Query Data (echo test)
     requestData[0] = reinterpret_cast<const uint8_t*>(&subfunc)[1];
     requestData[1] = reinterpret_cast<const uint8_t*>(&subfunc)[0];
-    requestData[2] = 0xA5; // Data byte 1
-    requestData[3] = 0x5A; // Data byte 2
+    requestData[2] = 0x5A; // Data MS byte 
+    requestData[3] = 0xA5; // Data LS byte
     EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
         .WillOnce(DoAll(
             SetArgReferee<0>(unit),
@@ -1022,11 +1022,12 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticRequest)
  
     responseData[0] = reinterpret_cast<const uint8_t*>(&subfunc)[1]; // Subfunc MSB
     responseData[1] = reinterpret_cast<const uint8_t*>(&subfunc)[0]; // Subfunc LSB
-    responseData[2] = outData[0]; // Echo data byte 1
-    responseData[3] = outData[1]; // Echo data byte 2
+    responseData[2] = outData[1]; // Echo data byte 1
+    responseData[3] = outData[0]; // Echo data byte 2
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
-        .Times(1);
+        .Times(1)
+        ;
 
     result = serverResource->process();
     EXPECT_EQ(result, Status_Good);

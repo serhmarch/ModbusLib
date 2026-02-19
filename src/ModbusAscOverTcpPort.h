@@ -8,7 +8,7 @@
 #ifndef MODBUSASCOVERTCPPORT_H
 #define MODBUSASCOVERTCPPORT_H
 
-#include "ModbusAscPort.h"
+#include "ModbusTcpPortBase.h"
 
 class ModbusSocket;
 
@@ -18,7 +18,7 @@ class ModbusSocket;
     for ASC version of Modbus communication protocol.
 
  */
-class MODBUS_EXPORT ModbusAscOverTcpPort : public ModbusAscPort
+class MODBUS_EXPORT ModbusAscOverTcpPort : public ModbusTcpPortBase
 {
 public:
     /// \details Constructor of the class.
@@ -34,7 +34,7 @@ public:
     Modbus::ProtocolType type() const override { return Modbus::ASCvTCP; }
 
 protected:
-    using ModbusAscPort::ModbusAscPort;
+    using ModbusTcpPortBase::ModbusTcpPortBase;
 };
 
 #endif // MODBUSASCOVERTCPPORT_H

@@ -8,7 +8,7 @@
 #ifndef MODBUSTCPPORT_H
 #define MODBUSTCPPORT_H
 
-#include "ModbusPort.h"
+#include "ModbusTcpPortBase.h"
 
 class ModbusSocket;
 
@@ -37,7 +37,7 @@ class ModbusSocket;
     - Can be constructed with existing socket for server-side usage
  */
 
-class MODBUS_EXPORT ModbusTcpPort : public ModbusPort
+class MODBUS_EXPORT ModbusTcpPort : public ModbusTcpPortBase
 {
 public:
     /// \details Constructor of the class.
@@ -49,11 +49,22 @@ public:
 public:
     /// \details Returns the Modbus protocol type. In this case it is `Modbus::TCP`.
     Modbus::ProtocolType type() const override { return Modbus::TCP; }
-    Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff) override;
-    Modbus::StatusCode readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff) override;
+
+public:
+    ///  \details Repeat next request parameters (for Modbus TCP transaction Id).
+    void setNextRequestRepeated(bool v);
+
+    /// \details Returns `true' if the identifier of each subsequent parcel is automatically incremented by 1, `false' otherwise.
+    bool autoIncrement() const;
+
+    /// \details Returns the current transaction identifier.
+    uint16_t transactionId() const;
+    
+    /// \details Sets the transaction identifier for the next request.
+    void setTransactionId(uint16_t id);
 
 protected:
-    using ModbusPort::ModbusPort;
+    using ModbusTcpPortBase::ModbusTcpPortBase;
 };
 
 #endif // MODBUSTCPPORT_H

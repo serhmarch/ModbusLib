@@ -1,7 +1,8 @@
 #include "ModbusAscOverUdpPort.h"
-#include "ModbusUdpPort_p.h"
+#include "ModbusUdpPortBase_p.h"
+#include "ModbusAscFrame_p.h"
 
 ModbusAscOverUdpPort::ModbusAscOverUdpPort(bool blocking) :
-    ModbusAscPort(ModbusUdpPortPrivate::create(blocking))
+    ModbusUdpPortBase(ModbusUdpPortBasePrivate::create(new ModbusAscFramePrivate(), blocking))
 {
 }

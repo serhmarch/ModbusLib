@@ -558,10 +558,11 @@ ModbusPort *createPort(ProtocolType type, const void *settings, bool blocking)
         return nullptr;
     }
     const NetSettings *s = reinterpret_cast<const NetSettings*>(settings);
-    port->setHost   (s->host   );
-    port->setPort   (s->port   );
-    port->setTimeout(s->timeout);
-    return port;
+    auto netPort = static_cast<ModbusNetPort*>(port);
+    netPort->setHost   (s->host   );
+    netPort->setPort   (s->port   );
+    netPort->setTimeout(s->timeout);
+    return netPort;
 }
 
 #ifndef MB_CLIENT_DISABLE

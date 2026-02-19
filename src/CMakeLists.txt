@@ -53,10 +53,14 @@ set(MB_PUBLIC_HEADERS
     Modbus.h                
     ModbusObject.h          
     ModbusPort.h            
-    ModbusRtuPort.h         
-    ModbusAscPort.h         
+    ModbusNetPort.h            
+    ModbusTcpPortBase.h            
+    ModbusUdpPortBase.h            
+    ModbusSerialPort.h            
     ModbusTcpPort.h         
     ModbusUdpPort.h         
+    ModbusRtuPort.h         
+    ModbusAscPort.h         
     ModbusAscOverTcpPort.h
     ModbusRtuOverTcpPort.h
     ModbusAscOverUdpPort.h
@@ -64,17 +68,24 @@ set(MB_PUBLIC_HEADERS
     )
 
 set(MB_PRIVATE_HEADERS
-    ModbusPort_p.h          
     ModbusObject_p.h        
+    ModbusFrame_p.h        
+    ModbusNetFrame_p.h        
+    ModbusRtuFrame_p.h        
+    ModbusAscFrame_p.h        
+    ModbusPort_p.h          
+    ModbusNetPort_p.h            
+    ModbusTcpPortBase_p.h            
+    ModbusUdpPortBase_p.h            
     ModbusSerialPort_p.h    
-    ModbusTcpPort_p.h       
-    ModbusUdpPort_p.h       
     )
 
 set(MB_SOURCES ${MB_SOURCES} 
     Modbus.cpp              
     ModbusObject.cpp        
     ModbusPort.cpp          
+    ModbusNetPort.cpp       
+    ModbusSerialPort.cpp           
     ModbusRtuPort.cpp       
     ModbusAscPort.cpp       
     ModbusTcpPort.cpp       
@@ -168,14 +179,14 @@ if (WIN32)
     set(MB_PRIVATE_HEADERS ${MB_PRIVATE_HEADERS}
         win/Modbus_win.h         
         win/ModbusSerialPort_p_win.h
-        win/ModbusTcpPort_p_win.h   
-        win/ModbusUdpPort_p_win.h   
+        win/ModbusTcpPortBase_p_win.h   
+        win/ModbusUdpPortBase_p_win.h   
         ) 
 
     set(MB_SOURCES ${MB_SOURCES}
         win/Modbus_win.cpp           
-        win/ModbusTcpPort_win.cpp    
-        win/ModbusUdpPort_win.cpp   
+        win/ModbusTcpPortBase_win.cpp    
+        win/ModbusUdpPortBase_win.cpp   
         win/ModbusSerialPort_win.cpp
         )
 
@@ -193,13 +204,13 @@ else()
     set(MB_PRIVATE_HEADERS ${MB_PRIVATE_HEADERS}
         unix/Modbus_unix.h         
         unix/ModbusSerialPort_p_unix.h
-        unix/ModbusTcpPort_p_unix.h   
-        unix/ModbusUdpPort_p_unix.h    
+        unix/ModbusTcpPortBase_p_unix.h   
+        unix/ModbusUdpPortBase_p_unix.h    
         ) 
     set(MB_SOURCES ${MB_SOURCES}
         unix/Modbus_unix.cpp           
-        unix/ModbusTcpPort_unix.cpp    
-        unix/ModbusUdpPort_unix.cpp    
+        unix/ModbusTcpPortBase_unix.cpp    
+        unix/ModbusUdpPortBase_unix.cpp    
         unix/ModbusSerialPort_unix.cpp
         )
 

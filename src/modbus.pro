@@ -18,29 +18,38 @@ HEADERS +=                          \
     $$PWD/Modbus.h                  \
     $$PWD/cModbus.h                 \
     $$PWD/ModbusObject.h            \
+    $$PWD/ModbusObject_p.h          \
     $$PWD/ModbusPort.h              \
     $$PWD/ModbusPort_p.h            \
+    $$PWD/ModbusFrame_p.h           \
+    $$PWD/ModbusRtuFrame_p.h        \
+    $$PWD/ModbusAscFrame_p.h        \
+    $$PWD/ModbusNetFrame_p.h        \
+    $$PWD/ModbusSerialPort.h        \
+    $$PWD/ModbusSerialPort_p.h      \
     $$PWD/ModbusRtuPort.h           \
     $$PWD/ModbusAscPort.h           \
+    $$PWD/ModbusNetPort.h           \
+    $$PWD/ModbusNetPort_p.h         \
+    $$PWD/ModbusTcpPortBase.h       \
+    $$PWD/ModbusTcpPortBase_p.h     \
     $$PWD/ModbusTcpPort.h           \
+    $$PWD/ModbusUdpPortBase.h       \
+    $$PWD/ModbusUdpPortBase_p.h     \
     $$PWD/ModbusUdpPort.h           \
-    $$PWD/ModbusAscOverTcpPort.h    \
     $$PWD/ModbusRtuOverTcpPort.h    \
-    $$PWD/ModbusAscOverUdpPort.h    \
+    $$PWD/ModbusAscOverTcpPort.h    \
     $$PWD/ModbusRtuOverUdpPort.h    \
+    $$PWD/ModbusAscOverUdpPort.h    \
     $$PWD/ModbusClientPort.h        \
-    $$PWD/ModbusClient_p.h          \
-    $$PWD/ModbusClient.h            \
-    $$PWD/ModbusServerPort.h        \
-    $$PWD/ModbusServerResource.h    \
-    $$PWD/ModbusTcpServer.h         \
     $$PWD/ModbusClientPort_p.h      \
-    $$PWD/ModbusObject_p.h          \
-    $$PWD/ModbusSerialPort_p.h      \
+    $$PWD/ModbusClient.h            \
+    $$PWD/ModbusClient_p.h          \
+    $$PWD/ModbusServerPort.h        \
     $$PWD/ModbusServerPort_p.h      \
+    $$PWD/ModbusServerResource.h    \
     $$PWD/ModbusServerResource_p.h  \
-    $$PWD/ModbusTcpPort_p.h         \
-    $$PWD/ModbusUdpPort_p.h         \
+    $$PWD/ModbusTcpServer.h         \
     $$PWD/ModbusTcpServer_p.h       \
 
 SOURCES +=                          \
@@ -48,14 +57,16 @@ SOURCES +=                          \
     $$PWD/cModbus.cpp               \
     $$PWD/ModbusObject.cpp          \
     $$PWD/ModbusPort.cpp            \
-    $$PWD/ModbusAscPort.cpp         \
+    $$PWD/ModbusSerialPort.cpp      \
     $$PWD/ModbusRtuPort.cpp         \
+    $$PWD/ModbusAscPort.cpp         \
+    $$PWD/ModbusNetPort.cpp         \
     $$PWD/ModbusTcpPort.cpp         \
     $$PWD/ModbusUdpPort.cpp         \
-    $$PWD/ModbusAscOverTcpPort.cpp  \
     $$PWD/ModbusRtuOverTcpPort.cpp  \
-    $$PWD/ModbusAscOverUdpPort.cpp  \
+    $$PWD/ModbusAscOverTcpPort.cpp  \
     $$PWD/ModbusRtuOverUdpPort.cpp  \
+    $$PWD/ModbusAscOverUdpPort.cpp  \
     $$PWD/ModbusClientPort.cpp      \
     $$PWD/ModbusClient.cpp          \
     $$PWD/ModbusServerPort.cpp      \
@@ -78,19 +89,19 @@ SOURCES +=                          \
 
 win32 {
 
-HEADERS +=                              \
-    $$PWD/win/Modbus_win.h              \
-    $$PWD/win/ModbusSerialPort_p_win.h  \
-    $$PWD/win/ModbusTcpPort_p_win.h     \
-    $$PWD/win/ModbusUdpPort_p_win.h     \
-    $$PWD/win/ModbusTcpServer_p_win.h   \
+HEADERS +=                                  \
+    $$PWD/win/Modbus_win.h                  \
+    $$PWD/win/ModbusSerialPort_p_win.h      \
+    $$PWD/win/ModbusTcpPortBase_p_win.h     \
+    $$PWD/win/ModbusUdpPortBase_p_win.h     \
+    $$PWD/win/ModbusTcpServer_p_win.h       \
 
-SOURCES +=                              \
-    $$PWD/win/Modbus_win.cpp            \
-    $$PWD/win/ModbusTcpPort_win.cpp     \
-    $$PWD/win/ModbusUdpPort_win.cpp     \
-    $$PWD/win/ModbusTcpServer_win.cpp   \
-    $$PWD/win/ModbusSerialPort_win.cpp  \
+SOURCES +=                                  \
+    $$PWD/win/Modbus_win.cpp                \
+    $$PWD/win/ModbusSerialPort_win.cpp      \
+    $$PWD/win/ModbusTcpPortBase_win.cpp     \
+    $$PWD/win/ModbusUdpPortBase_win.cpp     \
+    $$PWD/win/ModbusTcpServer_win.cpp       \
 
 LIBS += -lWs2_32
 LIBS += -lWinmm
@@ -101,19 +112,19 @@ LIBS += -lAdvapi32
 
 unix {
 
-HEADERS +=                                \
-    $$PWD/unix/Modbus_unix.h              \
-    $$PWD/unix/ModbusSerialPort_p_unix.h  \
-    $$PWD/unix/ModbusTcpPort_p_unix.h     \
-    $$PWD/unix/ModbusUpdPort_p_unix.h     \
-    $$PWD/unix/ModbusTcpServer_p_unix.h   \
+HEADERS +=                                    \
+    $$PWD/unix/Modbus_unix.h                  \
+    $$PWD/unix/ModbusSerialPort_p_unix.h      \
+    $$PWD/unix/ModbusTcpPortBase_p_unix.h     \
+    $$PWD/unix/ModbusUdpPortBase_p_unix.h     \
+    $$PWD/unix/ModbusTcpServer_p_unix.h       \
 
-SOURCES +=                                \
-    $$PWD/unix/Modbus_unix.cpp            \
-    $$PWD/unix/ModbusTcpPort_unix.cpp     \
-    $$PWD/unix/ModbusUdpPort_unix.cpp     \
-    $$PWD/unix/ModbusTcpServer_unix.cpp   \
-    $$PWD/unix/ModbusSerialPort_unix.cpp  \
+SOURCES +=                                    \
+    $$PWD/unix/Modbus_unix.cpp                \
+    $$PWD/unix/ModbusSerialPort_unix.cpp      \
+    $$PWD/unix/ModbusTcpPortBase_unix.cpp     \
+    $$PWD/unix/ModbusUdpPortBase_unix.cpp     \
+    $$PWD/unix/ModbusTcpServer_unix.cpp       \
 
 }
 

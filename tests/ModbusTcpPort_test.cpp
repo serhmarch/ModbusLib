@@ -3,7 +3,6 @@
 
 #include <ModbusTcpPort.h>
 #include <ModbusPort_p.h>
-#include <ModbusTcpPort_p.h>
 #include <ModbusGlobal.h>
 
 // Helper class to access protected members for testing
@@ -26,21 +25,19 @@ public:
     // Access to private data for test setup
     void setInternalBuffer(const uint8_t *data, uint16_t size)
     {
-        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
-        memcpy(d->buff, data, size);
-        d->sz = size;
+        auto buff = d_ptr->buff();
+        memcpy(buff, data, size);
+        d_ptr->setBuffSz(size);
     }
 
     void setInternalTransaction(uint16_t trans)
     {
-        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
-        d->transaction = trans;
+        this->setTransactionId(trans);
     }
 
     uint16_t getInternalTransaction() const
     {
-        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
-        return d->transaction;
+        return this->transactionId();
     }
 
     // Expose write() and read() for testing
@@ -57,14 +54,12 @@ public:
     // Get internal buffer for verification
     const uint8_t* getInternalBuffer() const
     {
-        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
-        return d->buff;
+        return this->writeBufferData();
     }
 
     uint16_t getInternalBufferSize() const
     {
-        ModbusTcpPortPrivate *d = static_cast<ModbusTcpPortPrivate*>(this->d_ptr);
-        return d->sz;
+        return this->writeBufferSize();
     }
 };
 
@@ -334,7 +329,7 @@ TEST_F(ModbusTcpPortTest, WriteBufferOverflow)
     
     uint8_t unit = 1;
     uint8_t func = MBF_WRITE_MULTIPLE_REGISTERS;
-    uint8_t data[MB_TCP_IO_BUFF_SZ]; // Too large
+    uint8_t data[MB_NET_IO_BUFF_SZ]; // Too large
     memset(data, 0, sizeof(data));
     
     StatusCode result = port->testWriteBuffer(unit, func, data, sizeof(data));
@@ -684,7 +679,7 @@ TEST_F(ModbusTcpPortTest, MaximumDataSize)
     
     uint8_t unit = 1;
     uint8_t func = MBF_WRITE_MULTIPLE_REGISTERS;
-    uint8_t data[MB_TCP_IO_BUFF_SZ - 10]; // Near maximum
+    uint8_t data[MB_NET_IO_BUFF_SZ - 10]; // Near maximum
     memset(data, 0xFF, sizeof(data));
     
     StatusCode result = port->testWriteBuffer(unit, func, data, sizeof(data));
@@ -776,7 +771,7 @@ TEST_F(ModbusTcpPortTest, DefaultSettings)
 {
     port = new ModbusTcpPortTestHelper();
     
-    const ModbusTcpPort::Defaults &defaults = ModbusTcpPort::Defaults::instance();
+    const Modbus::NetDefaults &defaults = Modbus::NetDefaults::instance();
     
     EXPECT_EQ(std::string(port->host()), std::string(defaults.host));
     EXPECT_EQ(port->port(), defaults.port);
@@ -1196,7 +1191,7 @@ TEST_F(ModbusTcpPortTest, ReadMethodBufferCapacity)
     // Maximum Modbus TCP ADU = 260 bytes (6-byte header + 254 bytes data)
     const uint16_t maxTcpSize = 260;
     
-    // The buffer size is MB_TCP_IO_BUFF_SZ which should be at least 260
+    // The buffer size is MB_NET_IO_BUFF_SZ which should be at least 260
     uint16_t bufferSize = port->getInternalBufferSize();
     
     // After read(), buffer would contain data, but we can't test actual

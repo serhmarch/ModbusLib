@@ -210,7 +210,7 @@
 #define MB_ASC_IO_BUFF_SZ 529
 
 /// \brief 6 bytes(tcp-prefix)+1 byte(unit)+261 (max func data size: WriteMultipleCoils)
-#define MB_TCP_IO_BUFF_SZ 268
+#define MB_NET_IO_BUFF_SZ 268
 
 /// \brief Maximum events for `GetCommEventLog` function
 #define GET_COMM_EVENT_LOG_MAX 64
@@ -245,7 +245,8 @@ enum Constants
 {
     VALID_MODBUS_ADDRESS_BEGIN = 1  , ///< Start of Modbus device address range according to specification
     VALID_MODBUS_ADDRESS_END   = 247, ///< End of the Modbus protocol device address range according to the specification
-    STANDARD_TCP_PORT          = 502  ///< Standard TCP port of the Modbus protocol
+    STANDARD_TCP_PORT          = 502, ///< Standard TCP port of the Modbus protocol
+    STANDARD_UDP_PORT          = 502  ///< Standard UDP port of the Modbus protocol
 };
 
 //=========== Modbus protocol types ===============

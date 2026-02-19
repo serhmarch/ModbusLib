@@ -125,7 +125,7 @@ uint32_t timeout = port.timeout();
 ### Default Values Class {#tcp-default-values}
 
 ```cpp
-ModbusTcpPort::Defaults::Defaults() :
+Modbus::NetDefaults::Defaults() :
     host   ("127.0.0.1"),
     port   (502),
     timeout(3000)
@@ -133,7 +133,7 @@ ModbusTcpPort::Defaults::Defaults() :
 }
 
 // Access defaults
-const ModbusTcpPort::Defaults &defaults = ModbusTcpPort::Defaults::instance();
+const Modbus::NetDefaults &defaults = Modbus::NetDefaults::instance();
 ```
 
 ### TCP Configuration Structure {#tcp-configuration-structure}
@@ -932,9 +932,9 @@ Modbus::Defaults::Defaults() :
     unit              (1),
     type              (Modbus::TCP),
     tries             (1),
-    host              (ModbusTcpPort::Defaults::instance().host),
-    port              (ModbusTcpPort::Defaults::instance().port),
-    timeout           (ModbusTcpPort::Defaults::instance().timeout),
+    host              (Modbus::NetDefaults::instance().host),
+    port              (Modbus::NetDefaults::instance().port),
+    timeout           (Modbus::NetDefaults::instance().timeout),
     maxconn           (ModbusTcpServer::Defaults::instance().maxconn),
     serialPortName    (ModbusSerialPort::Defaults::instance().portName),
     baudRate          (ModbusSerialPort::Defaults::instance().baudRate),
@@ -1063,7 +1063,7 @@ All port classes provide static `Defaults` classes:
 
 ```cpp
 // TCP defaults
-const ModbusTcpPort::Defaults &tcpDef = ModbusTcpPort::Defaults::instance();
+const Modbus::NetDefaults &tcpDef = Modbus::NetDefaults::instance();
 const char *host = tcpDef.host;       // "127.0.0.1"
 uint16_t port = tcpDef.port;          // 502
 uint32_t timeout = tcpDef.timeout;    // 3000

@@ -8,7 +8,7 @@
 #ifndef MODBUSASCPORT_H
 #define MODBUSASCPORT_H
 
-#include "ModbusPort.h"
+#include "ModbusSerialPort.h"
 
 /*! \brief Implements ASCII version of the Modbus communication protocol.
 
@@ -41,7 +41,7 @@
     - LRC: 2 ASCII hex characters
     - End: CR (0x0D) + LF (0x0A)
  */
-class MODBUS_EXPORT ModbusAscPort : public ModbusPort
+class MODBUS_EXPORT ModbusAscPort : public ModbusSerialPort
 {
 public:
     ///  \details Constructor of the class. if `blocking = true` then defines blocking mode, non blocking otherwise.
@@ -50,11 +50,9 @@ public:
 public:
     /// \details Returns the Modbus protocol type. For `ModbusAscPort` returns `Modbus::ASC`.
     Modbus::ProtocolType type() const override { return Modbus::ASC; }
-    Modbus::StatusCode writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff) override;
-    Modbus::StatusCode readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff) override;
 
 protected:
-    using ModbusPort::ModbusPort;
+    using ModbusSerialPort::ModbusSerialPort;
 };
 
 #endif // MODBUSASCPORT_H

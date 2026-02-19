@@ -1,7 +1,8 @@
 #include "ModbusRtuOverUdpPort.h"
-#include "ModbusUdpPort_p.h"
+#include "ModbusUdpPortBase_p.h"
+#include "ModbusRtuFrame_p.h"
 
 ModbusRtuOverUdpPort::ModbusRtuOverUdpPort(bool blocking) :
-    ModbusRtuPort(ModbusUdpPortPrivate::create(blocking))
+    ModbusUdpPortBase(ModbusUdpPortBasePrivate::create(new ModbusRtuFramePrivate(), blocking))
 {
 }
