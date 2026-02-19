@@ -55,6 +55,7 @@ public:
     inline bool modeServer() const { return frame->modeServer; }
     inline void setModeServer(bool server) { frame->modeServer = server; }
     inline bool isBlocking() const { return modeBlocking; }
+    inline bool isNonBlocking() const { return !modeBlocking; }
     inline bool isStateClosed() const { return state == STATE_CLOSED; }
     inline bool isChanged() const { return changed; }
     inline void setChanged(bool changed) { this->changed = changed; }

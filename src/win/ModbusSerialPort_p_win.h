@@ -56,8 +56,8 @@ void winFillDCBFlowControl(DCB *dcb, FlowControl v)
 class ModbusSerialPortPrivateWin : public ModbusSerialPortPrivate
 {
 public:
-    ModbusSerialPortPrivateWin(uint16_t maxBuffSize, bool blocking) :
-        ModbusSerialPortPrivate(maxBuffSize, blocking)
+    ModbusSerialPortPrivateWin(ModbusFramePrivate *f, bool blocking) :
+        ModbusSerialPortPrivate(f, blocking)
     {
         this->serialPort = INVALID_HANDLE_VALUE;
         this->timestamp = 0;

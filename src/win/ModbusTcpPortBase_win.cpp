@@ -1,15 +1,15 @@
 #include "../ModbusTcpPort.h"
 
-#include "ModbusTcpPort_p_win.h"
+#include "ModbusTcpPortBase_p_win.h"
 
-ModbusTcpPortPrivate *ModbusTcpPortPrivate::create(ModbusFramePrivate *f, ModbusSocket *socket, bool blocking)
+ModbusTcpPortBasePrivate *ModbusTcpPortBasePrivate::create(ModbusFramePrivate *f, ModbusSocket *socket, bool blocking)
 {
     return new ModbusTcpPortBasePrivateWin(f, socket, blocking);
 }
 
-Modbus::SHandle ModbusTcpPortBase::handle() const
+Modbus::Handle ModbusTcpPortBase::handle() const
 {
-    return reinterpret_cast<Handle>(d->socket->socket());
+    return reinterpret_cast<Handle>(d_win(d_ptr)->socket->socket());
 }
 
 Modbus::StatusCode ModbusTcpPortBase::open()
