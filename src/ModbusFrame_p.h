@@ -17,7 +17,7 @@ public:
     {
     }
 
-    ~ModbusFramePrivate()
+    virtual ~ModbusFramePrivate()
     {
         delete[] this->buff;
     }

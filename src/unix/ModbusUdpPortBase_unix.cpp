@@ -136,14 +136,14 @@ Modbus::StatusCode ModbusUdpPortBase::write()
         fRepeatAgain = false;
         switch (d->state)
         {
-        case STATE_UNKNOWN:
+        case STATE_OPENED:
         case STATE_PREPARE_TO_WRITE:
         case STATE_WAIT_FOR_WRITE:
         case STATE_WAIT_FOR_WRITE_ALL:
         {
             int c = sendto(d->socket->socket(),
                         reinterpret_cast<char*>(d->buff()),
-                        d->buffSz(),
+                        d->buffSize(),
                         0,
                         d->p_sockaddr(),
                         sizeof(sockaddr));
@@ -179,14 +179,13 @@ Modbus::StatusCode ModbusUdpPortBase::write()
 Modbus::StatusCode ModbusUdpPortBase::read()
 {
     ModbusUdpPortBasePrivateUnix *d = d_unix(d_ptr);
-    const uint16_t size = d->buffMaxSz();
     bool fRepeatAgain;
     do
     {
         fRepeatAgain = false;
         switch (d->state)
         {
-        case STATE_UNKNOWN:
+        case STATE_OPENED:
         case STATE_PREPARE_TO_READ:
             d->timestamp = timer();
             d->state = STATE_WAIT_FOR_READ;
@@ -197,20 +196,20 @@ Modbus::StatusCode ModbusUdpPortBase::read()
             socklen_t addrsz = sizeof(sockaddr);
             int c = recvfrom(d->socket->socket(),
                             reinterpret_cast<char*>(d->buff()),
-                            size,
+                            d->buffMaxSize(),
                             0,
                             d->p_sockaddr(),
                             &addrsz);
             if (c > 0)
             {
-                d->setBuffSz(static_cast<uint16_t>(c));
+                d->setBuffSize(static_cast<uint16_t>(c));
                 d->state = STATE_OPENED;
                 return Status_Good;
             }
             else if (c == 0)
             {
                 this->close();
-                // Note: When connection is remotely closed is not error for server side
+                // Note: When connection is remotely closed it is not error for server side
                 if (d->modeServer())
                     return Status_Uncertain;
                 else

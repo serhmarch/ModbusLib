@@ -61,7 +61,7 @@ StatusCode ModbusSerialPortPrivateUnix::blockingWrite()
     int c;
     this->state = STATE_OPENED;
     tcflush(this->serialPort, TCIFLUSH);
-    c = ::write(this->serialPort, this->buff(), this->buffSz());
+    c = ::write(this->serialPort, this->buff(), this->buffSize());
     if (c < 0)
     {
         return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->portName() +
@@ -75,14 +75,14 @@ StatusCode ModbusSerialPortPrivateUnix::blockingRead()
 {
     int c;
     this->state = STATE_OPENED;
-    c = ::read(this->serialPort, this->buff(), this->buffSz());
+    c = ::read(this->serialPort, this->buff(), this->buffMaxSize());
     if (c < 0)
     {
         return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->portName() +
                                                     StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                     StringLiteral(". ") + getLastErrorText());
     }
-    this->setBuffSz(static_cast<uint16_t>(c));
+    this->setBuffSize(static_cast<uint16_t>(c));
     return Status_Good;
 }
 
@@ -104,7 +104,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
         case STATE_WAIT_FOR_WRITE_ALL:
             // Note: clean read buffer from garbage before write
             tcflush(this->serialPort, TCIFLUSH);
-            c = ::write(this->serialPort, this->buff(), this->buffSz());
+            c = ::write(this->serialPort, this->buff(), this->buffSize());
             if (c >= 0)
             {
                 this->state = STATE_OPENED;
@@ -149,11 +149,11 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
         case STATE_PREPARE_TO_READ:
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_READ;
-            this->setBuffSz(0);
+            this->setBuffSize(0);
             // no need break
         case STATE_WAIT_FOR_READ:
             // read first byte state
-            c = ::read(this->serialPort, this->buff(), this->buffSz());
+            c = ::read(this->serialPort, this->buff(), this->buffMaxSize());
             if (c < 0)
             {
                 if (errno != EWOULDBLOCK)
@@ -166,14 +166,14 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             }
             if (c > 0)
             {
-                this->addBuffSz(static_cast<uint16_t>(c));
+                this->addBuffSize(static_cast<uint16_t>(c));
                 if ((this->timeoutInterByte() == 0) || // timeoutInterByte = 0 means no need to wait next bytes
-                    (this->buffSz() == this->buffMaxSz()))    // input buffer is full. Try to handle it
+                    (this->buffSize() == this->buffMaxSize()))    // input buffer is full. Try to handle it
                 {
                     this->state = STATE_OPENED;
                     return Status_Good;
                 }
-                if (this->buffSz() > this->buffMaxSz())
+                if (this->buffSize() > this->buffMaxSize())
                 {
                     this->state = STATE_OPENED;
                     return this->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading '") + this->portName() +
@@ -195,7 +195,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             // no need break
         case STATE_WAIT_FOR_READ_ALL:
             // next bytes state
-            c = ::read(this->serialPort, this->buff()+this->buffSz(), this->buffMaxSz()-this->buffSz());
+            c = ::read(this->serialPort, this->buffNext(), this->buffFreeSize());
             if (c < 0)
             {
                 if (errno != EWOULDBLOCK)
@@ -209,13 +209,13 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
 
             if (c > 0)
             {
-                this->addBuffSz(static_cast<uint16_t>(c));
-                if (this->buffSz() == this->buffMaxSz()) // input buffer is full. Try to handle it
+                this->addBuffSize(static_cast<uint16_t>(c));
+                if (this->buffSize() == this->buffMaxSize()) // input buffer is full. Try to handle it
                 {
                     this->state = STATE_OPENED;
                     return Status_Good;
                 }
-                if (this->buffSz() > this->buffMaxSz())
+                if (this->buffSize() > this->buffMaxSize())
                     return this->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading '") + this->portName() +
                                                                         StringLiteral("' serial port. Read buffer overflow"));
                 this->timestampRefresh();

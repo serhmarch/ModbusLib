@@ -200,7 +200,7 @@ Modbus::StatusCode ModbusTcpPortBase::write()
         case STATE_WAIT_FOR_WRITE:
         case STATE_WAIT_FOR_WRITE_ALL:
         {
-            int c = d->socket->send(reinterpret_cast<char*>(d->buff()), d->buffSz(), 0);
+            int c = d->socket->send(reinterpret_cast<char*>(d->buff()), d->buffSize(), 0);
             if (c > 0)
             {
                 d->state = STATE_OPENED;
@@ -234,7 +234,6 @@ Modbus::StatusCode ModbusTcpPortBase::write()
 Modbus::StatusCode ModbusTcpPortBase::read()
 {
     ModbusTcpPortBasePrivateWin *d = d_win(d_ptr);
-    const uint16_t size = d->buffMaxSz();
     bool fRepeatAgain;
     do
     {
@@ -249,10 +248,10 @@ Modbus::StatusCode ModbusTcpPortBase::read()
         case STATE_WAIT_FOR_READ:
         case STATE_WAIT_FOR_READ_ALL:
         {
-            int c = d->socket->recv(reinterpret_cast<char*>(d->buff()), size, 0);
+            int c = d->socket->recv(reinterpret_cast<char*>(d->buff()), d->buffMaxSize(), 0);
             if (c > 0)
             {
-                d->setBuffSz(static_cast<uint16_t>(c));
+                d->setBuffSize(static_cast<uint16_t>(c));
                 d->state = STATE_OPENED;
                 return Status_Good;
             }
@@ -264,13 +263,13 @@ Modbus::StatusCode ModbusTcpPortBase::read()
                     return Status_Uncertain;
                 else
                     return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
-                                                        StringLiteral("'. Remote connection closed") );
+                                                          StringLiteral("'. Remote connection closed") );
             }
             else if (isNonBlocking() && (GetTickCount() - d->timestamp >= d->timeout())) // waiting timeout read first byte elapsed
             {
                 this->close();
                 return d->setError(Modbus::Status_BadTcpReadTimeout, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
-                                                                    StringLiteral("'. Timeout") );
+                                                                     StringLiteral("'. Timeout") );
             }
             else
             {
@@ -279,8 +278,8 @@ Modbus::StatusCode ModbusTcpPortBase::read()
                 {
                     this->close();
                     return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
-                                                        StringLiteral("'. Error code: ") + toModbusString(err) +
-                                                        StringLiteral(". ") + getLastErrorText());
+                                                          StringLiteral("'. Error code: ") + toModbusString(err) +
+                                                          StringLiteral(". ") + getLastErrorText());
                 }
             }
         }

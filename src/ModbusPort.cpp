@@ -59,12 +59,12 @@ const uint8_t *ModbusPort::readBufferData() const
 
 uint16_t ModbusPort::readBufferMaxSize() const
 {
-    return d_ptr->buffMaxSz();
+    return d_ptr->buffMaxSize();
 }
 
 uint16_t ModbusPort::readBufferSize() const
 {
-    return d_ptr->buffSz();
+    return d_ptr->buffSize();
 }
 
 const uint8_t *ModbusPort::writeBufferData() const
@@ -74,12 +74,12 @@ const uint8_t *ModbusPort::writeBufferData() const
 
 uint16_t ModbusPort::writeBufferMaxSize() const
 {
-    return d_ptr->buffMaxSz();
+    return d_ptr->buffMaxSize();
 }
 
 uint16_t ModbusPort::writeBufferSize() const
 {
-    return d_ptr->buffSz();
+    return d_ptr->buffSize();
 }
 
 StatusCode ModbusPort::lastErrorStatus() const
@@ -94,7 +94,7 @@ const Modbus::Char *ModbusPort::lastErrorText() const
 
 StatusCode ModbusPort::writeRawBuffer(const void *buff, uint16_t szInBuff)
 {
-    if (szInBuff > d_ptr->buffMaxSz())
+    if (szInBuff > d_ptr->buffMaxSize())
         return d_ptr->setError(Status_BadWriteBufferOverflow, StringLiteral("Write-buffer overflow"));
     memcpy(d_ptr->buff(), buff, szInBuff);
     d_ptr->frame->sz = szInBuff;
@@ -103,7 +103,7 @@ StatusCode ModbusPort::writeRawBuffer(const void *buff, uint16_t szInBuff)
 
 StatusCode ModbusPort::readRawBuffer(void *buff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
-    uint16_t sz = d_ptr->buffSz();
+    uint16_t sz = d_ptr->buffSize();
     if (sz > maxSzBuff)
         return d_ptr->setError(Status_BadReadBufferOverflow, StringLiteral("Read-buffer overflow"));
     memcpy(buff, d_ptr->buff(), sz);

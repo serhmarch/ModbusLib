@@ -146,7 +146,7 @@ Modbus::StatusCode ModbusUdpPortBase::write()
         {
             int c = sendto(d->socket->socket(),
                         reinterpret_cast<char*>(d->buff()),
-                        d->buffSz(),
+                        d->buffSize(),
                         0,
                         d->p_sockaddr(),
                         sizeof(sockaddr));
@@ -183,7 +183,6 @@ Modbus::StatusCode ModbusUdpPortBase::write()
 Modbus::StatusCode ModbusUdpPortBase::read()
 {
     ModbusUdpPortBasePrivateWin *d = d_win(d_ptr);
-    const uint16_t size = d->buffMaxSz();
     bool fRepeatAgain;
     do
     {
@@ -201,13 +200,13 @@ Modbus::StatusCode ModbusUdpPortBase::read()
             int addrsz = sizeof(sockaddr);
             int c = recvfrom(d->socket->socket(),
                             reinterpret_cast<char*>(d->buff()),
-                            size,
+                            d->buffMaxSize(),
                             0,
                             d->p_sockaddr(),
                             &addrsz);
             if (c > 0)
             {
-                d->setBuffSz(static_cast<uint16_t>(c));
+                d->setBuffSize(static_cast<uint16_t>(c));
                 d->state = STATE_OPENED;
                 return Status_Good;
             }

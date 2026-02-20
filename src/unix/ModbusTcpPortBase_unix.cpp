@@ -197,7 +197,7 @@ StatusCode ModbusTcpPortBase::write()
         case STATE_WAIT_FOR_WRITE:
         case STATE_WAIT_FOR_WRITE_ALL:
         {
-            ssize_t c = d->socket->send(reinterpret_cast<char*>(d->buff()), d->buffSz(), 0);
+            ssize_t c = d->socket->send(reinterpret_cast<char*>(d->buff()), d->buffSize(), 0);
             if (c > 0)
             {
                 d->state = STATE_OPENED;
@@ -230,7 +230,6 @@ StatusCode ModbusTcpPortBase::write()
 StatusCode ModbusTcpPortBase::read()
 {
     ModbusTcpPortBasePrivateUnix *d = d_unix(d_ptr);
-    const uint16_t size = d->buffMaxSz();
     bool fRepeatAgain;
     do
     {
@@ -245,17 +244,17 @@ StatusCode ModbusTcpPortBase::read()
         case STATE_WAIT_FOR_READ:
         case STATE_WAIT_FOR_READ_ALL:
         {
-            ssize_t c = d->socket->recv(reinterpret_cast<char*>(d->buff()), d->buffSz(), 0);
+            ssize_t c = d->socket->recv(reinterpret_cast<char*>(d->buff()), d->buffMaxSize(), 0);
             if (c > 0)
             {
-                d->setBuffSz(static_cast<uint16_t>(c));
+                d->setBuffSize(static_cast<uint16_t>(c));
                 d->state = STATE_OPENED;
                 return Status_Good;
             }
             else if (c == 0)
             {
                 this->close();
-                // Note: When connection is remotely closed is not error for server side
+                // Note: When connection is remotely closed it is not error for server side
                 if (d->modeServer())
                     return Status_Uncertain;
                 else

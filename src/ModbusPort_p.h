@@ -35,9 +35,9 @@ class ModbusPortPrivate
 public:
     ModbusPortPrivate(ModbusFramePrivate *f, bool blocking) :
         frame(f),
-        modeBlocking(blocking),
         state(STATE_UNKNOWN),
         changed(false),
+        modeBlocking(blocking),
         errorStatus(Modbus::Status_Uncertain)
     {
         // this->settingsBase.timeout must be initialized in derived classes
@@ -61,10 +61,12 @@ public:
     inline void setChanged(bool changed) { this->changed = changed; }
     inline void clearChanged() { setChanged(false); }
     inline uint8_t* buff() const { return frame->buff; }
-    inline uint16_t buffSz() const { return frame->sz; }
-    inline void setBuffSz(uint16_t sz) { frame->sz = sz; }
-    inline void addBuffSz(uint16_t sz) { frame->sz += sz; }
-    inline uint16_t buffMaxSz() const { return frame->c_buffSz; }
+    inline uint8_t* buffNext() const { return frame->buff + frame->sz; }
+    inline uint16_t buffSize() const { return frame->sz; }
+    inline uint16_t buffMaxSize() const { return frame->c_buffSz; }
+    inline uint16_t buffFreeSize() const { return frame->c_buffSz - frame->sz; }
+    inline void setBuffSize(uint16_t sz) { frame->sz = sz; }
+    inline void addBuffSize(uint16_t sz) { frame->sz += sz; }
     inline StatusCode writeBuffer(uint8_t unit, uint8_t func, const uint8_t *buff, uint16_t szInBuff) { return frame->writeBuffer(unit, func, buff, szInBuff); }
     inline StatusCode readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff, uint16_t maxSzBuff, uint16_t *szOutBuff) { return frame->readBuffer(unit, func, buff, maxSzBuff, szOutBuff); }
     inline StatusCode lastErrorStatus() { return frame->lastErrorStatus(); }
