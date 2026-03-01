@@ -759,109 +759,218 @@ Modbus::StatusCode ModbusInterface::readCoils(uint8_t /*unit*/, uint16_t /*offse
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_READ_COILS_DISABLE
 
 #ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
 Modbus::StatusCode ModbusInterface::readDiscreteInputs(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, void */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
 
 #ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
 Modbus::StatusCode ModbusInterface::readHoldingRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_READ_HOLDING_REGISTERS_DISABLE
 
 #ifndef MBF_READ_INPUT_REGISTERS_DISABLE
 Modbus::StatusCode ModbusInterface::readInputRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, uint16_t */*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_READ_INPUT_REGISTERS_DISABLE
 
 #ifndef MBF_WRITE_SINGLE_COIL_DISABLE
 Modbus::StatusCode ModbusInterface::writeSingleCoil(uint8_t /*unit*/, uint16_t /*offset*/, bool /*value*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_WRITE_SINGLE_COIL_DISABLE
 
 #ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
 Modbus::StatusCode ModbusInterface::writeSingleRegister(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*value*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
 
 #ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
 Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t /*unit*/, uint8_t * /*status*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-Modbus::StatusCode ModbusInterface::diagnostics(uint8_t /*unit*/, uint16_t /*subfunc*/, uint8_t /*insize*/, const void * /*indata*/, uint8_t * /*outsize*/, void * /*outdata*/)
+
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnQueryData(uint8_t /*unit*/, uint8_t /*insize*/, const void * /*indata*/, uint8_t * /*outsize*/, void * /*outdata*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsRestartCommunicationsOption(uint8_t /*unit*/, bool /*clearEventLog*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnDiagnosticRegister(uint8_t /*unit*/, uint16_t * /*value*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsChangeAsciiInputDelimiter(uint8_t /*unit*/, char /*delimiter*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsForceListenOnlyMode(uint8_t /*unit*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsClearCountersAndDiagnosticRegister(uint8_t /*unit*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnBusMessageCount(uint8_t /*unit*/, uint16_t * /*count*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnBusCommunicationErrorCount(uint8_t /*unit*/, uint16_t * /*count*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnBusExceptionErrorCount(uint8_t /*unit*/, uint16_t * /*count*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnServerMessageCount(uint8_t /*unit*/, uint16_t * /*count*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnServerNoResponseCount(uint8_t /*unit*/, uint16_t * /*count*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnServerNAKCount(uint8_t /*unit*/, uint16_t * /*count*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnServerBusyCount(uint8_t /*unit*/, uint16_t * /*count*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsReturnBusCharacterOverrunCount(uint8_t /*unit*/, uint16_t * /*count*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+Modbus::StatusCode ModbusInterface::diagnosticsClearOverrunCounterAndFlag(uint8_t /*unit*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+
+#endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
 Modbus::StatusCode ModbusInterface::getCommEventCounter(uint8_t /*unit*/, uint16_t * /*status*/, uint16_t * /*eventCount*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
 Modbus::StatusCode ModbusInterface::getCommEventLog(uint8_t /*unit*/, uint16_t * /*status*/, uint16_t * /*eventCount*/, uint16_t * /*messageCount*/, uint8_t * /*eventBuffSize*/, uint8_t * /*eventBuff*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
 Modbus::StatusCode ModbusInterface::writeMultipleCoils(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const void * /*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*count*/, const uint16_t * /*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
 Modbus::StatusCode ModbusInterface::reportServerID(uint8_t /*unit*/, uint8_t * /*count*/, uint8_t * /*data*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+Modbus::StatusCode ModbusInterface::readFileRecord(uint8_t /*unit*/, uint8_t /*inSize*/, const void * /*inData*/, uint8_t * /*outSize*/, void * /*outData*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 Modbus::StatusCode ModbusInterface::maskWriteRegister(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*andMask*/, uint16_t /*orMask*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_MASK_WRITE_REGISTER_DISABLE
 
 #ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
-Modbus::StatusCode ModbusInterface::readWriteMultipleRegisters(uint8_t /*unit*/, uint16_t /*readOffset*/, uint16_t /*readCount*/, uint16_t */*readValues*/, uint16_t /*writeOffset*/, uint16_t /*writeCount*/, const uint16_t */*writeValues*/)
+Modbus::StatusCode ModbusInterface::readWriteMultipleRegisters(uint8_t /*unit*/, uint16_t /*readOffset*/, uint16_t /*readCount*/, uint16_t * /*readValues*/, uint16_t /*writeOffset*/, uint16_t /*writeCount*/, const uint16_t * /*writeValues*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
-Modbus::StatusCode ModbusInterface::readFIFOQueue(uint8_t /*unit*/, uint16_t /*fifoadr*/, uint16_t */*count*/, uint16_t */*values*/)
+Modbus::StatusCode ModbusInterface::readFIFOQueue(uint8_t /*unit*/, uint16_t /*fifoadr*/, uint16_t * /*count*/, uint16_t * /*values*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_READ_FIFO_QUEUE_DISABLE

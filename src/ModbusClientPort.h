@@ -193,8 +193,82 @@ public: // Main interface
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-    /// \details Same as `ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnostics(ModbusObject *client, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t maxOutsize, void *outdata, uint8_t *outsize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsRestartCommunicationsOption(ModbusObject *client, uint8_t unit, bool clearEventLog);
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnDiagnosticRegister(ModbusObject *client, uint8_t unit, uint16_t *value);
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(uint8_t unit, uint16_t *value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(ModbusObject *client, uint8_t unit, char delimiter);
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsForceListenOnlyMode(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsForceListenOnlyMode(ModbusObject *client, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(ModbusObject *client, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnBusMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnServerMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnServerNoResponseCount(ModbusObject *client, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnServerNAKCount(ModbusObject *client, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnServerBusyCount(ModbusObject *client, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(ModbusObject *client, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+    /// \details Same as `ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(ModbusObject *client, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+    
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
@@ -252,56 +326,6 @@ public: // Main interface
     Modbus::StatusCode writeMultipleCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const bool *values);
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
-public: // Diagnostics subfunctions
-
-#ifndef MBF_DIAGNOSTICS_DISABLE
-    /// \details Same as `ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t maxOutsize, void *outdata, uint8_t *outsize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
-
-    /// \details Same as `ModbusClientPort::diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsRestartCommunicationsOption(ModbusObject *client, uint8_t unit, bool clearEventLog);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnDiagnosticRegister(ModbusObject *client, uint8_t unit, uint16_t *value);
-
-    /// \details Same as `ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(uint8_t unit, uint16_t *value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(ModbusObject *client, uint8_t unit, char delimiter);
-
-    /// \details Same as `ModbusClientPort::diagnosticsForceListenOnlyMode(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsForceListenOnlyMode(ModbusObject *client, uint8_t unit);
-
-    /// \details Same as `ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(ModbusObject *client, uint8_t unit);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnBusMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnServerMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnServerNoResponseCount(ModbusObject *client, uint8_t unit, uint16_t *count);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnServerNAKCount(ModbusObject *client, uint8_t unit, uint16_t *count);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnServerBusyCount(ModbusObject *client, uint8_t unit, uint16_t *count);
-
-    /// \details Same as `ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(ModbusObject *client, uint8_t unit, uint16_t *count);
-
-    /// \details Same as `ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(ModbusObject *client, uint8_t unit);
-    
-#endif // MBF_DIAGNOSTICS_DISABLE
-
 public: // Modbus Interface
 
 #ifndef MBF_READ_COILS_DISABLE
@@ -333,7 +357,67 @@ public: // Modbus Interface
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-    Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata) override;
+
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+    Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata) override;
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+    Modbus::StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog) override;
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+    Modbus::StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value) override;
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+    Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter) override;
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+    Modbus::StatusCode diagnosticsForceListenOnlyMode(uint8_t unit) override;
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+    Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit) override;
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count) override;
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count) override;
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count) override;
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count) override;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count) override;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count) override;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count) override;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count) override;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+    Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit) override;
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
@@ -382,116 +466,6 @@ public: // Modbus Interface
     /// \details Same as `ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the input buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
     inline Modbus::StatusCode writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values) { return writeMultipleCoilsAsBoolArray(this, unit, offset, count, values); }
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
-
-public: // Diagnostics subfunctions
-
-#ifndef MBF_DIAGNOSTICS_DISABLE
-    /// \details Diagnostics subfunction provides an echo of the supplied data.
-    /// \param[in]  unit       Address of the remote Modbus device.
-    /// \param[in]  insize     Size of the input buffer (in bytes).
-    /// \param[in]  indata     Pointer to the buffer where the input (request) data is stored.
-    /// \param[in]  maxOutsize Maximum size of the buffer (in bytes) where the output data is stored.
-    /// \param[out] outdata    Pointer to the buffer where the output data is stored.
-    /// \param[out] outsize    Size of the buffer (in bytes) where the output data is stored.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
-
-    /// \details Diagnostics subfunction restart communication and clears all of device's event counters.
-    /// \param[in]  unit          Address of the remote Modbus device.
-    /// \param[in]  clearEventLog Clear Communications Event Log.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog);
-
-    /// \details Diagnostics subfunction returns contents of the remote device’s 16–bit diagnostic register.
-    /// \param[in]  unit          Address of the remote Modbus device.
-    /// \param[out] value         Pointer to the 16-bit value where the diagnostic register contents are stored.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value);
-
-    /// \details Diagnostics subfunction sets the character `delimiter` as the end of message delimiter 
-    /// for future messages (replacing the default LF character).
-    /// \param[in]  unit      Address of the remote Modbus device.
-    /// \param[in]  delimiter Character to be set as the end of message delimiter.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter);
-
-    /// \details Diagnostics subfunction forces the addressed remote device to its Listen Only Mode for MODBUS communications.
-    /// \param[in]  unit Address of the remote Modbus device.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsForceListenOnlyMode(uint8_t unit);
-
-    /// \details Diagnostics subfunction clear all counters and the diagnostic register.
-    /// \param[in]  unit Address of the remote Modbus device.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit);
-
-    /// \details Diagnostics subfunction returns the quantity of messages that the remote device has detected
-    /// on the communications system since its last restart, clear counters operation, or power –up.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \param[out] count Total message count.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count);
-
-    /// \details Diagnostics subfunction returns the quantity of CRC errors encountered by the remote device
-    /// since its last restart, clear counters operation, or power–up.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \param[out] count CRC Error Count.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count);
-
-    /// \details Diagnostics subfunction returns the quantity of MODBUS exception responses returned by the
-    /// remote device since its last restart, clear counters operation, or power–up.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \param[out] count Exception Error Count.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count);
-
-    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device, or
-    /// broadcast, that the remote device has processed since its last restart, clear counters operation, or power–up.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \param[out] count Server Message Count.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count);
-
-    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device for
-    /// which it has returned no response (neither a normal response nor an exception response),
-    /// since its last restart, clear counters operation, or power–up.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \param[out] count Server No Response Count.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count);
-
-    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device for
-    /// which it returned a Negative Acknowledge (NAK) exception response, since its last restart,
-    /// clear counters operation, or power–up.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \param[out] count Server NAK Count.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count);
-
-    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device for
-    /// which it returned a Server Device Busy exception response, since its last restart, clear
-    /// counters operation, or power–up.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \param[out] count Server Device Busy Count.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count);
-
-    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device that
-    /// it could not handle due to a character overrun condition, since its last restart, clear counters
-    /// operation, or power–up. A character overrun is caused by data characters arriving at the port
-    /// faster than they can be stored, or by the loss of a character due to a hardware malfunction.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \param[out] count Server Character Overrun Count.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count);
-
-    /// \details Diagnostics subfunction clears the overrun error counter and reset the error flag.
-    /// \param[in]  unit  Address of the remote Modbus device.
-    /// \return The result `Modbus::StatusCode` of the operation.
-    Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit);
-
-#endif // MBF_DIAGNOSTICS_DISABLE
 
 public:
     /// \details Returns the status of the last operation performed.

@@ -380,12 +380,21 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         }
         d->subfunc = buff[1] | (buff[0]<<8);
         d->count = sz - 2;
-        for (uint16_t i = 0; i < d->count; i++)
+        switch (d->subfunc)
         {
-            d->valueBuff[i*2  ] = buff[3+i*2];
-            d->valueBuff[i*2+1] = buff[2+i*2];
+        case MBF_DIAGNOSTICS_RETURN_QUERY_DATA:
+            break;
+        default:
+            if (d->count != 2) // Incorrect request from client - don't respond
+            {
+                const size_t len = 100;
+                Char errbuff[len];
+                snprintf(errbuff, len, StringLiteral("FC%02hhu. Subfunction %02hu. Data size must be 2"), d->func, d->subfunc);
+                return d->setError(Status_BadNotCorrectRequest, errbuff);
+            }
+            break;
         }
-        //memcpy(d->valueBuff, &buff[2], d->count);
+        memcpy(d->valueBuff, &buff[2], d->count);
         break;
 #endif // MBF_DIAGNOSTICS_DISABLE
 
@@ -633,7 +642,100 @@ StatusCode ModbusServerResource::processDevice()
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
     case MBF_DIAGNOSTICS:
-        r = d->device->diagnostics(d->unit, d->subfunc, d->byteCount, d->valueBuff, &d->outByteCount, d->valueBuff);
+        switch (d->subfunc)
+        {
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_QUERY_DATA:
+            r = d->device->diagnosticsReturnQueryData(d->unit, d->byteCount, d->valueBuff, &d->outByteCount, d->valueBuff);
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+        case MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION:
+            r = d->device->diagnosticsRestartCommunicationsOption(d->unit, d->valueBuff[0]);
+            break;
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER:
+            r = d->device->diagnosticsReturnDiagnosticRegister(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+        case MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER:
+            r = d->device->diagnosticsChangeAsciiInputDelimiter(d->unit, static_cast<char>(d->valueBuff[0]));
+            break;
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+        case MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE:
+            r = d->device->diagnosticsForceListenOnlyMode(d->unit);
+            break;
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+        case MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER:
+            r = d->device->diagnosticsClearCountersAndDiagnosticRegister(d->unit);
+            break;
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT:
+            r = d->device->diagnosticsReturnBusMessageCount(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT :
+            r = d->device->diagnosticsReturnBusCommunicationErrorCount(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT:
+            r = d->device->diagnosticsReturnBusExceptionErrorCount(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT:
+            r = d->device->diagnosticsReturnServerMessageCount(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT:
+            r = d->device->diagnosticsReturnServerNoResponseCount(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT:
+            r = d->device->diagnosticsReturnServerNAKCount(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT:
+            r = d->device->diagnosticsReturnServerBusyCount(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+        case MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT:
+            r = d->device->diagnosticsReturnBusCharacterOverrunCount(d->unit, reinterpret_cast<uint16_t*>(d->valueBuff));
+            break;
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+        case MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG:
+            r = d->device->diagnosticsClearOverrunCounterAndFlag(d->unit);
+            break;
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+        default:
+            return d->setError(Status_BadIllegalFunction, StringLiteral("Unsupported function"));
+        }
         break;
 #endif // MBF_DIAGNOSTICS_DISABLE
 
@@ -767,13 +869,27 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
     case MBF_DIAGNOSTICS:
         buff[0] = static_cast<uint8_t>(d->subfunc >> 8);      // address of register (Hi-byte)
         buff[1] = static_cast<uint8_t>(d->subfunc & 0xFF);    // address of register (Lo-byte)
-        sz = d->outByteCount+2;
-        for (int i = 0; i < sz; i++)
+        switch (d->subfunc)
         {
-            buff[i*2+2] = d->valueBuff[i*2+1];
-            buff[i*2+3] = d->valueBuff[i*2  ];
+        case MBF_DIAGNOSTICS_RETURN_QUERY_DATA:
+            memcpy(&buff[2], d->valueBuff, d->outByteCount);
+            sz = d->outByteCount+2;
+            break;
+        case MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION:
+        case MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER:
+        case MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE:
+        case MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER:
+        case MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG:
+            buff[0] = d->valueBuff[0]; 
+            buff[1] = d->valueBuff[1]; 
+            sz = 4;
+            break;
+        default:
+            buff[0] = d->valueBuff[1]; 
+            buff[1] = d->valueBuff[0]; 
+            sz = 4;
+            break;
         }
-
         break;
 #endif // MBF_DIAGNOSTICS_DISABLE
 

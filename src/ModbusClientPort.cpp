@@ -415,7 +415,7 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
 }
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
-#ifndef MBF_DIAGNOSTICS_DISABLE
+/*
 Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -433,11 +433,7 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
     case ModbusClientPort::Enable:
         buff[0] = reinterpret_cast<uint8_t*>(&subfunc)[1]; // Sub function - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&subfunc)[0]; // Sub function - LS BYTE
-        for (int i = 0; i < insize; i++)
-        {
-            buff[i*2+2] = reinterpret_cast<const uint8_t*>(indata)[i*2+1];
-            buff[i*2+3] = reinterpret_cast<const uint8_t*>(indata)[i*2];    
-        }
+        memcpy(&buff[2], indata, insize);
         d->subfunc = subfunc;
         // no need break
     case ModbusClientPort::Process:
@@ -462,11 +458,7 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
         sz = static_cast<uint8_t>(szOutBuff-2);
         if (sz > insize)
             sz = insize;
-        for (int i = 0; i < sz; i++)
-        {
-            reinterpret_cast<uint8_t*>(outdata)[i*2  ] = buff[i*2+3];
-            reinterpret_cast<uint8_t*>(outdata)[i*2+1] = buff[i*2+2];    
-        }
+        memcpy(outdata, &buff[2], sz);
         if (outsize)
             *outsize = sz;
         RAISE_COMPLETED(Modbus::Status_Good);
@@ -474,7 +466,761 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
         return Status_Processing;
     }
 }
+*/
+#ifndef MBF_DIAGNOSTICS_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 255;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+    uint8_t sz;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        if (insize > (szBuff - 2))
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC08. ReturnQueryData. Input data size %u is too large (max=%u)"), insize, (uint16_t)(szBuff - 2));
+            this->cancelRequest(client);
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
+        }
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_QUERY_DATA;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        memcpy(&buff[2], indata, insize);
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          insize+2,         // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff < 2)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnQueryData. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnQueryData. 'Subfunc' is not match received one"));
+        sz = static_cast<uint8_t>(szOutBuff-2);
+        if (sz > insize)
+            sz = insize;
+        memcpy(outdata, &buff[2], sz);
+        if (outsize)
+            *outsize = sz;
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(ModbusObject *client, uint8_t unit, bool clearEventLog)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+    uint8_t sz;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = (clearEventLog ? 0xFF : 0x00);              // Restart Option - 0xFF if true, 0x00 if false
+        buff[3] = 0x00;                                       // Restart Option - must always be 0x00
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. RestartCommunicationsOption. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. RestartCommunicationsOption. 'Subfunc' is not match received one"));
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+
+}
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(ModbusObject *client, uint8_t unit, uint16_t *value)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnDiagnosticRegister. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnDiagnosticRegister. 'Subfunc' is not match received one"));
+
+        *value = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(ModbusObject *client, uint8_t unit, char delimiter)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc, outValue;
+    uint16_t inValue = static_cast<uint8_t>(delimiter);
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = static_cast<uint8_t>(delimiter);            // Delimiter
+        buff[3] = 0;                                          // Delimiter - must always be 0x00
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ChangeAsciiInputDelimiter. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ChangeAsciiInputDelimiter. 'Subfunc' is not match received one"));
+
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(ModbusObject *client, uint8_t unit)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ForceListenOnlyMode. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ForceListenOnlyMode. 'Subfunc' is not match received one"));
+
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(ModbusObject *client, uint8_t unit)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc, outValue;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ClearCountersAndDiagnosticRegister. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ClearCountersAndDiagnosticRegister. 'Subfunc' is not match received one"));
+
+        outValue = buff[3] | (buff[2] << 8);
+        if (outValue != 0x0000)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ClearCountersAndDiagnosticRegister. 'Data' is not match received one"));
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnBusMessageCount. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnBusMessageCount. 'Subfunc' is not match received one"));
+
+        *count = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnBusCommunicationErrorCount. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnBusCommunicationErrorCount. 'Subfunc' is not match received one"));
+
+        *count = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnBusExceptionErrorCount. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnBusExceptionErrorCount. 'Subfunc' is not match received one"));
+
+        *count = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnServerMessageCount. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnServerMessageCount. 'Subfunc' is not match received one"));
+
+        *count = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnServerNoResponseCount. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnServerNoResponseCount. 'Subfunc' is not match received one"));
+
+        *count = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnServerNAKCount. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnServerNAKCount. 'Subfunc' is not match received one"));
+
+        *count = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnServerBusyCount. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnServerBusyCount. 'Subfunc' is not match received one"));
+
+        *count = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(ModbusObject *client, uint8_t unit, uint16_t *count)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnBusCharacterOverrunCount. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ReturnBusCharacterOverrunCount. 'Subfunc' is not match received one"));
+
+        *count = buff[3] | (buff[2] << 8);
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+Modbus::StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(ModbusObject *client, uint8_t unit)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 4;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff, outSubfunc, outValue;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        d->subfunc = MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG;
+        buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
+        buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
+        buff[2] = 0x00;
+        buff[3] = 0x00;
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,             // unit ID
+                          MBF_DIAGNOSTICS,  // modbus function number
+                          buff,             // in buffer
+                          4,                // count of input data bytes
+                          buff,             // out buffer
+                          szBuff,           // maximum size of buffer
+                          &szOutBuff);      // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff != 4)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ClearOverrunCounterAndFlag. Incorrect received data size"));
+
+        outSubfunc = buff[1] | (buff[0] << 8);
+        if (outSubfunc != d->subfunc)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ClearOverrunCounterAndFlag. 'Subfunc' is not match received one"));
+
+        outValue = buff[3] | (buff[2] << 8);
+        if (outValue != 0x0000)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. ClearOverrunCounterAndFlag. 'Data' is not match received one"));
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+
 #endif // MBF_DIAGNOSTICS_DISABLE
+
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
 Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount)
@@ -963,230 +1709,6 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoilsAsBoolArray(ModbusObject 
 }
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
-#ifndef MBF_DIAGNOSTICS_DISABLE
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
-{
-    return diagnostics(client,unit, MBDIAGN_RETURN_QUERY_DATA, insize, indata, outsize, outdata);
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(ModbusObject *client, uint8_t unit, bool clearEventLog)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = clearEventLog ? 0xFF00 : 0x0000;
-    uint16_t outbuff;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RESTART_COMMUNICATIONS_OPTION, sizeof(buff), &buff, &outsize, &outbuff);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(outbuff))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-        if (outbuff != buff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Restart Option' is not match received one"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(ModbusObject *client, uint8_t unit, uint16_t *value)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_DIAGNOSTIC_REGISTER, sizeof(buff), &buff, &outsize, value);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*value))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(ModbusObject *client, uint8_t unit, char delimiter)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = delimiter;
-    uint16_t outbuff;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_CHANGE_ASCII_INPUT_DELIMITER, sizeof(buff), &buff, &outsize, &outbuff);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(outbuff))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-        if (outbuff != buff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Restart Option' is not match received one"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(ModbusObject *client, uint8_t unit)
-{
-    uint16_t buff = 0x0000;
-    uint16_t outbuff;
-    uint8_t outsize;
-    return diagnostics(client, unit, MBDIAGN_FORCE_LISTEN_ONLY_MODE, sizeof(buff), &buff, &outsize, &outbuff);
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(ModbusObject *client, uint8_t unit)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint16_t outbuff;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER, sizeof(buff), &buff, &outsize, &outbuff);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(outbuff))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-        if (outbuff != buff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Restart Option' is not match received one"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_BUS_MESSAGE_COUNT, sizeof(buff), &buff, &outsize, count);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*count))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_BUS_COMMUNICATION_ERROR_COUNT, sizeof(buff), &buff, &outsize, count);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*count))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_BUS_EXCEPTION_ERROR_COUNT, sizeof(buff), &buff, &outsize, count);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*count))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_SERVER_MESSAGE_COUNT, sizeof(buff), &buff, &outsize, count);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*count))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(ModbusObject *client, uint8_t unit, uint16_t *count)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_SERVER_NO_RESPONSE_COUNT, sizeof(buff), &buff, &outsize, count);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*count))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(ModbusObject *client, uint8_t unit, uint16_t *count)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_SERVER_NAK_COUNT, sizeof(buff), &buff, &outsize, count);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*count))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(ModbusObject *client, uint8_t unit, uint16_t *count)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_SERVER_BUSY_COUNT, sizeof(buff), &buff, &outsize, count);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*count))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(ModbusObject *client, uint8_t unit, uint16_t *count)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_RETURN_BUS_CHARACTER_OVERRUN_COUNT, sizeof(buff), &buff, &outsize, count);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(*count))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-    }
-    return status;
-}
-
-Modbus::StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(ModbusObject *client, uint8_t unit)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    uint16_t buff = 0x0000;
-    uint16_t outbuff;
-    uint8_t outsize;
-    auto status = diagnostics(client, unit, MBDIAGN_CLEAR_OVERRUN_COUNTER_AND_FLAG, sizeof(buff), &buff, &outsize, &outbuff);
-    if (Modbus::StatusIsGood(status))
-    {
-        if (outsize != sizeof(outbuff))
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("Incorrect received data size"));
-        if (outbuff != buff)
-            return d->setError(Status_BadNotCorrectResponse, StringLiteral("'Restart Option' is not match received one"));
-    }
-    return status;
-}
-
-#endif // MBF_DIAGNOSTICS_DISABLE
-
 #ifndef MBF_READ_COILS_DISABLE
 StatusCode ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)
 {
@@ -1237,10 +1759,112 @@ StatusCode ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *value)
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-Modbus::StatusCode ModbusClientPort::diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
+
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
-    return diagnostics(this, unit, subfunc, insize, indata, outsize, outdata);
+    return diagnosticsReturnQueryData(this, unit, insize, indata, outsize, outdata);
 }
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog)
+{
+    return diagnosticsRestartCommunicationsOption(this, unit, clearEventLog);
+}
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value)
+{
+    return diagnosticsReturnDiagnosticRegister(this, unit, value);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter)
+{
+    return diagnosticsChangeAsciiInputDelimiter(this, unit, delimiter);
+}
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(uint8_t unit)
+{
+    return diagnosticsForceListenOnlyMode(this, unit);
+}
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit)
+{
+    return diagnosticsClearCountersAndDiagnosticRegister(this, unit);
+}
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnBusMessageCount(this, unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnBusCommunicationErrorCount(this, unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnBusExceptionErrorCount(this, unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnServerMessageCount(this, unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnServerNoResponseCount(this, unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnServerNAKCount(this, unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnServerBusyCount(this, unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnBusCharacterOverrunCount(this, unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(uint8_t unit)
+{
+    return diagnosticsClearOverrunCounterAndFlag(this, unit);
+}
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE

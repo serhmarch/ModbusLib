@@ -94,11 +94,127 @@ StatusCode ModbusClient::readExceptionStatus(uint8_t *value)
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-StatusCode ModbusClient::diagnostics(uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
+
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+StatusCode ModbusClient::diagnosticsReturnQueryData(uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
     ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->diagnostics(this, d->unit, subfunc, insize, indata, outsize, outdata);
+    return d->port->diagnosticsReturnQueryData(this, d->unit, insize, indata, outsize, outdata);
 }
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+StatusCode ModbusClient::diagnosticsRestartCommunicationsOption(bool clearEventLog)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsRestartCommunicationsOption(this, d->unit, clearEventLog);
+}
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+StatusCode ModbusClient::diagnosticsReturnDiagnosticRegister(uint16_t *value)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnDiagnosticRegister(this, d->unit, value);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+StatusCode ModbusClient::diagnosticsChangeAsciiInputDelimiter(char delimiter)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsChangeAsciiInputDelimiter(this, d->unit, delimiter);
+}
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+StatusCode ModbusClient::diagnosticsForceListenOnlyMode()
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsForceListenOnlyMode(this, d->unit);
+}
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+StatusCode ModbusClient::diagnosticsClearCountersAndDiagnosticRegister()
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsClearCountersAndDiagnosticRegister(this, d->unit);
+}
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+StatusCode ModbusClient::diagnosticsReturnBusMessageCount(uint16_t *count)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnBusMessageCount(this, d->unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+StatusCode ModbusClient::diagnosticsReturnBusCommunicationErrorCount(uint16_t *count)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnBusCommunicationErrorCount(this, d->unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+StatusCode ModbusClient::diagnosticsReturnBusExceptionErrorCount(uint16_t *count)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnBusExceptionErrorCount(this, d->unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+StatusCode ModbusClient::diagnosticsReturnServerMessageCount(uint16_t *count)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnServerMessageCount(this, d->unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+StatusCode ModbusClient::diagnosticsReturnServerNoResponseCount(uint16_t *count)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnServerNoResponseCount(this, d->unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+StatusCode ModbusClient::diagnosticsReturnServerNAKCount(uint16_t *count)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnServerNAKCount(this, d->unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+StatusCode ModbusClient::diagnosticsReturnServerBusyCount(uint16_t *count)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnServerBusyCount(this, d->unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+StatusCode ModbusClient::diagnosticsReturnBusCharacterOverrunCount(uint16_t *count)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsReturnBusCharacterOverrunCount(this, d->unit, count);
+}
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+StatusCode ModbusClient::diagnosticsClearOverrunCounterAndFlag()
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->diagnosticsClearOverrunCounterAndFlag(this, d->unit);
+}
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE

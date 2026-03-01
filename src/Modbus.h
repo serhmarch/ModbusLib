@@ -115,18 +115,141 @@ public:
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-    /// \details Function provides a series of tests for checking the communication system between a client device and a server,
-    /// or for checking various internal error conditions within a server.
+
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+    /// \details Diagnostics subfunction provides an echo of the supplied data.
     /// \param[in]  unit       Address of the remote Modbus device.
-    /// \param[in]  subfunc    Address of the remote Modbus device.
     /// \param[in]  insize     Size of the input buffer (in bytes).
     /// \param[in]  indata     Pointer to the buffer where the input (request) data is stored.
     /// \param[in]  maxOutsize Maximum size of the buffer (in bytes) where the output data is stored.
     /// \param[out] outdata    Pointer to the buffer where the output data is stored.
     /// \param[out] outsize    Size of the buffer (in bytes) where the output data is stored.
-    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
-#endif // MBF_DIAGNOSTICS_DISABLE
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+    /// \details Diagnostics subfunction restart communication and clears all of device's event counters.
+    /// \param[in]  unit          Address of the remote Modbus device.
+    /// \param[in]  clearEventLog Clear Communications Event Log.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog);
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+    /// \details Diagnostics subfunction returns contents of the remote device’s 16–bit diagnostic register.
+    /// \param[in]  unit          Address of the remote Modbus device.
+    /// \param[out] value         Pointer to the 16-bit value where the diagnostic register contents are stored.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value);
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+    /// \details Diagnostics subfunction sets the character `delimiter` as the end of message delimiter 
+    /// for future messages (replacing the default LF character).
+    /// \param[in]  unit      Address of the remote Modbus device.
+    /// \param[in]  delimiter Character to be set as the end of message delimiter.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter);
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+    /// \details Diagnostics subfunction forces the addressed remote device to its Listen Only Mode for MODBUS communications.
+    /// \param[in]  unit Address of the remote Modbus device.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsForceListenOnlyMode(uint8_t unit);
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+    /// \details Diagnostics subfunction clear all counters and the diagnostic register.
+    /// \param[in]  unit Address of the remote Modbus device.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit);
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+    /// \details Diagnostics subfunction returns the quantity of messages that the remote device has detected
+    /// on the communications system since its last restart, clear counters operation, or power –up.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \param[out] count Total message count.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+    /// \details Diagnostics subfunction returns the quantity of CRC errors encountered by the remote device
+    /// since its last restart, clear counters operation, or power–up.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \param[out] count CRC Error Count.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+    /// \details Diagnostics subfunction returns the quantity of MODBUS exception responses returned by the
+    /// remote device since its last restart, clear counters operation, or power–up.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \param[out] count Exception Error Count.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device, or
+    /// broadcast, that the remote device has processed since its last restart, clear counters operation, or power–up.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \param[out] count Server Message Count.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device for
+    /// which it has returned no response (neither a normal response nor an exception response),
+    /// since its last restart, clear counters operation, or power–up.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \param[out] count Server No Response Count.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device for
+    /// which it returned a Negative Acknowledge (NAK) exception response, since its last restart,
+    /// clear counters operation, or power–up.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \param[out] count Server NAK Count.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device for
+    /// which it returned a Server Device Busy exception response, since its last restart, clear
+    /// counters operation, or power–up.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \param[out] count Server Device Busy Count.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+    /// \details Diagnostics subfunction returns the quantity of messages addressed to the remote device that
+    /// it could not handle due to a character overrun condition, since its last restart, clear counters
+    /// operation, or power–up. A character overrun is caused by data characters arriving at the port
+    /// faster than they can be stored, or by the loss of a character due to a hardware malfunction.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \param[out] count Server Character Overrun Count.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+    /// \details Diagnostics subfunction clears the overrun error counter and reset the error flag.
+    /// \param[in]  unit  Address of the remote Modbus device.
+    /// \return The result `Modbus::StatusCode` of the operation.
+    virtual Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit);
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
     /// \details Function is used to get a status word and an event count from the remote device's communication event counter.
@@ -136,6 +259,8 @@ public:
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount);
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
+
+#endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
     /// \details Function is used to get a status word and an event count from the remote device's communication event counter.
@@ -178,6 +303,18 @@ public:
     virtual Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+    /// \details Function is used to read one or more file records from a remote device.
+    /// Request and response payloads contain File Record sub-requests/sub-responses as defined by MODBUS specification.
+    /// \param[in]  unit      Address of the remote Modbus device.
+    /// \param[in]  inSize    Size of request payload (in bytes).
+    /// \param[in]  inData    Pointer to request payload buffer (File Record sub-requests).
+    /// \param[out] outSize   Returned size of response payload (in bytes).
+    /// \param[out] outData   Pointer to response payload buffer (File Record sub-responses).
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readFileRecord(uint8_t unit, uint8_t inSize, const void *inData, uint8_t *outSize, void *outData);
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     /// \details Function is used to modify the contents of a specified holding register using a
     /// combination of an AND mask, an OR mask, and the register's current contents.
@@ -213,6 +350,8 @@ public:
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
+
+public: // Diagnostics subfunctions
 
 };
 
