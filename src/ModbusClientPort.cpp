@@ -1482,6 +1482,168 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
 }
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t *outSize, void *outData)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 300;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff;
+    uint8_t byteCount = 0, c;
+    uint8_t i;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        if (recordsCount > 35) // floor(255 / 7)
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC20. Requested records count %u is too large (max=%u)"), recordsCount, 35u);
+            this->cancelRequest(client);
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
+        }
+
+        byteCount = static_cast<uint8_t>(recordsCount * 7);
+        buff[0] = byteCount;
+        for (i = 0; i < recordsCount; ++i)
+        {
+            buff[1 + i * 7] = 0x06; // Reference Type
+            buff[2 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].fileNumber)[1];
+            buff[3 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].fileNumber)[0];
+            buff[4 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].recordNumber)[1];
+            buff[5 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].recordNumber)[0];
+            buff[6 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].recordLength)[1];
+            buff[7 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].recordLength)[0];
+        }
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,                 // unit ID
+                          MBF_READ_FILE_RECORD, // modbus function number
+                          buff,                 // in buffer
+                          static_cast<uint16_t>(buff[0] + 1), // count of input data bytes
+                          buff,                 // out buffer
+                          szBuff,               // maximum size of buffer
+                          &szOutBuff);          // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff == 0)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC20. Incorrect received data size"));
+
+        byteCount = buff[0];
+        if (szOutBuff != static_cast<uint16_t>(byteCount + 1))
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC20. 'ByteCount' parameter doesn't match actual data size"));
+        
+        c = 0;
+        for (i = 1; i < byteCount; )
+        {
+            uint8_t fileRespLength = buff[i];
+            if ((fileRespLength < 1) || (fileRespLength & 1))
+            {
+                const size_t len = 120;
+                Char errbuff[len];
+                snprintf(errbuff, len, StringLiteral("FC20. Incorrect record data length: %hhu"), fileRespLength);
+                RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, errbuff);
+            }
+
+            uint8_t refType = buff[i+1];
+            if (refType != 0x06)
+            {
+                const size_t len = 150;
+                Char errbuff[len];
+                snprintf(errbuff, len, StringLiteral("FC20. Incorrect Reference Type %u in record %u (expected 6)"), refType, (i-1)/7);
+                RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, errbuff);
+            }
+
+            for (uint8_t j = 0; j < (fileRespLength-1)/2; ++j)
+            {
+                reinterpret_cast<uint8_t*>(outData)[c  ] = buff[i + 3 + j*2];
+                reinterpret_cast<uint8_t*>(outData)[c+1] = buff[i + 2 + j*2];
+                c += 2;
+            }
+            i += fileRespLength+1;
+        }
+
+        *outSize = c;
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t inSize, const void *inData)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    const uint16_t szBuff = 300;
+
+    uint8_t buff[szBuff];
+    Modbus::StatusCode r;
+    uint16_t szOutBuff;
+    uint16_t c;
+    uint16_t pos;
+    uint8_t i;
+
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+        pos = 1;
+        c = 0;
+        for (i = 0; i < recordsCount; ++i)
+        {
+            buff[pos++] = 0x06; // Reference Type
+            buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].fileNumber)[1];
+            buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].fileNumber)[0];
+            buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].recordNumber)[1];
+            buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].recordNumber)[0];
+            buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].recordLength)[1];
+            buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].recordLength)[0];
+            uint16_t len = records[i].recordLength;
+            for (uint16_t j = 0; j < len; ++j)
+            {
+                buff[pos++] = reinterpret_cast<const uint8_t*>(inData)[c + j*2 + 1];
+                buff[pos++] = reinterpret_cast<const uint8_t*>(inData)[c + j*2];
+            }
+            c += len * 2;
+        }
+        buff[0] = static_cast<uint8_t>(c);
+        // no need break
+    case ModbusClientPort::Process:
+        r = this->request(unit,                  // unit ID
+                          MBF_WRITE_FILE_RECORD, // modbus function number
+                          buff,                  // in buffer
+                          static_cast<uint16_t>(buff[0] + 1), // count of input data bytes
+                          buff,                  // out buffer
+                          szBuff,                // maximum size of buffer
+                          &szOutBuff);           // count of output data bytes
+        if (StatusIsProcessing(r))
+            return r;
+        if (!StatusIsGood(r) || d->isBroadcast())
+            RAISE_COMPLETED(r);
+
+        if (szOutBuff == 0)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC21. Incorrect received data size"));
+
+        if (szOutBuff != static_cast<uint16_t>(buff[0] + 1))
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC21. 'ByteCount' parameter doesn't match actual data size"));
+
+        RAISE_COMPLETED(Modbus::Status_Good);
+    default:
+        return Status_Processing;
+    }
+}
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
+
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
 {
@@ -1896,11 +2058,25 @@ StatusCode ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offse
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
-Modbus::StatusCode ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)
+StatusCode ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)
 {
     return reportServerID(this, unit, count, data);
 }
 #endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+StatusCode ModbusClientPort::readFileRecord(uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t *outSize, void *outData)
+{
+    return readFileRecord(this, unit, recordsCount, records, outSize, outData);
+}
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+StatusCode ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t inSize, const void *inData)
+{
+    return writeFileRecord(this, unit, recordsCount, records, inSize, inData);
+}
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 StatusCode ModbusClientPort::maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)

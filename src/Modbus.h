@@ -306,14 +306,26 @@ public:
 #ifndef MBF_READ_FILE_RECORD_DISABLE
     /// \details Function is used to read one or more file records from a remote device.
     /// Request and response payloads contain File Record sub-requests/sub-responses as defined by MODBUS specification.
-    /// \param[in]  unit      Address of the remote Modbus device.
-    /// \param[in]  inSize    Size of request payload (in bytes).
-    /// \param[in]  inData    Pointer to request payload buffer (File Record sub-requests).
-    /// \param[out] outSize   Returned size of response payload (in bytes).
-    /// \param[out] outData   Pointer to response payload buffer (File Record sub-responses).
+    /// \param[in]  unit          Address of the remote Modbus device.
+    /// \param[in]  recordsCount  Count of file records to read.
+    /// \param[in]  records       Pointer to array of `Modbus::FileRecord` structures representing the file records to read.
+    /// \param[out] outSize       Returned size of response payload (in bytes).
+    /// \param[out] outData       Pointer to response payload buffer (File Record sub-responses).
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode readFileRecord(uint8_t unit, uint8_t inSize, const void *inData, uint8_t *outSize, void *outData);
+    virtual Modbus::StatusCode readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData);
 #endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    /// \details Function is used to write one or more file records to a remote device.
+    /// Request and response payloads contain File Record sub-requests/sub-responses as defined by MODBUS specification.
+    /// \param[in]  unit          Address of the remote Modbus device.
+    /// \param[in]  recordsCount  Count of file records to write.
+    /// \param[in]  records       Pointer to array of `Modbus::FileRecord` structures representing the file records to write.
+    /// \param[in]  inSize        Size of input payload (in bytes).
+    /// \param[in]  inData        Pointer to input payload buffer (File Record sub-requests).
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData);
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     /// \details Function is used to modify the contents of a specified holding register using a

@@ -510,6 +510,89 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         break;
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+    case MBF_READ_FILE_RECORD:
+    {
+        if (sz < 8) // Incorrect request from client - don't respond, minimum 1 record (7 bytes) + 1 byte count
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
+        d->recordsCount = buff[0] / 7; // each record is 7 bytes
+        if (sz != 1 + d->recordsCount*7) // don't match readed bytes and number of records to follow
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
+        auto records = d->fileRecordBuff();
+        for (uint8_t i = 0; i < d->recordsCount; i++)
+        {
+            const uint8_t *recBuff = &buff[1+i*7];
+            auto referenceType = recBuff[0];
+            if (referenceType != 0x06) // Incorrect request from client - don't respond
+            {
+                const size_t len = 100;
+                Char errbuff[len];
+                snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect reference type %hhu in record %hhu"), d->func, referenceType, i);
+                return d->setError(Status_BadNotCorrectRequest, errbuff);
+            }
+            records[i].fileNumber    = recBuff[2] | (recBuff[1]<<8);
+            records[i].recordNumber  = recBuff[4] | (recBuff[3]<<8);
+            records[i].recordLength  = recBuff[6] | (recBuff[5]<<8);
+        }
+        break;
+    }
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    case MBF_WRITE_FILE_RECORD:
+    {
+        if (sz < 8 || (buff[0] != sz-1)) // Incorrect request from client - don't respond, minimum 1 record (7 bytes) + 1 byte count
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect received data size"), d->func);
+            return d->setError(Status_BadNotCorrectRequest, errbuff);
+        }
+        const uint8_t szDataBuff = 255;
+        uint8_t dataBuff[szDataBuff];
+        d->recordsCount = 0;
+        auto records = d->fileRecordBuff();
+        uint8_t c = 0;
+        for (uint8_t i = 1; i < sz;)
+        {
+            const uint8_t *recBuff = &buff[i];
+            auto referenceType = recBuff[0];
+            if (referenceType != 0x06) // Incorrect request from client - don't respond
+            {
+                const size_t len = 100;
+                Char errbuff[len];
+                snprintf(errbuff, len, StringLiteral("FC%02hhu. Incorrect reference type %hhu in record %hhu"), d->func, referenceType, d->recordsCount);
+                return d->setError(Status_BadNotCorrectRequest, errbuff);
+            }
+            records[d->recordsCount].fileNumber    = recBuff[2] | (recBuff[1]<<8);
+            records[d->recordsCount].recordNumber  = recBuff[4] | (recBuff[3]<<8);
+            records[d->recordsCount].recordLength  = recBuff[6] | (recBuff[5]<<8);
+            auto len = records[d->recordsCount].recordLength;
+            for (uint16_t j = 0; j < len; ++j)
+            {
+                dataBuff[j*2  ] = recBuff[8+j*2];
+                dataBuff[j*2+1] = recBuff[7+j*2];
+            }
+            d->recordsCount++;
+            c += len*2;
+            i += 7 + c;
+        }
+        memcpy(d->fileDataBuff(), dataBuff, c);
+        d->fileDataBuffSize = c;
+    }
+        break;
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
+
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     case MBF_MASK_WRITE_REGISTER:
         if (sz != 6) // Incorrect request from client - don't respond
@@ -769,6 +852,18 @@ StatusCode ModbusServerResource::processDevice()
         break;
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+    case MBF_READ_FILE_RECORD:
+        r = d->device->readFileRecord(d->unit, d->recordsCount, d->fileRecordBuff(), &d->fileDataBuffSize, d->fileDataBuff());
+        break;
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    case MBF_WRITE_FILE_RECORD:
+        r = d->device->writeFileRecord(d->unit, d->recordsCount, d->fileRecordBuff(), d->fileDataBuffSize, d->fileDataBuff());
+        break;
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
+
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     case MBF_MASK_WRITE_REGISTER:
         r = d->device->maskWriteRegister(d->unit, d->offset, d->andMask, d->orMask);
@@ -939,6 +1034,61 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
         sz = d->outByteCount+1;
         break;
 #endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+    case MBF_READ_FILE_RECORD:
+    {
+        uint8_t buffSz = 1;
+        uint8_t dataPtr = 0;
+        for (uint8_t i = 0; i < d->recordsCount; i++)
+        {
+            const auto &rec = d->fileRecordBuff()[i];
+            uint8_t *recBuff = &buff[buffSz];
+            recBuff[0] = rec.recordLength*2+1; // reference type
+            recBuff[1] = 0x06; // reference type
+            for (uint16_t j = 0; j < rec.recordLength; ++j)
+            {
+                recBuff[2+j*2] = d->fileDataBuff()[dataPtr+j*2+1];
+                recBuff[3+j*2] = d->fileDataBuff()[dataPtr+j*2  ];
+            }
+            dataPtr += rec.recordLength * 2;
+            buffSz += rec.recordLength * 2 + 2;
+        }
+        buff[0] = buffSz+1; // byte count
+        sz = buffSz + 1;
+    }
+        break;
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    case MBF_WRITE_FILE_RECORD:
+    {
+        uint8_t buffSz = 1;
+        uint8_t dataPtr = 0;
+        for (uint8_t i = 0; i < d->recordsCount; i++)
+        {
+            const auto &rec = d->fileRecordBuff()[i];
+            uint8_t *recBuff = &buff[buffSz];
+            recBuff[0] = 0x06; // reference type
+            recBuff[1] = reinterpret_cast<const uint8_t*>(&rec.fileNumber)[1];
+            recBuff[2] = reinterpret_cast<const uint8_t*>(&rec.fileNumber)[0]; 
+            recBuff[3] = reinterpret_cast<const uint8_t*>(&rec.recordNumber)[1]; 
+            recBuff[4] = reinterpret_cast<const uint8_t*>(&rec.recordNumber)[0]; 
+            recBuff[5] = reinterpret_cast<const uint8_t*>(&rec.recordLength)[1]; 
+            recBuff[6] = reinterpret_cast<const uint8_t*>(&rec.recordLength)[0]; 
+            for (uint16_t j = 0; j < rec.recordLength; ++j)
+            {
+                recBuff[7+j*2] = d->fileDataBuff()[dataPtr+j*2+1];
+                recBuff[8+j*2] = d->fileDataBuff()[dataPtr+j*2  ];
+            }
+            dataPtr += rec.recordLength * 2;
+            buffSz += rec.recordLength * 2 + 7;
+        }
+        buff[0] = buffSz+1; // byte count
+        sz = buffSz + 1;
+    }
+        break;
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     case MBF_MASK_WRITE_REGISTER:

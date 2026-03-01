@@ -449,6 +449,14 @@ Q_ENUM_NS(StopBits)
 Q_ENUM_NS(FlowControl)
 #endif
 
+/// \brief Struct to define settings for file record (used in function read/write file record)
+typedef struct 
+{
+    uint16_t fileNumber  ; ///< Value for the file number
+    uint16_t recordNumber; ///< Value for the record number
+    uint16_t recordLength; ///< Value for the record length
+} FileRecord;
+
 /// \brief Struct to define settings for Serial Port
 typedef struct 
 {

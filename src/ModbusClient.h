@@ -226,6 +226,16 @@ public:
     Modbus::StatusCode reportServerID(uint8_t *count, uint8_t *data);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+    /// \details Same as `ModbusInterface::readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode readFileRecord(uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData);
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    /// \details Same as `ModbusInterface::writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode writeFileRecord(uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData);
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
+
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     /// \details Same as `ModbusInterface::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
     Modbus::StatusCode maskWriteRegister(uint16_t offset, uint16_t andMask, uint16_t orMask);

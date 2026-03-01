@@ -948,11 +948,18 @@ Modbus::StatusCode ModbusInterface::reportServerID(uint8_t /*unit*/, uint8_t * /
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
-Modbus::StatusCode ModbusInterface::readFileRecord(uint8_t /*unit*/, uint8_t /*inSize*/, const void * /*inData*/, uint8_t * /*outSize*/, void * /*outData*/)
+Modbus::StatusCode ModbusInterface::readFileRecord(uint8_t /*unit*/, uint8_t /*recordsCount*/, const Modbus::FileRecord * /*records*/, uint8_t * /*outSize*/, void * /*outData*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 #endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+Modbus::StatusCode ModbusInterface::writeFileRecord(uint8_t /*unit*/, uint8_t /*recordsCount*/, const Modbus::FileRecord * /*records*/, uint8_t /*inSize*/, const void * /*inData*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 Modbus::StatusCode ModbusInterface::maskWriteRegister(uint8_t /*unit*/, uint16_t /*offset*/, uint16_t /*andMask*/, uint16_t /*orMask*/)

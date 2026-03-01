@@ -51,6 +51,8 @@ public:
         return status;
     }
 
+    inline Modbus::FileRecord *fileRecordBuff() { return reinterpret_cast<Modbus::FileRecord*>(valueBuff); } 
+    inline uint8_t *fileDataBuff() { return valueBuff + sizeof(Modbus::FileRecord) * recordsCount; }   
 public:
     ModbusPort *port;
     uint8_t unit;
@@ -65,6 +67,7 @@ public:
     union {
     uint16_t count;
     uint8_t byteCount;
+    uint8_t recordsCount;
     };
 
     union  {
@@ -77,9 +80,11 @@ public:
     uint16_t orMask;
     uint16_t writeCount;
     uint8_t outByteCount;
+    uint8_t fileDataBuffSize;
     };
 
     uint8_t valueBuff[MBSERVER_SZ_VALUE_BUFF];
+
     bool isLastPortError;
 
 };

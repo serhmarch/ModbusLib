@@ -257,6 +257,22 @@ StatusCode ModbusClient::reportServerID(uint8_t *count, uint8_t *data)
 }
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+StatusCode ModbusClient::readFileRecord(uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->readFileRecord(this, d->unit, recordsCount, records, outSize, outData);
+}
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+StatusCode ModbusClient::writeFileRecord(uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->writeFileRecord(this, d->unit, recordsCount, records, inSize, inData);
+}
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
+
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 StatusCode ModbusClient::maskWriteRegister(uint16_t offset, uint16_t andMask, uint16_t orMask)
 {

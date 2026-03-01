@@ -296,6 +296,16 @@ public: // Main interface
     Modbus::StatusCode reportServerID(ModbusObject *client, uint8_t unit, uint8_t *count, uint8_t *data);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+    /// \details Same as `ModbusClientPort::readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode readFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData);
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    /// \details Same as `ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode writeFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData);
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
+
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode maskWriteRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
@@ -439,6 +449,14 @@ public: // Modbus Interface
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
     Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data) override;
 #endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+    Modbus::StatusCode readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData) override;
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData) override;
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask) override;
