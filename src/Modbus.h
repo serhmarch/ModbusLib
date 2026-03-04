@@ -41,6 +41,7 @@ class ModbusServerPort;
     * 22 (0x16) - `MASK_WRITE_REGISTER`
     * 23 (0x17) - `READ_WRITE_MULTIPLE_REGISTERS`
     * 24 (0x18) - `READ_FIFO_QUEUE`
+    * 43 (0x2B) - `ENCAPSULATED_INTERFACE_TRANSPORT` (Read Device Identification, MEI type 0x0E)
 
     Default implementation of every Modbus function returns `Modbus::Status_BadIllegalFunction`.
  */
@@ -363,7 +364,20 @@ public:
     virtual Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
-public: // Diagnostics subfunctions
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+    /// \details Function for Read Device Identification (FC43, MEI type 0x0E).
+    /// Reads identity objects (vendor name, product code, revision, etc.) from a remote device.
+    /// The response is returned as raw bytes — the caller is responsible for parsing the
+    /// TLV (Type-Length-Value) object list from the response payload.
+    /// \param[in]  unit       Address of the remote Modbus device.
+    /// \param[in]  readDevId  Read Device ID code: 1=Basic, 2=Regular, 3=Extended, 4=Specific.
+    /// \param[in]  objectId   Starting object ID to read from (0x00-0xFF).
+    /// \param[out] data       Pointer to output buffer for raw MEI response data.
+    ///                        Buffer must be at least MB_VALUE_BUFF_SZ bytes.
+    /// \param[out] dataSize   Number of bytes written into data buffer.
+    /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
+    virtual Modbus::StatusCode readDeviceIdentification(uint8_t unit, uint8_t readDevId, uint8_t objectId, uint8_t *data, uint8_t *dataSize);
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 };
 

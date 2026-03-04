@@ -144,9 +144,46 @@
 /// \brief Encapsulated interface transport (function code 43)
 #define MBF_ENCAPSULATED_INTERFACE_TRANSPORT    43
 /// \brief Illegal function code indicator
-#define MBF_ILLEGAL_FUNCTION                    73 
+#define MBF_ILLEGAL_FUNCTION                    73
 /// \brief Exception response flag (bit 7 set)
-#define MBF_EXCEPTION                           128    
+#define MBF_EXCEPTION                           128
+///\}
+
+/// \name MEI (Modbus Encapsulated Interface) Constants
+/// Constants for FC43 Encapsulated Interface Transport
+///\{
+
+/// \brief MEI Type for Read Device Identification (sub-function of FC43)
+#define MB_MEI_TYPE_READ_DEVICE_ID          0x0E
+
+/// \brief Read Device ID Code: Basic identification (objects 0x00-0x02)
+#define MB_READ_DEVICE_ID_BASIC             0x01
+/// \brief Read Device ID Code: Regular identification (objects 0x00-0x06)
+#define MB_READ_DEVICE_ID_REGULAR           0x02
+/// \brief Read Device ID Code: Extended identification (objects 0x00-0xFF)
+#define MB_READ_DEVICE_ID_EXTENDED          0x03
+/// \brief Read Device ID Code: Specific identification (one individual object)
+#define MB_READ_DEVICE_ID_SPECIFIC          0x04
+
+/// \brief Device ID Object: Vendor Name (mandatory, basic)
+#define MB_DEVICE_ID_VENDOR_NAME            0x00
+/// \brief Device ID Object: Product Code (mandatory, basic)
+#define MB_DEVICE_ID_PRODUCT_CODE           0x01
+/// \brief Device ID Object: Major Minor Revision (mandatory, basic)
+#define MB_DEVICE_ID_MAJOR_MINOR_REVISION   0x02
+/// \brief Device ID Object: Vendor URL (optional, regular)
+#define MB_DEVICE_ID_VENDOR_URL             0x03
+/// \brief Device ID Object: Product Name (optional, regular)
+#define MB_DEVICE_ID_PRODUCT_NAME           0x04
+/// \brief Device ID Object: Model Name (optional, regular)
+#define MB_DEVICE_ID_MODEL_NAME             0x05
+/// \brief Device ID Object: User Application Name (optional, regular)
+#define MB_DEVICE_ID_USER_APPLICATION_NAME  0x06
+
+/// \brief More Follows flag: additional objects available
+#define MB_MORE_FOLLOWS                     0xFF
+/// \brief More Follows flag: no more objects
+#define MB_NO_MORE_FOLLOWS                  0x00
 ///\}
 
 
