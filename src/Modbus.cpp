@@ -811,3 +811,10 @@ Modbus::StatusCode ModbusInterface::readFIFOQueue(uint8_t /*unit*/, uint16_t /*f
     return Modbus::Status_BadIllegalFunction;
 }
 #endif
+
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+Modbus::StatusCode ModbusInterface::readDeviceIdentification(uint8_t /*unit*/, uint8_t /*readDevId*/, uint8_t /*objectId*/, uint8_t * /*data*/, uint8_t * /*dataSize*/)
+{
+    return Modbus::Status_BadIllegalFunction;
+}
+#endif
