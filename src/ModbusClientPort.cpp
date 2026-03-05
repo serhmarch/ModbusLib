@@ -1822,7 +1822,9 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *client, uint8_t unit, uint8_t readDevId, uint8_t objectId, uint8_t *data, uint8_t *dataSize)
+
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *client, uint8_t unit, uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 
@@ -1831,30 +1833,33 @@ Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *clie
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
     uint16_t szOutBuff;
+    uint8_t sz;
 
     ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
     switch (status)
     {
     case ModbusClientPort::Enable:
         // Validate Read Device ID code (1=Basic, 2=Regular, 3=Extended, 4=Specific)
-        if (readDevId < MB_READ_DEVICE_ID_BASIC || readDevId > MB_READ_DEVICE_ID_SPECIFIC)
+        if (readDeviceId < MB_MEI_READ_DEVICE_ID_BASIC || readDeviceId > MB_MEI_READ_DEVICE_ID_SPECIFIC)
         {
             this->cancelRequest(client);
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest,
-                StringLiteral("FC43. Invalid Read Device ID code"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, StringLiteral("FC43. Invalid Read Device ID code"));
         }
         // Pack 3-byte MEI request: [MEI Type, Read Dev ID Code, Object ID]
         buff[0] = MB_MEI_TYPE_READ_DEVICE_ID;  // MEI Type = 0x0E (Read Device Identification)
-        buff[1] = readDevId;                    // Read Device ID code
-        buff[2] = objectId;                     // Object ID to start reading from
+        buff[1] = readDeviceId;                // Read Device ID code
+        buff[2] = objectId;                    // Object ID to start reading from
+        d->readDeviceIdCode = readDeviceId;
+        d->readDeviceIdObjectId = objectId;
         // no need break
     case ModbusClientPort::Process:
-        r = this->request(unit,                                    // unit ID
-                          MBF_ENCAPSULATED_INTERFACE_TRANSPORT,    // modbus function number (0x2B)
-                          buff,                                    // in-out buffer
-                          3,                                       // count of input data bytes
-                          szBuff,                                  // maximum size of buffer
-                          &szOutBuff);                             // count of output data bytes
+        r = this->request(unit,                                 // unit ID
+                          MBF_ENCAPSULATED_INTERFACE_TRANSPORT, // modbus function number (0x2B)
+                          buff,                                 // in buffer
+                          3,                                    // count of input data bytes
+                          buff,                                 // out buffer
+                          szBuff,                               // maximum size of buffer
+                          &szOutBuff);                          // count of output data bytes
         if (StatusIsProcessing(r))
             return r;
         if (!StatusIsGood(r) || d->isBroadcast())
@@ -1862,20 +1867,31 @@ Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *clie
         // Minimum valid response: MEI Type(1) + Read Dev ID(1) + Conformity(1) +
         //                         More Follows(1) + Next Object ID(1) + Num Objects(1) = 6 bytes
         if (szOutBuff < 6)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse,
-                StringLiteral("FC43. Incorrect received data size"));
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC43. Incorrect received data size"));
         // Verify MEI type in response matches our request
         if (buff[0] != MB_MEI_TYPE_READ_DEVICE_ID)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse,
-                StringLiteral("FC43. MEI Type mismatch in response"));
-        // Copy raw response to caller — caller is responsible for parsing TLV objects
-        *dataSize = static_cast<uint8_t>(szOutBuff);
-        memcpy(data, buff, szOutBuff);
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC43. MEI Type mismatch in response"));
+        // Verify Read Device ID code in response matches our request
+        if (buff[1] != d->readDeviceIdCode)
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC43. Read Device ID code mismatch in response"));
+        if (conformityLevel)
+            *conformityLevel = buff[2]; // Conformity Level
+        if (moreFollows)
+            *moreFollows = buff[3] != 0; // More Follows flag
+        if (nextObjectId)
+            *nextObjectId = buff[4]; // Next Object ID
+        if (numberOfObjects)
+            *numberOfObjects = buff[5]; // Number of objects returned
+        sz = static_cast<uint8_t>(szOutBuff-6); // Size of data returned (excluding header)
+        *dataSize = sz;
+        memcpy(data, &buff[6], sz); // Object values
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
         return Status_Processing;
     }
 }
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 #ifndef MBF_READ_COILS_DISABLE
@@ -2157,10 +2173,14 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoad
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-Modbus::StatusCode ModbusClientPort::readDeviceIdentification(uint8_t unit, uint8_t readDevId, uint8_t objectId, uint8_t *data, uint8_t *dataSize)
+
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+Modbus::StatusCode ModbusClientPort::readDeviceIdentification(uint8_t unit, uint8_t readDevId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId)
 {
-    return readDeviceIdentification(this, unit, readDevId, objectId, data, dataSize);
+    return readDeviceIdentification(this, unit, readDevId, objectId, dataSize, data, numberOfObjects, conformityLevel, moreFollows, nextObjectId);
 }
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 ModbusPort *ModbusClientPort::port() const

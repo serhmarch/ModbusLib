@@ -124,13 +124,20 @@ public:
     {
     uint16_t offset;
     uint16_t subfunc;
+    struct 
+    {
+        uint8_t readDeviceIdCode;
+        uint8_t readDeviceIdObjectId;   
     };
+    };
+
     union
     {
     uint16_t count;
     uint16_t value;
     uint16_t andMask;
     };
+
     union
     {
     uint16_t orMask;

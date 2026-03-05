@@ -980,11 +980,15 @@ Modbus::StatusCode ModbusInterface::readFIFOQueue(uint8_t /*unit*/, uint16_t /*f
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-Modbus::StatusCode ModbusInterface::readDeviceIdentification(uint8_t /*unit*/, uint8_t /*readDevId*/, uint8_t /*objectId*/, uint8_t * /*data*/, uint8_t * /*dataSize*/)
+
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+Modbus::StatusCode ModbusInterface::readDeviceIdentification(uint8_t /*unit*/, uint8_t /*readDevId*/, uint8_t /*objectId*/, uint8_t * /*dataSize*/, void * /*data*/, uint8_t * /*numberOfObjects*/, uint8_t * /*conformityLevel*/, bool * /*moreFollows*/, uint8_t * /*nextObjectId*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
-#endif
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE

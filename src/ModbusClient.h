@@ -252,12 +252,20 @@ public:
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
     /// \details Read Device Identification (FC43/MEI 0x0E) from the bound device.
-    /// \param[in]  readDevId Read Device ID code: 1=Basic, 2=Regular, 3=Extended, 4=Specific.
-    /// \param[in]  objectId  Starting object ID to read from (0x00-0xFF).
-    /// \param[out] data      Pointer to output buffer for raw MEI response data.
-    /// \param[out] dataSize  Number of bytes written into data buffer.
-    Modbus::StatusCode readDeviceIdentification(uint8_t readDevId, uint8_t objectId, uint8_t *data, uint8_t *dataSize);
+    /// \param[in]  readDeviceId    Read Device ID code: 1=Basic, 2=Regular, 3=Extended, 4=Specific.
+    /// \param[in]  objectId        Starting object ID to read from (0x00-0xFF).
+    /// \param[out] dataSize        Number of bytes written into data buffer.
+    /// \param[out] data            Pointer to output buffer for raw MEI response data.
+    /// \param[out] numberOfObjects Number of objects returned. Can be `nullptr` if not needed.
+    /// \param[out] conformityLevel Conformity level of the device. Can be `nullptr` if not needed.
+    /// \param[out] moreFollows     Indicates if more objects follow. Can be `nullptr` if not needed.
+    /// \param[out] nextObjectId    The next object ID to read from in subsequent responses. Can be `nullptr` if not needed.
+    Modbus::StatusCode readDeviceIdentification(uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr);
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 #ifndef MBF_READ_COILS_DISABLE

@@ -62,18 +62,38 @@ public:
     uint16_t offset;
     uint16_t subfunc;
     uint16_t status;
+    struct 
+    {
+        uint8_t readDeviceIdCode;
+        uint8_t readDeviceIdObjectId;   
+    };
+
     };
 
     union {
     uint16_t count;
     uint8_t byteCount;
     uint8_t recordsCount;
+
+    struct
+    {
+        uint8_t numberOfObjects;
+        uint8_t conformityLevel;
+    };
+
     };
 
     union  {
     uint16_t messageCount;
     uint16_t andMask;
     uint16_t writeOffset;
+    
+    struct
+    {
+        bool moreFollows;
+        uint8_t nextObjectId;
+    };
+
     };
     
     union  {

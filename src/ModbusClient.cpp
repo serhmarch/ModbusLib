@@ -298,10 +298,10 @@ StatusCode ModbusClient::readFIFOQueue(uint16_t fifoadr, uint16_t *count, uint16
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-StatusCode ModbusClient::readDeviceIdentification(uint8_t readDevId, uint8_t objectId, uint8_t *data, uint8_t *dataSize)
+StatusCode ModbusClient::readDeviceIdentification(uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId)
 {
     ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->readDeviceIdentification(this, d->unit, readDevId, objectId, data, dataSize);
+    return d->port->readDeviceIdentification(this, d->unit, readDeviceId, objectId, dataSize, data, numberOfObjects, conformityLevel, moreFollows, nextObjectId);
 }
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 

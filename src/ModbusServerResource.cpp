@@ -664,6 +664,8 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
     case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
         // FC43 request must have at least 3 bytes: MEI Type + Read Dev ID Code + Object ID
         if (sz < 3)
@@ -681,9 +683,11 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             snprintf(errbuff, len, StringLiteral("FC%02hhu. Unsupported MEI Type 0x%02hhX"), d->func, buff[0]);
             return d->setError(Status_BadIllegalFunction, errbuff);
         }
-        d->subfunc = buff[1];       // Read Device ID code (1-4)
-        d->valueBuff[0] = buff[2];  // Object ID to start from
+        d->readDeviceIdCode     = buff[1]; // Read Device ID code (1-4)
+        d->readDeviceIdObjectId = buff[2]; // Object ID to start from
         break;
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
     default:
@@ -907,8 +911,7 @@ StatusCode ModbusServerResource::processDevice()
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
     case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
-        // subfunc = Read Device ID code, valueBuff[0] = starting Object ID
-        r = d->device->readDeviceIdentification(d->unit, d->subfunc, d->valueBuff[0], d->valueBuff, &d->outByteCount);
+        r = d->device->readDeviceIdentification(d->unit, d->readDeviceIdCode, d->readDeviceIdObjectId, &d->outByteCount, d->valueBuff, &d->numberOfObjects, &d->conformityLevel, &d->moreFollows, &d->nextObjectId);
         break;
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
@@ -1151,11 +1154,20 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
     case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
-        // Copy raw response from device handler directly into wire buffer
-        memcpy(buff, d->valueBuff, d->outByteCount);
-        sz = d->outByteCount;
+        buff[0] = MB_MEI_TYPE_READ_DEVICE_ID;
+        buff[1] = d->readDeviceIdCode; 
+        buff[2] = d->readDeviceIdObjectId; 
+        buff[3] = d->conformityLevel; 
+        buff[4] = d->moreFollows ? 0xFF : 0x00;
+        buff[5] = d->nextObjectId;
+        memcpy(&buff[6], d->valueBuff, d->outByteCount);
+        sz = d->outByteCount+6;
         break;
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
     }
