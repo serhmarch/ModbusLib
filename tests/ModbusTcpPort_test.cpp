@@ -27,7 +27,7 @@ public:
     {
         auto buff = d_ptr->buff();
         memcpy(buff, data, size);
-        d_ptr->setBuffSz(size);
+        d_ptr->setBuffSize(size);
     }
 
     void setInternalTransaction(uint16_t trans)

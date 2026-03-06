@@ -172,7 +172,7 @@ TEST_F(ModbusServerResourceTest, PortSetToServerMode)
 }
 
 // ============================================================================
-// Read Coils Tests (Function Code 0x01)
+// ReadCoils Tests (FC01)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessReadCoilsRequest)
@@ -294,7 +294,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadCoilsRequest)
 }
 
 // ============================================================================
-// Read Discrete Inputs Tests (Function Code 0x02)
+// ReadDiscreteInputs Tests (FC02)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessReadDiscreteInputsRequest)
@@ -404,7 +404,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadDiscreteInputsRequest)
 }
 
 // ============================================================================
-// Read Holding Registers Tests (Function Code 0x03)
+// ReadHoldingRegisters Tests (FC03)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessReadHoldingRegistersRequest)
@@ -516,7 +516,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadHoldingRegistersRequest)
 }
 
 // ============================================================================
-// Read Input Registers Tests (Function Code 0x04)
+// ReadInputRegisters Tests (FC04)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessReadInputRegistersRequest)
@@ -630,7 +630,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadInputRegistersRequest)
 }
 
 // ============================================================================
-// Write Single Coil Tests (Function Code 0x05)
+// WriteSingleCoil Tests (FC05)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessWriteSingleCoil)
@@ -771,7 +771,7 @@ TEST_F(ModbusServerResourceTest, ProcessWriteSingleCoil)
 }
 
 // ============================================================================
-// Write Single Register Tests (Function Code 0x06)
+// WriteSingleRegister Tests (FC06)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessWriteSingleRegisterRequest)
@@ -781,7 +781,7 @@ TEST_F(ModbusServerResourceTest, ProcessWriteSingleRegisterRequest)
     uint16_t offset = 0;
     uint16_t value;
     
-    // Request: offset (2 bytes) + count (2 bytes)
+    // Request: offset (2 bytes) + value (2 bytes)
     uint8_t requestData[4] = {0x00, 0x00, 0x00, 0x00};
 
     setupBufferMethodExpectations(requestData, sizeof(requestData), requestData, sizeof(requestData));
@@ -850,7 +850,7 @@ TEST_F(ModbusServerResourceTest, ProcessWriteSingleRegisterRequest)
 }
 
 // ============================================================================
-// Read Exception Status Tests (Function Code 0x07)
+// ReadExceptionStatus Tests (FC07)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessReadExceptionStatusRequest)
@@ -918,35 +918,30 @@ TEST_F(ModbusServerResourceTest, ProcessReadExceptionStatusRequest)
 }
 
 // ============================================================================
-// Diagnostic Tests (Function Code 0x08)
+// Diagnostics.ReturnQueryData Tests (FC08. Subfunction 0)
 // ============================================================================
 
-TEST_F(ModbusServerResourceTest, ProcessDiagnosticRequest)
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnQueryDataRequest)
 {
     StatusCode result;
     uint8_t unit = 1;
-    uint16_t subfunc;
-    
-    // Request: subfunc (2 bytes) + data (N bytes)
-    uint8_t requestData[10] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint8_t responseData[10]; // subfunc (2 bytes) + response data
+
+    uint8_t requestData[6] = {0x00, 0x00, 0x11, 0x22, 0x33, 0x44}; // subfunc(2) + data(4)
+    uint8_t responseData[6]; // subfunc(2) + echoed data(4)
 
     setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
-    
+
     // -------------------------------------------------------------------------
-    // Step 1. Incorrect request size (less than 2 bytes)
-    subfunc = 0x0001;
-    requestData[0] = reinterpret_cast<uint8_t*>(&subfunc)[1]; // Subfunc MSB
-    requestData[1] = reinterpret_cast<uint8_t*>(&subfunc)[0]; // Subfunc LSB
+    // Step 1. Incorrect request size (should be >= 2 bytes)
     EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
         .WillOnce(DoAll(
             SetArgReferee<0>(unit),
             SetArgReferee<1>(MBF_DIAGNOSTICS),
             SetArrayArgument<2>(requestData, requestData + 1),
-            SetArgPointee<4>(1), // Wrong size (less than required 2)
+            SetArgPointee<4>(1), // Wrong size
             Return(Status_Good)));
-    
-    EXPECT_CALL(*mockDevice, diagnostics(_, _, _, _, _, _))
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnQueryData(_, _, _, _, _))
         .Times(0);
 
     EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
@@ -960,29 +955,31 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticRequest)
     EXPECT_EQ(signalCounter.completeCount, 1);
 
     // -------------------------------------------------------------------------
-    // Step 2. Return Good status (subfunc only, no additional data)
-    subfunc = 0x0000; // Return Query Data (echo test)
-    requestData[0] = reinterpret_cast<const uint8_t*>(&subfunc)[1];
-    requestData[1] = reinterpret_cast<const uint8_t*>(&subfunc)[0];
+    // Step 2. Return Good status
     EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
         .WillOnce(DoAll(
             SetArgReferee<0>(unit),
             SetArgReferee<1>(MBF_DIAGNOSTICS),
-            SetArrayArgument<2>(requestData, requestData + 2),
-            SetArgPointee<4>(2), // Just subfunc (2 bytes)
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(6),
             Return(Status_Good)));
-    
-    EXPECT_CALL(*mockDevice, diagnostics(unit, subfunc, 0, _, _, _))
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnQueryData(unit, 4, _, _, _))
         .Times(1)
-        .WillOnce(Invoke([](uint8_t, uint16_t, uint8_t, const void*, uint8_t* outsize, void*) {
-            *outsize = 0; // No output data
+        .WillOnce(Invoke([](uint8_t, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata) {
+            memcpy(outdata, indata, insize);
+            *outsize = insize;
             return Status_Good;
         }));
- 
-    responseData[0] = reinterpret_cast<const uint8_t*>(&subfunc)[1]; // Subfunc MSB
-    responseData[1] = reinterpret_cast<const uint8_t*>(&subfunc)[0]; // Subfunc LSB
-    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 2))
-        .With(Args<2, 3>(ElementsAreArray(responseData, 2)))
+
+    responseData[0] = 0x00; // Sub-function MSB
+    responseData[1] = 0x00; // Sub-function LSB
+    responseData[2] = 0x11;
+    responseData[3] = 0x22;
+    responseData[4] = 0x33;
+    responseData[5] = 0x44;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 6))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 6)))
         .Times(1);
 
     result = serverResource->process();
@@ -991,54 +988,1032 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticRequest)
     EXPECT_EQ(signalCounter.txCount      , 1);
     EXPECT_EQ(signalCounter.errorCount   , 1);
     EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.RestartCommunicationsOption Tests (FC08. Subfunction 1)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsRestartCommunicationsOptionRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION & 0xFF),
+        0xFF, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
 
     // -------------------------------------------------------------------------
-    // Step 3. Return Good status (subfunc with data)
-    subfunc = 0x0000; // Return Query Data (echo test)
-    requestData[0] = reinterpret_cast<const uint8_t*>(&subfunc)[1];
-    requestData[1] = reinterpret_cast<const uint8_t*>(&subfunc)[0];
-    requestData[2] = 0x5A; // Data MS byte 
-    requestData[3] = 0xA5; // Data LS byte
+    // Step 1. Incorrect request size (should be >= 2 bytes)
     EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
         .WillOnce(DoAll(
             SetArgReferee<0>(unit),
             SetArgReferee<1>(MBF_DIAGNOSTICS),
-            SetArrayArgument<2>(requestData, requestData + 4),
-            SetArgPointee<4>(4), // subfunc (2 bytes) + data (2 bytes)
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
             Return(Status_Good)));
-    
-    uint8_t expectedInData[] = {0xA5, 0x5A};
-    uint8_t outData[] = {0xA5, 0x5A}; // Echo the data back
-    EXPECT_CALL(*mockDevice, diagnostics(unit, subfunc, 2, _, _, _))
+
+    EXPECT_CALL(*mockDevice, diagnosticsRestartCommunicationsOption(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsRestartCommunicationsOption(unit, true))
         .Times(1)
-        .WillOnce(Invoke([&expectedInData, &outData](uint8_t, uint16_t, uint8_t insize, const void* indata, uint8_t* outsize, void* outdata) {
-            // Verify input data
-            EXPECT_EQ(memcmp(indata, expectedInData, sizeof(expectedInData)), 0);
-            // Echo data back
-            *outsize = 2;
-            memcpy(outdata, outData, sizeof(outData));
-            return Status_Good;
-        }));
- 
-    responseData[0] = reinterpret_cast<const uint8_t*>(&subfunc)[1]; // Subfunc MSB
-    responseData[1] = reinterpret_cast<const uint8_t*>(&subfunc)[0]; // Subfunc LSB
-    responseData[2] = outData[1]; // Echo data byte 1
-    responseData[3] = outData[0]; // Echo data byte 2
+        .WillOnce(Return(Status_Good));
+
+    responseData[0] = 0xFF;
+    responseData[1] = 0x00;
+    responseData[2] = 0xFF;
+    responseData[3] = 0x00;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
-        .Times(1)
-        ;
+        .Times(1);
 
     result = serverResource->process();
     EXPECT_EQ(result, Status_Good);
-    EXPECT_EQ(signalCounter.rxCount      , 3);
-    EXPECT_EQ(signalCounter.txCount      , 2);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
     EXPECT_EQ(signalCounter.errorCount   , 1);
-    EXPECT_EQ(signalCounter.completeCount, 3);
+    EXPECT_EQ(signalCounter.completeCount, 2);
 }
 
 // ============================================================================
-// Get Comm Event Counter Tests (Function Code 0x0B)
+// Diagnostics.ReturnDiagnosticRegister Tests (FC08. Subfunction 2)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnDiagnosticRegisterRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnDiagnosticRegister(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnDiagnosticRegister(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *value) {
+            *value = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ChangeAsciiInputDelimiter Tests (FC08. Subfunction 3)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsChangeAsciiInputDelimiterRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER & 0xFF),
+        static_cast<uint8_t>(':'), 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsChangeAsciiInputDelimiter(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsChangeAsciiInputDelimiter(unit, ':'))
+        .Times(1)
+        .WillOnce(Return(Status_Good));
+
+    responseData[0] = static_cast<uint8_t>(':');
+    responseData[1] = 0x00;
+    responseData[2] = static_cast<uint8_t>(':');
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ForceListenOnlyMode Tests (FC08. Subfunction 4)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsForceListenOnlyModeRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsForceListenOnlyMode(_))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsForceListenOnlyMode(unit))
+        .Times(1)
+        .WillOnce(Return(Status_Good));
+
+    responseData[0] = 0x00;
+    responseData[1] = 0x00;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ClearCountersAndDiagnosticRegister Tests (FC08. Subfunction 10)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsClearCountersAndDiagnosticRegisterRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsClearCountersAndDiagnosticRegister(_))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsClearCountersAndDiagnosticRegister(unit))
+        .Times(1)
+        .WillOnce(Return(Status_Good));
+
+    responseData[0] = 0x00;
+    responseData[1] = 0x00;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ReturnBusMessageCount Tests (FC08. Subfunction 11)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnBusMessageCountRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnBusMessageCount(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnBusMessageCount(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *count) {
+            *count = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ReturnBusCommunicationErrorCount Tests (FC08. Subfunction 12)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnBusCommunicationErrorCountRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnBusCommunicationErrorCount(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnBusCommunicationErrorCount(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *count) {
+            *count = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ReturnBusExceptionErrorCount Tests (FC08. Subfunction 13)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnBusExceptionErrorCountRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnBusExceptionErrorCount(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnBusExceptionErrorCount(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *count) {
+            *count = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ReturnServerMessageCount Tests (FC08. Subfunction 14)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnServerMessageCountRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnServerMessageCount(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnServerMessageCount(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *count) {
+            *count = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ReturnServerNoResponseCount Tests (FC08. Subfunction 15)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnServerNoResponseCountRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnServerNoResponseCount(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnServerNoResponseCount(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *count) {
+            *count = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ReturnServerNAKCount Tests (FC08. Subfunction 16)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnServerNAKCountRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnServerNAKCount(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnServerNAKCount(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *count) {
+            *count = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ReturnServerBusyCount Tests (FC08. Subfunction 17)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnServerBusyCountRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnServerBusyCount(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnServerBusyCount(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *count) {
+            *count = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ReturnBusCharacterOverrunCount Tests (FC08. Subfunction 18)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnBusCharacterOverrunCountRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnBusCharacterOverrunCount(_, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsReturnBusCharacterOverrunCount(unit, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint16_t *count) {
+            *count = 0x1234;
+            return Status_Good;
+        }));
+
+    responseData[0] = 0x12;
+    responseData[1] = 0x34;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// Diagnostics.ClearOverrunCounterAndFlag Tests (FC08. Subfunction 20)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessDiagnosticsClearOverrunCounterAndFlagRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[4] = {
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG >> 8),
+        static_cast<uint8_t>(MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG & 0xFF),
+        0x00, 0x00
+    };
+    uint8_t responseData[4];
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 2 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + 1),
+            SetArgPointee<4>(1),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsClearOverrunCounterAndFlag(_))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_DIAGNOSTICS),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(4),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, diagnosticsClearOverrunCounterAndFlag(unit))
+        .Times(1)
+        .WillOnce(Return(Status_Good));
+
+    responseData[0] = 0x00;
+    responseData[1] = 0x00;
+    responseData[2] = 0x00;
+    responseData[3] = 0x00;
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+
+// ============================================================================
+// GetCommEventCounter Tests (FC11)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessGetCommEventCounterRequest)
@@ -1111,7 +2086,7 @@ TEST_F(ModbusServerResourceTest, ProcessGetCommEventCounterRequest)
 }
 
 // ============================================================================
-// Get Comm Event Log Tests (Function Code 0x0C)
+// GetCommEventLog Tests (FC12)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessGetCommEventLogRequest)
@@ -1235,7 +2210,7 @@ TEST_F(ModbusServerResourceTest, ProcessGetCommEventLogRequest)
 }
 
 // ============================================================================
-// Write Multiple Coils Tests (Function Code 0x0F)
+// WriteMultipleCoils Tests (FC15)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessWriteMultipleCoilsRequest)
@@ -1406,7 +2381,7 @@ TEST_F(ModbusServerResourceTest, ProcessWriteMultipleCoilsRequest)
 }
 
 // ============================================================================
-// Write Multiple Registers Tests (Function Code 0x10)
+// WriteMultipleRegisters Tests (FC16)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessWriteMultipleRegistersRequest)
@@ -1574,7 +2549,7 @@ TEST_F(ModbusServerResourceTest, ProcessWriteMultipleRegistersRequest)
 }
 
 // ============================================================================
-// Report Server Id Tests (Function Code 0x11)
+// ReportServerID Tests (FC17)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessReportServerIdRequest)
@@ -1645,7 +2620,7 @@ TEST_F(ModbusServerResourceTest, ProcessReportServerIdRequest)
 }
 
 // ============================================================================
-// Mask Write Register Tests (Function Code 0x16)
+// MaskWriteRegister Tests (FC22)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessMaskWriteRegisterRequest)
@@ -1729,7 +2704,7 @@ TEST_F(ModbusServerResourceTest, ProcessMaskWriteRegisterRequest)
 }
 
 // ============================================================================
-// Read/Write Multiple Registers Tests (Function Code 0x17)
+// ReadWriteMultipleRegisters Tests (FC23)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessReadWriteMultipleRegistersRequest)
@@ -1991,7 +2966,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadWriteMultipleRegistersRequest)
 }
 
 // ============================================================================
-// Read FIFO Queue Tests (Function Code 0x18)
+// ReadFIFOQueue Tests (FC24)
 // ============================================================================
 
 TEST_F(ModbusServerResourceTest, ProcessReadFifoQueueRequest)

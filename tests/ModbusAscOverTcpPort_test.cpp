@@ -29,7 +29,7 @@ public:
     {
         auto buff = d_ptr->buff();
         memcpy(buff, data, size);
-        d_ptr->setBuffSz(size);
+        d_ptr->setBuffSize(size);
     }
 
     // Expose write() and read() for testing
