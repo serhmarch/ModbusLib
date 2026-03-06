@@ -1810,6 +1810,91 @@ TEST_F(ModbusClientPortTest, GetCommEventCounterSuccess)
 }
 
 // ============================================================================
+// GetCommEventLogSuccess Tests (FC12)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, GetCommEventLogSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t expectedStatus = 0xFFFF;
+    const uint16_t expectedEventCount = 0x0108;
+    const uint16_t expectedMessageCount = 0x0021;
+    const uint8_t expectedEvents[] = {0x20, 0x00, 0x01, 0x02};
+
+    uint8_t responseData[11] = {
+        static_cast<uint8_t>(6 + sizeof(expectedEvents)),
+        static_cast<uint8_t>(expectedStatus >> 8),
+        static_cast<uint8_t>(expectedStatus & 0xFF),
+        static_cast<uint8_t>(expectedEventCount >> 8),
+        static_cast<uint8_t>(expectedEventCount & 0xFF),
+        static_cast<uint8_t>(expectedMessageCount >> 8),
+        static_cast<uint8_t>(expectedMessageCount & 0xFF),
+        expectedEvents[0], expectedEvents[1], expectedEvents[2], expectedEvents[3]
+    };
+
+    setupSuccessfulTransaction(unit, MBF_GET_COMM_EVENT_LOG, nullptr, 0, responseData, 11);
+
+    uint16_t status = 0;
+    uint16_t eventCount = 0;
+    uint16_t messageCount = 0;
+    uint8_t eventBuffSize = 16;
+    uint8_t eventBuff[16] = {0};
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
+    StatusCode result = clientPort->getCommEventLog(unit, &status, &eventCount, &messageCount, &eventBuffSize, eventBuff);
+
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(status, expectedStatus);
+    EXPECT_EQ(eventCount, expectedEventCount);
+    EXPECT_EQ(messageCount, expectedMessageCount);
+    EXPECT_EQ(eventBuffSize, sizeof(expectedEvents));
+    EXPECT_EQ(memcmp(eventBuff, expectedEvents, sizeof(expectedEvents)), 0);
+
+    // Non-blocking version
+    status = 0;
+    eventCount = 0;
+    messageCount = 0;
+    eventBuffSize = 16;
+    memset(eventBuff, 0, sizeof(eventBuff));
+    setupSuccessfulNonBlockTransaction(unit, MBF_GET_COMM_EVENT_LOG, nullptr, 0, responseData, 11);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->getCommEventLog(unit, &status, &eventCount, &messageCount, &eventBuffSize, eventBuff);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->getCommEventLog(unit, &status, &eventCount, &messageCount, &eventBuffSize, eventBuff);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->getCommEventLog(unit, &status, &eventCount, &messageCount, &eventBuffSize, eventBuff);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(status, expectedStatus); // Verify that output status is correctly filled after non-blocking operation completes
+    EXPECT_EQ(eventCount, expectedEventCount); // Verify that output eventCount is correctly filled after non-blocking operation completes
+    EXPECT_EQ(messageCount, expectedMessageCount); // Verify that output messageCount is correctly filled after non-blocking operation completes
+    EXPECT_EQ(eventBuffSize, sizeof(expectedEvents)); // Verify returned event data size
+    EXPECT_EQ(memcmp(eventBuff, expectedEvents, sizeof(expectedEvents)), 0); // Verify returned event data bytes
+}
+
+// ============================================================================
 // Write Multiple Coils Tests (FC15)
 // ============================================================================
 
