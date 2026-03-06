@@ -70,6 +70,8 @@ public:
     MOCK_METHOD(Modbus::StatusCode, writeMultipleCoils        , (uint8_t unit, uint16_t offset, uint16_t count, const void *values), (override));
     MOCK_METHOD(Modbus::StatusCode, writeMultipleRegisters    , (uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values), (override));
     MOCK_METHOD(Modbus::StatusCode, reportServerID            , (uint8_t unit, uint8_t *count, uint8_t *data), (override));
+    MOCK_METHOD(Modbus::StatusCode, readFileRecord            , (uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData), (override));
+    MOCK_METHOD(Modbus::StatusCode, writeFileRecord           , (uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData), (override));
     MOCK_METHOD(Modbus::StatusCode, maskWriteRegister         , (uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask), (override));
     MOCK_METHOD(Modbus::StatusCode, readWriteMultipleRegisters, (uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues), (override));
     MOCK_METHOD(Modbus::StatusCode, readFIFOQueue             , (uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values), (override));

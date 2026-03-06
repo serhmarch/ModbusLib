@@ -2620,6 +2620,163 @@ TEST_F(ModbusServerResourceTest, ProcessReportServerIdRequest)
 }
 
 // ============================================================================
+// ReadFileRecord Tests (FC20)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessReadFileRecordRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[8] = {
+        0x07,
+        0x06,
+        0x00, 0x04,
+        0x00, 0x07,
+        0x00, 0x02
+    };
+    uint8_t responseData[8] = {0};
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 8 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_READ_FILE_RECORD),
+            SetArrayArgument<2>(requestData, requestData + 7),
+            SetArgPointee<4>(7),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, readFileRecord(_, _, _, _, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_READ_FILE_RECORD),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(8),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, readFileRecord(unit, 1, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData) {
+            EXPECT_EQ(recordsCount, 1);
+            EXPECT_EQ(records[0].fileNumber, 0x0004);
+            EXPECT_EQ(records[0].recordNumber, 0x0007);
+            EXPECT_EQ(records[0].recordLength, 0x0002);
+            uint16_t values[2] = {0x1234, 0x5678};
+            memcpy(outData, values, sizeof(values));
+            *outSize = 4;
+            return Status_Good;
+        }));
+
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_READ_FILE_RECORD, _, 8))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
+// WriteFileRecord Tests (FC21)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ProcessWriteFileRecordRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+
+    uint8_t requestData[12] = {
+        0x0B,
+        0x06,
+        0x00, 0x04,
+        0x00, 0x07,
+        0x00, 0x02,
+        0x12, 0x34,
+        0x56, 0x78
+    };
+    uint8_t responseData[16] = {0};
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 8 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_WRITE_FILE_RECORD),
+            SetArrayArgument<2>(requestData, requestData + 7),
+            SetArgPointee<4>(7),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, writeFileRecord(_, _, _, _, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_WRITE_FILE_RECORD),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(12),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, writeFileRecord(unit, 1, _, 4, _))
+        .Times(1)
+        .WillOnce(Invoke([](uint8_t, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData) {
+            EXPECT_EQ(recordsCount, 1);
+            EXPECT_EQ(records[0].fileNumber, 0x0004);
+            EXPECT_EQ(records[0].recordNumber, 0x0007);
+            EXPECT_EQ(records[0].recordLength, 0x0002);
+            EXPECT_EQ(inSize, 4);
+            const uint16_t *values = reinterpret_cast<const uint16_t*>(inData);
+            EXPECT_EQ(values[0], 0x1234);
+            EXPECT_EQ(values[1], 0x5678);
+            return Status_Good;
+        }));
+
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_WRITE_FILE_RECORD, _, 13))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
 // MaskWriteRegister Tests (FC22)
 // ============================================================================
 
