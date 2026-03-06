@@ -1743,7 +1743,74 @@ TEST_F(ModbusClientPortTest, DiagnosticsClearOverrunCounterAndFlagSuccess)
 }
 
 // ============================================================================
-// Write Multiple Coils Tests (Function Code 0x0F)
+// GetCommEventCounterSuccess Tests (FC11)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, GetCommEventCounterSuccess)
+{
+    const uint8_t unit = 1;
+    const uint16_t expectedStatus = 0xFFFF;
+    const uint16_t expectedEventCount = 0x0108;
+
+    uint8_t responseData[4] = {
+        static_cast<uint8_t>(expectedStatus >> 8),
+        static_cast<uint8_t>(expectedStatus & 0xFF),
+        static_cast<uint8_t>(expectedEventCount >> 8),
+        static_cast<uint8_t>(expectedEventCount & 0xFF)
+    };
+
+    setupSuccessfulTransaction(unit, MBF_GET_COMM_EVENT_COUNTER, nullptr, 0, responseData, 4);
+
+    uint16_t status = 0;
+    uint16_t eventCount = 0;
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
+    StatusCode result = clientPort->getCommEventCounter(unit, &status, &eventCount);
+
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(status, expectedStatus);
+    EXPECT_EQ(eventCount, expectedEventCount);
+
+    // Non-blocking version
+    status = 0;
+    eventCount = 0;
+    setupSuccessfulNonBlockTransaction(unit, MBF_GET_COMM_EVENT_COUNTER, nullptr, 0, responseData, 4);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->getCommEventCounter(unit, &status, &eventCount);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->getCommEventCounter(unit, &status, &eventCount);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->getCommEventCounter(unit, &status, &eventCount);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(status, expectedStatus); // Verify that output status is correctly filled after non-blocking operation completes
+    EXPECT_EQ(eventCount, expectedEventCount); // Verify that output eventCount is correctly filled after non-blocking operation completes
+}
+
+// ============================================================================
+// Write Multiple Coils Tests (FC15)
 // ============================================================================
 
 TEST_F(ModbusClientPortTest, WriteMultipleCoilsSuccess)
@@ -1815,7 +1882,7 @@ TEST_F(ModbusClientPortTest, WriteMultipleCoilsAsBoolArray)
 }
 
 // ============================================================================
-// Write Multiple Registers Tests (Function Code 0x10)
+// Write Multiple Registers Tests (FC16)
 // ============================================================================
 
 TEST_F(ModbusClientPortTest, WriteMultipleRegistersSuccess)
@@ -1869,7 +1936,7 @@ TEST_F(ModbusClientPortTest, WriteMultipleRegistersSuccess)
 }
 
 // ============================================================================
-// Mask Write Register Tests (Function Code 0x16)
+// Mask Write Register Tests (FC22)
 // ============================================================================
 
 TEST_F(ModbusClientPortTest, MaskWriteRegisterSuccess)
@@ -1922,7 +1989,7 @@ TEST_F(ModbusClientPortTest, MaskWriteRegisterSuccess)
 }
 
 // ============================================================================
-// Read Write Multiple Registers Tests (Function Code 0x17)
+// Read Write Multiple Registers Tests (FC23)
 // ============================================================================
 
 TEST_F(ModbusClientPortTest, ReadWriteMultipleRegistersSuccess)
@@ -1987,7 +2054,7 @@ TEST_F(ModbusClientPortTest, ReadWriteMultipleRegistersSuccess)
 }
 
 // ============================================================================
-// Read FIFO Queue Tests (Function Code 0x18)
+// Read FIFO Queue Tests (FC24)
 // ============================================================================
 
 TEST_F(ModbusClientPortTest, ReadFIFOQueueSuccess)
