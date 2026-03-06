@@ -2420,6 +2420,97 @@ TEST_F(ModbusClientPortTest, ReadFIFOQueueSuccess)
 }
 
 // ============================================================================
+// ReadDeviceIdentificationSuccess Tests (FC43)
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, ReadDeviceIdentificationSuccess)
+{
+    const uint8_t unit = 1;
+    const uint8_t readDeviceId = MB_MEI_READ_DEVICE_ID_BASIC;
+    const uint8_t objectId = 0x00;
+
+    uint8_t requestData[3] = {MB_MEI_TYPE_READ_DEVICE_ID, readDeviceId, objectId};
+    uint8_t responseData[9] = {
+        MB_MEI_TYPE_READ_DEVICE_ID,
+        readDeviceId,
+        0x02,
+        0xFF,
+        0x03,
+        0x01,
+        0x00, 0x42, 0x43
+    };
+
+    setupSuccessfulTransaction(unit, MBF_ENCAPSULATED_INTERFACE_TRANSPORT, requestData, 3, responseData, 9);
+
+    uint8_t dataSize = 0;
+    uint8_t data[16] = {0};
+    uint8_t numberOfObjects = 0;
+    uint8_t conformityLevel = 0;
+    bool moreFollows = false;
+    uint8_t nextObjectId = 0;
+
+    EXPECT_EQ(signalCounter.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
+
+    StatusCode result = clientPort->readDeviceIdentification(unit, readDeviceId, objectId, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounter.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounter.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(dataSize, 3);
+    EXPECT_EQ(numberOfObjects, 0x01);
+    EXPECT_EQ(conformityLevel, 0x02);
+    EXPECT_TRUE(moreFollows);
+    EXPECT_EQ(nextObjectId, 0x03);
+    EXPECT_EQ(data[0], 0x00);
+    EXPECT_EQ(data[1], 0x42);
+    EXPECT_EQ(data[2], 0x43);
+
+    // Non-blocking version
+    dataSize = 0;
+    memset(data, 0, sizeof(data));
+    numberOfObjects = 0;
+    conformityLevel = 0;
+    moreFollows = false;
+    nextObjectId = 0;
+    setupSuccessfulNonBlockTransaction(unit, MBF_ENCAPSULATED_INTERFACE_TRANSPORT, requestData, 3, responseData, 9);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
+
+    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+    EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
+
+    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+    EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
+    EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
+    EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // Complete signal should be emitted because operation is complete
+
+    EXPECT_EQ(dataSize, 3); // Verify that output size is correctly filled after non-blocking operation completes
+    EXPECT_EQ(numberOfObjects, 0x01); // Verify that output metadata is correctly filled after non-blocking operation completes
+    EXPECT_EQ(conformityLevel, 0x02);
+    EXPECT_TRUE(moreFollows);
+    EXPECT_EQ(nextObjectId, 0x03);
+    EXPECT_EQ(data[0], 0x00);
+    EXPECT_EQ(data[1], 0x42);
+    EXPECT_EQ(data[2], 0x43);
+}
+
+// ============================================================================
 // Error Handling Tests
 // ============================================================================
 

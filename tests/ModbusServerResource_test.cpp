@@ -3216,6 +3216,89 @@ TEST_F(ModbusServerResourceTest, ProcessReadFifoQueueRequest)
 }
 
 // ============================================================================
+// ReadDeviceIdentification Tests (FC43)
+// ============================================================================
+
+TEST_F(ModbusServerResourceTest, ReadDeviceIdentificationRequest)
+{
+    StatusCode result;
+    uint8_t unit = 1;
+    uint8_t readDeviceId = MB_MEI_READ_DEVICE_ID_BASIC;
+    uint8_t objectId = 0x00;
+
+    uint8_t requestData[3] = {MB_MEI_TYPE_READ_DEVICE_ID, readDeviceId, objectId};
+    uint8_t responseData[16] = {0};
+
+    setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
+
+    // -------------------------------------------------------------------------
+    // Step 1. Incorrect request size (should be >= 3 bytes)
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_ENCAPSULATED_INTERFACE_TRANSPORT),
+            SetArrayArgument<2>(requestData, requestData + 2),
+            SetArgPointee<4>(2),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockDevice, readDeviceIdentification(_, _, _, _, _, _, _, _, _))
+        .Times(0);
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .Times(0);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_BadNotCorrectRequest);
+    EXPECT_EQ(signalCounter.rxCount      , 1);
+    EXPECT_EQ(signalCounter.txCount      , 0);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 1);
+
+    // -------------------------------------------------------------------------
+    // Step 2. Return Good status
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(unit),
+            SetArgReferee<1>(MBF_ENCAPSULATED_INTERFACE_TRANSPORT),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
+            SetArgPointee<4>(3),
+            Return(Status_Good)));
+
+    uint8_t expectedPayload[] = {0x00, 0x42, 0x43};
+    EXPECT_CALL(*mockDevice, readDeviceIdentification(unit, readDeviceId, objectId, _, _, _, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke([&expectedPayload](uint8_t, uint8_t, uint8_t, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId) {
+            *dataSize = static_cast<uint8_t>(sizeof(expectedPayload));
+            memcpy(data, expectedPayload, sizeof(expectedPayload));
+            *numberOfObjects = 0x01;
+            *conformityLevel = 0x02;
+            *moreFollows = true;
+            *nextObjectId = 0x03;
+            return Status_Good;
+        }));
+
+    responseData[0] = MB_MEI_TYPE_READ_DEVICE_ID;
+    responseData[1] = readDeviceId;
+    responseData[2] = objectId;
+    responseData[3] = 0x02;
+    responseData[4] = 0xFF;
+    responseData[5] = 0x03;
+    responseData[6] = expectedPayload[0];
+    responseData[7] = expectedPayload[1];
+    responseData[8] = expectedPayload[2];
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_ENCAPSULATED_INTERFACE_TRANSPORT, _, 9))
+        .With(Args<2, 3>(ElementsAreArray(responseData, 9)))
+        .Times(1);
+
+    result = serverResource->process();
+    EXPECT_EQ(result, Status_Good);
+    EXPECT_EQ(signalCounter.rxCount      , 2);
+    EXPECT_EQ(signalCounter.txCount      , 1);
+    EXPECT_EQ(signalCounter.errorCount   , 1);
+    EXPECT_EQ(signalCounter.completeCount, 2);
+}
+
+// ============================================================================
 // Error Handling Tests
 // ============================================================================
 
