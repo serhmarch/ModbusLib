@@ -151,11 +151,11 @@ StatusCode ModbusTcpServer::process()
             if (d->cmdClose)
                 break;
             d->state = STATE_BEGIN_OPEN;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_BEGIN_OPEN:
             d->timestampRefresh();
             d->state = STATE_WAIT_FOR_OPEN;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_OPEN:
             if (d->cmdClose)
             {
@@ -192,7 +192,7 @@ StatusCode ModbusTcpServer::process()
         case STATE_OPENED:
             ////setMessage("Initialized. Waiting for connections...");
             d->state = STATE_PROCESS_DEVICE;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_PROCESS_DEVICE:
         {
             if (d->cmdClose)

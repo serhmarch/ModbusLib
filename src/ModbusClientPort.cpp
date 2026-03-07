@@ -79,7 +79,7 @@ Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t uni
         buff[2] = reinterpret_cast<uint8_t*>(&count)[1];     // Quantity of coils - MS BYTE
         buff[3] = reinterpret_cast<uint8_t*>(&count)[0];     // Quantity of coils - LS BYTE
         d->count = count;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_READ_COILS,   // modbus function number
@@ -135,7 +135,7 @@ Modbus::StatusCode ModbusClientPort::readDiscreteInputs(ModbusObject *client, ui
         buff[2] = reinterpret_cast<uint8_t*>(&count)[1];    // Quantity of inputs - MS BYTE
         buff[3] = reinterpret_cast<uint8_t*>(&count)[0];    // Quantity of inputs - LS BYTE
         d->count = count;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                     // unit ID
                           MBF_READ_DISCRETE_INPUTS, // modbus function number
@@ -191,7 +191,7 @@ Modbus::StatusCode ModbusClientPort::readHoldingRegisters(ModbusObject *client, 
         buff[2] = reinterpret_cast<uint8_t*>(&count)[1];  // Quantity of values - MS BYTE
         buff[3] = reinterpret_cast<uint8_t*>(&count)[0];  // Quantity of values - LS BYTE
         d->count = count;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                         // unit ID
                           MBF_READ_HOLDING_REGISTERS,   // modbus function number
@@ -249,7 +249,7 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
         buff[2] = reinterpret_cast<uint8_t*>(&count)[1];  // Quantity of values - MS BYTE
         buff[3] = reinterpret_cast<uint8_t*>(&count)[0];  // Quantity of values - LS BYTE
         d->count = count;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                     // unit ID
                           MBF_READ_INPUT_REGISTERS, // modbus function number
@@ -299,7 +299,7 @@ Modbus::StatusCode ModbusClientPort::writeSingleCoil(ModbusObject *client, uint8
         buff[2] = (value ? 0xFF : 0x00);                    // Value - 0xFF if true, 0x00 if false
         buff[3] = 0x00;                                     // Value - must always be NULL
         d->offset = offset;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                           // unit ID
                           MBF_WRITE_SINGLE_COIL,          // modbus function number
@@ -346,7 +346,7 @@ Modbus::StatusCode ModbusClientPort::writeSingleRegister(ModbusObject *client, u
         buff[3] = reinterpret_cast<uint8_t*>(&value)[0];     // Value - LS BYTE
         d->offset = offset;
         d->value = value;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                           // unit ID
                           MBF_WRITE_SINGLE_REGISTER,      // modbus function number
@@ -391,7 +391,7 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
     switch (status)
     {
     case ModbusClientPort::Enable:
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                      // unit ID
                           MBF_READ_EXCEPTION_STATUS, // modbus function number
@@ -435,7 +435,7 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
         buff[1] = reinterpret_cast<uint8_t*>(&subfunc)[0]; // Sub function - LS BYTE
         memcpy(&buff[2], indata, insize);
         d->subfunc = subfunc;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -497,7 +497,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *cl
         buff[0] = reinterpret_cast<uint8_t*>(&d->subfunc)[1]; // Sub function - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         memcpy(&buff[2], indata, insize);
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -551,7 +551,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(Modb
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = (clearEventLog ? 0xFF : 0x00);              // Restart Option - 0xFF if true, 0x00 if false
         buff[3] = 0x00;                                       // Restart Option - must always be 0x00
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -599,7 +599,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(ModbusO
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -649,7 +649,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(Modbus
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = static_cast<uint8_t>(delimiter);            // Delimiter
         buff[3] = 0;                                          // Delimiter - must always be 0x00
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -697,7 +697,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(ModbusObject
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -745,7 +745,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegist
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -796,7 +796,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(ModbusObje
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -845,7 +845,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -894,7 +894,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(Mod
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -943,7 +943,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(ModbusO
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -992,7 +992,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(Modb
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -1041,7 +1041,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(ModbusObjec
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -1090,7 +1090,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(ModbusObje
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -1139,7 +1139,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(M
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -1188,7 +1188,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(Modbu
         buff[1] = reinterpret_cast<uint8_t*>(&d->subfunc)[0]; // Sub function - LS BYTE
         buff[2] = 0x00;
         buff[3] = 0x00;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,             // unit ID
                           MBF_DIAGNOSTICS,  // modbus function number
@@ -1237,7 +1237,7 @@ Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, u
     switch (rstatus)
     {
     case ModbusClientPort::Enable:
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                       // unit ID
                           MBF_GET_COMM_EVENT_COUNTER, // modbus function number
@@ -1277,7 +1277,7 @@ Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8
     switch (rstatus)
     {
     case ModbusClientPort::Enable:
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                   // unit ID
                           MBF_GET_COMM_EVENT_LOG, // modbus function number
@@ -1345,7 +1345,7 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
         memcpy(&buff[5], values, fcBytes);
         d->offset = offset;
         d->count = count;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                     // unit ID
                           MBF_WRITE_MULTIPLE_COILS, // modbus function number
@@ -1410,7 +1410,7 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
         }
         d->offset = offset;
         d->count = count;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                         // unit ID
                           MBF_WRITE_MULTIPLE_REGISTERS, // modbus function number
@@ -1454,7 +1454,7 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
     switch (rstatus)
     {
     case ModbusClientPort::Enable:
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                 // unit ID
                           MBF_REPORT_SERVER_ID, // modbus function number
@@ -1520,7 +1520,7 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
             buff[6 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].recordLength)[1];
             buff[7 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].recordLength)[0];
         }
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                 // unit ID
                           MBF_READ_FILE_RECORD, // modbus function number
@@ -1617,7 +1617,7 @@ StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit,
             c += len * 2;
         }
         buff[0] = static_cast<uint8_t>(c);
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                  // unit ID
                           MBF_WRITE_FILE_RECORD, // modbus function number
@@ -1668,7 +1668,7 @@ StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t uni
         d->offset = offset;
         d->andMask = andMask;
         d->orMask = orMask;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                           // unit ID
                           MBF_MASK_WRITE_REGISTER,        // modbus function number
@@ -1741,7 +1741,7 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
             buff[10 + i * 2] = reinterpret_cast<const uint8_t*>(&writeValues[i])[0];
         }
         d->count = readCount;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                             // unit ID
                           MBF_READ_WRITE_MULTIPLE_REGISTERS,// modbus function number
@@ -1788,7 +1788,7 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
     case ModbusClientPort::Enable:
         buff[0] = reinterpret_cast<uint8_t*>(&fifoadr)[1]; // Start register offset - MS BYTE
         buff[1] = reinterpret_cast<uint8_t*>(&fifoadr)[0]; // Start register offset - LS BYTE
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                // unit ID
                           MBF_READ_FIFO_QUEUE, // modbus function number
@@ -1851,7 +1851,7 @@ Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *clie
         buff[2] = objectId;                    // Object ID to start reading from
         d->readDeviceIdCode = readDeviceId;
         d->readDeviceIdObjectId = objectId;
-        // no need break
+        MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                                 // unit ID
                           MBF_ENCAPSULATED_INTERFACE_TRANSPORT, // modbus function number (0x2B)
@@ -2420,14 +2420,14 @@ StatusCode ModbusClientPort::process()
                 break;
             }
             d->state = STATE_CLOSED;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_CLOSED:
             d->state = STATE_BEGIN_OPEN;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_BEGIN_OPEN:
             d->timestampRefresh();
             d->state = STATE_WAIT_FOR_OPEN;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_OPEN:
             r = d->port->open();
             if (StatusIsProcessing(r))
@@ -2464,7 +2464,7 @@ StatusCode ModbusClientPort::process()
             }
             // send data to server
             d->state = STATE_BEGIN_WRITE;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_BEGIN_WRITE:
             d->timestampRefresh();
             if (!d->port->isOpen())
@@ -2473,7 +2473,7 @@ StatusCode ModbusClientPort::process()
                 RAISE_ERROR(Status_BadPortClosed, StringLiteral("Error: Port is closed when trying to write data"));
             }
             d->state = STATE_WRITE;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WRITE:
             r = d->port->write();
             if (StatusIsProcessing(r))
@@ -2492,11 +2492,11 @@ StatusCode ModbusClientPort::process()
                 return r;
             }
             d->state = STATE_BEGIN_READ;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_BEGIN_READ:
             d->timestampRefresh();
             d->state = STATE_READ;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_READ:
             r = d->port->read();
             if (StatusIsProcessing(r))

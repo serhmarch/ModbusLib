@@ -99,7 +99,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
         case STATE_PREPARE_TO_WRITE:
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_WRITE;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_WRITE:
         case STATE_WAIT_FOR_WRITE_ALL:
             // Note: clean read buffer from garbage before write
@@ -150,7 +150,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_READ;
             this->setBuffSize(0);
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_READ:
             // read first byte state
             c = ::read(this->serialPort, this->buff(), this->buffMaxSize());
@@ -192,7 +192,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             }
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_READ_ALL;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_READ_ALL:
             // next bytes state
             c = ::read(this->serialPort, this->buffNext(), this->buffFreeSize());

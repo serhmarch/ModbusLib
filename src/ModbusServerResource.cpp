@@ -88,11 +88,11 @@ StatusCode ModbusServerResource::process()
             if (d->cmdClose)
                 break;
             d->state = STATE_BEGIN_OPEN;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_BEGIN_OPEN:
             d->timestampRefresh();
             d->state = STATE_WAIT_FOR_OPEN;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_OPEN:
             if (d->cmdClose)
             {
@@ -124,11 +124,11 @@ StatusCode ModbusServerResource::process()
             return r;
         case STATE_OPENED:
             d->state = STATE_BEGIN_READ;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_BEGIN_READ:
             d->timestampRefresh();
             d->state = STATE_READ;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_READ:
             if (d->cmdClose)
             {
@@ -180,7 +180,7 @@ StatusCode ModbusServerResource::process()
                 }
             }
             d->state = STATE_PROCESS_DEVICE;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_PROCESS_DEVICE:
             r = processDevice();
             if (StatusIsProcessing(r))
@@ -191,7 +191,7 @@ StatusCode ModbusServerResource::process()
                 RAISE_COMPLETED(Modbus::Status_Good);
             }
             d->state = STATE_BEGIN_WRITE;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_BEGIN_WRITE:
             d->timestampRefresh();
             func = d->func;
@@ -209,7 +209,7 @@ StatusCode ModbusServerResource::process()
                 processOutputData(buff, outCount);
             d->port->writeBuffer(d->unit, func, buff, outCount);
             d->state = STATE_WRITE;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WRITE:
         {
             // Note: r - status can be Bad so do not rewrite it,

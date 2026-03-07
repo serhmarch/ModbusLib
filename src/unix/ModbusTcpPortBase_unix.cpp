@@ -65,7 +65,7 @@ Modbus::StatusCode ModbusTcpPortBase::open()
             d->timestamp = timer();
             d->state = STATE_WAIT_FOR_OPEN;
         }
-        // no need break
+        MB_FALLTHROUGH
         case STATE_WAIT_FOR_OPEN:
         {
             if (isNonBlocking())
@@ -240,7 +240,7 @@ StatusCode ModbusTcpPortBase::read()
         case STATE_PREPARE_TO_READ:
             d->timestamp = timer();
             d->state = STATE_WAIT_FOR_READ;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_READ:
         case STATE_WAIT_FOR_READ_ALL:
         {

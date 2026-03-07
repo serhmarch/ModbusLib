@@ -181,7 +181,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingWrite()
             }
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_WRITE;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_WRITE:
         case STATE_WAIT_FOR_WRITE_ALL:
             r =  WriteFile(this->serialPort, this->buff(), this->buffSize(), NULL, &this->oWrite);
@@ -240,7 +240,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
             this->setBuffSize(0);
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_READ;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_READ:
             // read first bytes
             r = ReadFile(this->serialPort, this->buff(), this->buffMaxSize(), &c, &this->oRead);
@@ -286,7 +286,7 @@ StatusCode ModbusSerialPortPrivateWin::nonBlockingRead()
             }
             this->timestampRefresh();
             this->state = STATE_WAIT_FOR_READ_ALL;
-            // no need break
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_READ_ALL:
             // read next bytes
             r = ReadFile(this->serialPort, this->buffNext(), this->buffFreeSize(), &c, &this->oRead);

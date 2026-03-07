@@ -50,7 +50,11 @@
 
 #endif // MB_DYNAMIC_LINKING
 
-
+#if defined(__cplusplus) && (__cplusplus >= 201703L)
+#define MB_FALLTHROUGH [[fallthrough]];
+#else
+#define MB_FALLTHROUGH
+#endif
 
 /// \brief Macro for creating string literal, must be used like: `StringLiteral("Some string")`
 #define StringLiteral(cstr) cstr
@@ -74,12 +78,12 @@
 
 /// \brief Macro for get bits begins with number `bitNum` with `count` from input bit array `bitBuff` to output bool array `boolBuff`.
 #define GET_BITS(bitBuff, bitNum, bitCount, boolBuff)                                                                       \
-    for (uint16_t __i__ = 0; __i__ < bitCount; __i__++)                                                                     \
+    for (uint16_t __i__ = 0; __i__ < bitCount; ++__i__)                                                                     \
         boolBuff[__i__] = (((const uint8_t*)(bitBuff))[((bitNum)+__i__)/8] & (1<<(((bitNum)+__i__)%8))) != 0;
 
 /// \brief Macro for set bits begins with number `bitNum` with `count` from input bool array `boolBuff`to output bit array `bitBuff`.
 #define SET_BITS(bitBuff, bitNum, bitCount, boolBuff)                                                                       \
-    for (uint16_t __i__ = 0; __i__ < bitCount; __i__++)                                                                     \
+    for (uint16_t __i__ = 0; __i__ < bitCount; ++__i__)                                                                     \
         if (boolBuff[__i__])                                                                                                \
             ((uint8_t*)(bitBuff))[((bitNum)+__i__)/8] |= (1<<(((bitNum)+__i__)%8));                                         \
         else                                                                                                                \
