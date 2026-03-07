@@ -887,7 +887,7 @@ StatusCode ModbusServerResource::processDevice()
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
     case MBF_WRITE_FILE_RECORD:
-        r = d->device->writeFileRecord(d->unit, d->recordsCount, d->fileRecordBuff(), d->fileDataBuffSize, d->fileDataBuff());
+        r = d->device->writeFileRecord(d->unit, d->recordsCount, d->fileRecordBuff(), d->fileDataBuff());
         break;
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 

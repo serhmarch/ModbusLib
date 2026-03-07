@@ -266,10 +266,10 @@ StatusCode ModbusClient::readFileRecord(uint8_t recordsCount, const Modbus::File
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
-StatusCode ModbusClient::writeFileRecord(uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData)
+StatusCode ModbusClient::writeFileRecord(uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData)
 {
     ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->writeFileRecord(this, d->unit, recordsCount, records, inSize, inData);
+    return d->port->writeFileRecord(this, d->unit, recordsCount, records, inData);
 }
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 

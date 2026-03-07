@@ -955,7 +955,7 @@ Modbus::StatusCode ModbusInterface::readFileRecord(uint8_t /*unit*/, uint8_t /*r
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
-Modbus::StatusCode ModbusInterface::writeFileRecord(uint8_t /*unit*/, uint8_t /*recordsCount*/, const Modbus::FileRecord * /*records*/, uint8_t /*inSize*/, const void * /*inData*/)
+Modbus::StatusCode ModbusInterface::writeFileRecord(uint8_t /*unit*/, uint8_t /*recordsCount*/, const Modbus::FileRecord * /*records*/, const void * /*inData*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }

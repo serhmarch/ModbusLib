@@ -395,7 +395,7 @@ TEST_F(ModbusClientTest, WrappedFunctionsCallPortWithExpectedParams)
         uint8_t req[]  = {0x04, 0x06, 0x00, 0x04, 0x00};
         uint8_t resp[] = {0x04, 0x06, 0x00, 0x04, 0x00};
         verifyWrappedCall(MBF_WRITE_FILE_RECORD, req, sizeof(req), resp, sizeof(resp), [&] {
-            return client->writeFileRecord(1, records, sizeof(inData), inData);
+            return client->writeFileRecord(1, records, inData);
         });
     }
 #endif

@@ -232,8 +232,8 @@ public:
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
-    /// \details Same as `ModbusInterface::writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
-    Modbus::StatusCode writeFileRecord(uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData);
+    /// \details Same as `ModbusInterface::writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData)`, but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
+    Modbus::StatusCode writeFileRecord(uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData);
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE

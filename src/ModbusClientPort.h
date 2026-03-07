@@ -302,8 +302,8 @@ public: // Main interface
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
-    /// \details Same as `ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode writeFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData);
+    /// \details Same as `ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode writeFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData);
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
@@ -475,7 +475,7 @@ public: // Modbus Interface
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
-    Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData) override;
+    Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData) override;
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE

@@ -16,7 +16,6 @@ HEADERS +=                          \
     $$PWD/ModbusPlatform.h          \
     $$PWD/ModbusGlobal.h            \
     $$PWD/Modbus.h                  \
-    $$PWD/cModbus.h                 \
     $$PWD/ModbusObject.h            \
     $$PWD/ModbusObject_p.h          \
     $$PWD/ModbusPort.h              \
@@ -54,7 +53,6 @@ HEADERS +=                          \
 
 SOURCES +=                          \
     $$PWD/Modbus.cpp                \
-    $$PWD/cModbus.cpp               \
     $$PWD/ModbusObject.cpp          \
     $$PWD/ModbusPort.cpp            \
     $$PWD/ModbusSerialPort.cpp      \

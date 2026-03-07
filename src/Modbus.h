@@ -322,10 +322,9 @@ public:
     /// \param[in]  unit          Address of the remote Modbus device.
     /// \param[in]  recordsCount  Count of file records to write.
     /// \param[in]  records       Pointer to array of `Modbus::FileRecord` structures representing the file records to write.
-    /// \param[in]  inSize        Size of input payload (in bytes).
     /// \param[in]  inData        Pointer to input payload buffer (File Record sub-requests).
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData);
+    virtual Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData);
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE

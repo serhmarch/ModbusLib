@@ -2728,7 +2728,7 @@ TEST_F(ModbusServerResourceTest, ProcessWriteFileRecordRequest)
             SetArgPointee<4>(7),
             Return(Status_Good)));
 
-    EXPECT_CALL(*mockDevice, writeFileRecord(_, _, _, _, _))
+    EXPECT_CALL(*mockDevice, writeFileRecord(_, _, _, _))
         .Times(0);
 
     EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
@@ -2751,14 +2751,13 @@ TEST_F(ModbusServerResourceTest, ProcessWriteFileRecordRequest)
             SetArgPointee<4>(12),
             Return(Status_Good)));
 
-    EXPECT_CALL(*mockDevice, writeFileRecord(unit, 1, _, 4, _))
+    EXPECT_CALL(*mockDevice, writeFileRecord(unit, 1, _, _))
         .Times(1)
-        .WillOnce(Invoke([](uint8_t, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t inSize, const void *inData) {
+        .WillOnce(Invoke([](uint8_t, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData) {
             EXPECT_EQ(recordsCount, 1);
             EXPECT_EQ(records[0].fileNumber, 0x0004);
             EXPECT_EQ(records[0].recordNumber, 0x0007);
             EXPECT_EQ(records[0].recordLength, 0x0002);
-            EXPECT_EQ(inSize, 4);
             const uint16_t *values = reinterpret_cast<const uint16_t*>(inData);
             EXPECT_EQ(values[0], 0x1234);
             EXPECT_EQ(values[1], 0x5678);
