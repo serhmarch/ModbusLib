@@ -2053,7 +2053,7 @@ Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *clie
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, StringLiteral("FC43. Invalid Read Device ID code"));
         }
         // Pack 3-byte MEI request: [MEI Type, Read Dev ID Code, Object ID]
-        buff[0] = MB_MEI_TYPE_READ_DEVICE_ID;  // MEI Type = 0x0E (Read Device Identification)
+        buff[0] = MBF_MEI_READ_DEVICE_ID;  // MEI Type = 0x0E (Read Device Identification)
         buff[1] = readDeviceId;                // Read Device ID code
         buff[2] = objectId;                    // Object ID to start reading from
         d->readDeviceIdCode = readDeviceId;
@@ -2076,7 +2076,7 @@ Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *clie
         if (szOutBuff < 6)
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC43. Incorrect received data size"));
         // Verify MEI type in response matches our request
-        if (buff[0] != MB_MEI_TYPE_READ_DEVICE_ID)
+        if (buff[0] != MBF_MEI_READ_DEVICE_ID)
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC43. MEI Type mismatch in response"));
         // Verify Read Device ID code in response matches our request
         if (buff[1] != d->readDeviceIdCode)

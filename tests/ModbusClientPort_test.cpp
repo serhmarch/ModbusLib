@@ -2429,9 +2429,9 @@ TEST_F(ModbusClientPortTest, ReadDeviceIdentificationSuccess)
     const uint8_t readDeviceId = MB_MEI_READ_DEVICE_ID_BASIC;
     const uint8_t objectId = 0x00;
 
-    uint8_t requestData[3] = {MB_MEI_TYPE_READ_DEVICE_ID, readDeviceId, objectId};
+    uint8_t requestData[3] = {MBF_MEI_READ_DEVICE_ID, readDeviceId, objectId};
     uint8_t responseData[9] = {
-        MB_MEI_TYPE_READ_DEVICE_ID,
+        MBF_MEI_READ_DEVICE_ID,
         readDeviceId,
         0x02,
         0xFF,

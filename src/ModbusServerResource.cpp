@@ -676,7 +676,7 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             return d->setError(Status_BadNotCorrectRequest, errbuff);
         }
         // Verify MEI type is Read Device Identification (0x0E)
-        if (buff[0] != MB_MEI_TYPE_READ_DEVICE_ID)
+        if (buff[0] != MBF_MEI_READ_DEVICE_ID)
         {
             const size_t len = 100;
             Char errbuff[len];
@@ -1157,11 +1157,11 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
 
 #ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
     case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
-        buff[0] = MB_MEI_TYPE_READ_DEVICE_ID;
+        buff[0] = MBF_MEI_READ_DEVICE_ID;
         buff[1] = d->readDeviceIdCode; 
         buff[2] = d->readDeviceIdObjectId; 
         buff[3] = d->conformityLevel; 
-        buff[4] = d->moreFollows ? 0xFF : 0x00;
+        buff[4] = d->moreFollows ? MB_MEI_MORE_FOLLOWS : MB_MEI_NO_MORE_FOLLOWS;
         buff[5] = d->nextObjectId;
         memcpy(&buff[6], d->valueBuff, d->outByteCount);
         sz = d->outByteCount+6;

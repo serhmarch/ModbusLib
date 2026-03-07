@@ -3225,7 +3225,7 @@ TEST_F(ModbusServerResourceTest, ReadDeviceIdentificationRequest)
     uint8_t readDeviceId = MB_MEI_READ_DEVICE_ID_BASIC;
     uint8_t objectId = 0x00;
 
-    uint8_t requestData[3] = {MB_MEI_TYPE_READ_DEVICE_ID, readDeviceId, objectId};
+    uint8_t requestData[3] = {MBF_MEI_READ_DEVICE_ID, readDeviceId, objectId};
     uint8_t responseData[16] = {0};
 
     setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
@@ -3276,7 +3276,7 @@ TEST_F(ModbusServerResourceTest, ReadDeviceIdentificationRequest)
             return Status_Good;
         }));
 
-    responseData[0] = MB_MEI_TYPE_READ_DEVICE_ID;
+    responseData[0] = MBF_MEI_READ_DEVICE_ID;
     responseData[1] = readDeviceId;
     responseData[2] = objectId;
     responseData[3] = 0x02;

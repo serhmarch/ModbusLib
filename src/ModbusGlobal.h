@@ -158,7 +158,7 @@
 ///\{
 
 /// \brief MEI Type for Read Device Identification (sub-function of FC43)
-#define MB_MEI_TYPE_READ_DEVICE_ID          0x0E
+#define MBF_MEI_READ_DEVICE_ID              0x0E
 
 /// \brief Read Device ID Code: Basic identification (objects 0x00-0x02)
 #define MB_MEI_READ_DEVICE_ID_BASIC         0x01

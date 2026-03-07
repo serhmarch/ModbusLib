@@ -437,8 +437,8 @@ TEST_F(ModbusClientTest, WrappedFunctionsCallPortWithExpectedParams)
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 #ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
     {
-        uint8_t req[]  = {MB_MEI_TYPE_READ_DEVICE_ID, MB_MEI_READ_DEVICE_ID_BASIC, 0x00};
-        uint8_t resp[] = {MB_MEI_TYPE_READ_DEVICE_ID, MB_MEI_READ_DEVICE_ID_BASIC, 0x01, 0x00, 0x00, 0x01, 0x00};
+        uint8_t req[]  = {MBF_MEI_READ_DEVICE_ID, MB_MEI_READ_DEVICE_ID_BASIC, 0x00};
+        uint8_t resp[] = {MBF_MEI_READ_DEVICE_ID, MB_MEI_READ_DEVICE_ID_BASIC, 0x01, 0x00, 0x00, 0x01, 0x00};
         uint8_t dataSize = 0;
         uint8_t data[8] = {0};
         uint8_t numberOfObjects = 0;
