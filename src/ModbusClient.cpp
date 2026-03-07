@@ -43,6 +43,12 @@ StatusCode ModbusClient::readCoils(uint16_t offset, uint16_t count, void *values
     ModbusClientPrivate *d = d_cast(d_ptr);
     return d->port->readCoils(this, d->unit, offset, count, values);
 }
+
+StatusCode ModbusClient::readCoilsAsBoolArray(uint16_t offset, uint16_t count, bool *values)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->readCoilsAsBoolArray(this, d->unit, offset, count, values);
+}
 #endif // MBF_READ_COILS_DISABLE
 
 #ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
@@ -50,6 +56,12 @@ StatusCode ModbusClient::readDiscreteInputs(uint16_t offset, uint16_t count, voi
 {
     ModbusClientPrivate *d = d_cast(d_ptr);
     return d->port->readDiscreteInputs(this, d->unit, offset, count, values);
+}
+
+StatusCode ModbusClient::readDiscreteInputsAsBoolArray(uint16_t offset, uint16_t count, bool *values)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->readDiscreteInputsAsBoolArray(this, d->unit, offset, count, values);
 }
 #endif // MBF_READ_DISCRETE_INPUTS_DISABLE
 
@@ -239,6 +251,12 @@ StatusCode ModbusClient::writeMultipleCoils(uint16_t offset, uint16_t count, con
     ModbusClientPrivate *d = d_cast(d_ptr);
     return d->port->writeMultipleCoils(this, d->unit, offset, count, values);
 }
+
+StatusCode ModbusClient::writeMultipleCoilsAsBoolArray(uint16_t offset, uint16_t count, const bool *values)
+{
+    ModbusClientPrivate *d = d_cast(d_ptr);
+    return d->port->writeMultipleCoilsAsBoolArray(this, d->unit, offset, count, values);
+}
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
@@ -304,30 +322,6 @@ StatusCode ModbusClient::readDeviceIdentification(uint8_t readDeviceId, uint8_t 
     return d->port->readDeviceIdentification(this, d->unit, readDeviceId, objectId, dataSize, data, numberOfObjects, conformityLevel, moreFollows, nextObjectId);
 }
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-
-#ifndef MBF_READ_COILS_DISABLE
-StatusCode ModbusClient::readCoilsAsBoolArray(uint16_t offset, uint16_t count, bool *values)
-{
-    ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->readCoilsAsBoolArray(this, d->unit, offset, count, values);
-}
-#endif // MBF_READ_COILS_DISABLE
-
-#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
-StatusCode ModbusClient::readDiscreteInputsAsBoolArray(uint16_t offset, uint16_t count, bool *values)
-{
-    ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->readDiscreteInputsAsBoolArray(this, d->unit, offset, count, values);
-}
-#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
-
-#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
-StatusCode ModbusClient::writeMultipleCoilsAsBoolArray(uint16_t offset, uint16_t count, const bool *values)
-{
-    ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->writeMultipleCoilsAsBoolArray(this, d->unit, offset, count, values);
-}
-#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
 StatusCode ModbusClient::lastPortStatus() const
 {

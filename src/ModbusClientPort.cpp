@@ -52,6 +52,11 @@ void ModbusClientPort::setBroadcastEnabled(bool enable)
 }
 
 #ifndef MBF_READ_COILS_DISABLE
+StatusCode ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+{
+    return readCoils(this, unit, offset, count, values);
+}
+
 Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -105,9 +110,26 @@ Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t uni
         return Status_Processing;
     }
 }
+
+Modbus::StatusCode ModbusClientPort::readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    Modbus::StatusCode r = readCoils(client, unit, offset, count, d->buff);
+    if (!StatusIsGood(r) || d->isBroadcast())
+        return r;
+    for (int i = 0; i < count; ++i)
+        values[i] = (d->buff[i / 8] & static_cast<uint8_t>(1 << (i % 8))) != 0;
+    return Status_Good;
+}
 #endif // MBF_READ_COILS_DISABLE
 
 #ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
+StatusCode ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)
+{
+    return readDiscreteInputs(this, unit, offset, count, values);
+}
+
 Modbus::StatusCode ModbusClientPort::readDiscreteInputs(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -161,9 +183,26 @@ Modbus::StatusCode ModbusClientPort::readDiscreteInputs(ModbusObject *client, ui
         return Status_Processing;
     }
 }
+
+Modbus::StatusCode ModbusClientPort::readDiscreteInputsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    Modbus::StatusCode r = readDiscreteInputs(client, unit, offset, count, d->buff);
+    if (!StatusIsGood(r) || d->isBroadcast())
+        return r;
+    for (int i = 0; i < count; ++i)
+        values[i] = (d->buff[i / 8] & static_cast<uint8_t>(1 << (i % 8))) != 0;
+    return Status_Good;
+}
 #endif // MBF_READ_DISCRETE_INPUTS_DISABLE
 
 #ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
+StatusCode ModbusClientPort::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+{
+    return readHoldingRegisters(this, unit, offset, count, values);
+}
+
 Modbus::StatusCode ModbusClientPort::readHoldingRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -222,6 +261,11 @@ Modbus::StatusCode ModbusClientPort::readHoldingRegisters(ModbusObject *client, 
 #endif // MBF_READ_HOLDING_REGISTERS_DISABLE
 
 #ifndef MBF_READ_INPUT_REGISTERS_DISABLE
+StatusCode ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
+{
+    return readInputRegisters(this, unit, offset, count, values);
+}
+
 Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -280,6 +324,11 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
 #endif // MBF_READ_INPUT_REGISTERS_DISABLE
 
 #ifndef MBF_WRITE_SINGLE_COIL_DISABLE
+StatusCode ModbusClientPort::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)
+{
+    return writeSingleCoil(this, unit, offset, value);
+}
+
 Modbus::StatusCode ModbusClientPort::writeSingleCoil(ModbusObject *client, uint8_t unit, uint16_t offset, bool value)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -326,6 +375,11 @@ Modbus::StatusCode ModbusClientPort::writeSingleCoil(ModbusObject *client, uint8
 #endif // MBF_WRITE_SINGLE_COIL_DISABLE
 
 #ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
+StatusCode ModbusClientPort::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)
+{
+    return writeSingleRegister(this, unit, offset, value);
+}
+
 Modbus::StatusCode ModbusClientPort::writeSingleRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t value)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -377,6 +431,11 @@ Modbus::StatusCode ModbusClientPort::writeSingleRegister(ModbusObject *client, u
 #endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
 
 #ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
+StatusCode ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *value)
+{
+    return readExceptionStatus(this, unit, value);
+}
+
 StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t unit, uint8_t *value)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -470,6 +529,11 @@ Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t u
 #ifndef MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
+{
+    return diagnosticsReturnQueryData(this, unit, insize, indata, outsize, outdata);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -531,6 +595,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *cl
 #endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog)
+{
+    return diagnosticsRestartCommunicationsOption(this, unit, clearEventLog);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(ModbusObject *client, uint8_t unit, bool clearEventLog)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -579,6 +648,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(Modb
 #endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value)
+{
+    return diagnosticsReturnDiagnosticRegister(this, unit, value);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(ModbusObject *client, uint8_t unit, uint16_t *value)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -628,6 +702,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(ModbusO
 #endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter)
+{
+    return diagnosticsChangeAsciiInputDelimiter(this, unit, delimiter);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(ModbusObject *client, uint8_t unit, char delimiter)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -676,6 +755,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(Modbus
 #endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(uint8_t unit)
+{
+    return diagnosticsForceListenOnlyMode(this, unit);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(ModbusObject *client, uint8_t unit)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -724,6 +808,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(ModbusObject
 #endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit)
+{
+    return diagnosticsClearCountersAndDiagnosticRegister(this, unit);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(ModbusObject *client, uint8_t unit)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -775,6 +864,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegist
 #endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnBusMessageCount(this, unit, count);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -824,6 +918,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(ModbusObje
 #endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnBusCommunicationErrorCount(this, unit, count);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -873,6 +972,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount
 #endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnBusExceptionErrorCount(this, unit, count);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -922,6 +1026,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(Mod
 #endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnServerMessageCount(this, unit, count);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -971,6 +1080,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(ModbusO
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnServerNoResponseCount(this, unit, count);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(ModbusObject *client, uint8_t unit, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1020,6 +1134,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(Modb
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnServerNAKCount(this, unit, count);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(ModbusObject *client, uint8_t unit, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1069,6 +1188,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(ModbusObjec
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnServerBusyCount(this, unit, count);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(ModbusObject *client, uint8_t unit, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1118,6 +1242,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(ModbusObje
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
+StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count)
+{
+    return diagnosticsReturnBusCharacterOverrunCount(this, unit, count);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(ModbusObject *client, uint8_t unit, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1167,6 +1296,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(M
 #endif // MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(uint8_t unit)
+{
+    return diagnosticsClearOverrunCounterAndFlag(this, unit);
+}
+
 Modbus::StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(ModbusObject *client, uint8_t unit)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1221,6 +1355,11 @@ Modbus::StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(Modbu
 
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
+Modbus::StatusCode ModbusClientPort::getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount)
+{
+    return getCommEventCounter(this, unit, status, eventCount);
+}
+
 Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1261,6 +1400,11 @@ Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, u
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
+Modbus::StatusCode ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
+{
+    return getCommEventLog(this, unit, status, eventCount, messageCount, eventBuffSize, eventBuff);
+}
+
 Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1311,6 +1455,11 @@ Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
+StatusCode ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)
+{
+    return writeMultipleCoils(this, unit, offset, count, values);
+}
+
 Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const void *values)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1369,9 +1518,34 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
         return Status_Processing;
     }
 }
+
+Modbus::StatusCode ModbusClientPort::writeMultipleCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const bool *values)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+
+    if (this->currentClient() == nullptr)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (!(i & 7))
+                d->buff[i / 8] = 0;
+            if (values[i] != 0)
+                d->buff[i / 8] |= (1 << (i % 8));
+        }
+        return writeMultipleCoils(client, unit, offset, count, d->buff);
+    }
+    else if (this->currentClient() == client)
+        return writeMultipleCoils(client, unit, offset, count, d->buff);
+    return Status_Processing;
+}
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
+StatusCode ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
+{
+    return writeMultipleRegisters(this, unit, offset, count, values);
+}
+
 Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1437,6 +1611,11 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
+StatusCode ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)
+{
+    return reportServerID(this, unit, count, data);
+}
+
 Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_t unit, uint8_t *count, uint8_t *data)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1481,6 +1660,11 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
+StatusCode ModbusClientPort::readFileRecord(uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t *outSize, void *outData)
+{
+    return readFileRecord(this, unit, recordsCount, records, outSize, outData);
+}
+
 StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t *outSize, void *outData)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1578,6 +1762,11 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
+StatusCode ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const FileRecord *records, const void *inData)
+{
+    return writeFileRecord(this, unit, recordsCount, records, inData);
+}
+
 StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const FileRecord *records, const void *inData)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1643,6 +1832,11 @@ StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit,
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
+StatusCode ModbusClientPort::maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
+{
+    return maskWriteRegister(this, unit, offset, andMask, orMask);
+}
+
 StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1700,6 +1894,11 @@ StatusCode ModbusClientPort::maskWriteRegister(ModbusObject *client, uint8_t uni
 #endif // MBF_MASK_WRITE_REGISTER_DISABLE
 
 #ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
+StatusCode ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
+{
+    return readWriteMultipleRegisters(this, unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
+}
+
 StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1770,6 +1969,11 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
+Modbus::StatusCode ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)
+{
+    return readFIFOQueue(this, unit, fifoadr, count, values);
+}
+
 Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1822,6 +2026,11 @@ Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 #ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+Modbus::StatusCode ModbusClientPort::readDeviceIdentification(uint8_t unit, uint8_t readDevId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId)
+{
+    return readDeviceIdentification(this, unit, readDevId, objectId, dataSize, data, numberOfObjects, conformityLevel, moreFollows, nextObjectId);
+}
+
 Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *client, uint8_t unit, uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
@@ -1887,295 +2096,6 @@ Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *clie
     default:
         return Status_Processing;
     }
-}
-#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
-
-#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-
-#ifndef MBF_READ_COILS_DISABLE
-Modbus::StatusCode ModbusClientPort::readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    Modbus::StatusCode r = readCoils(client, unit, offset, count, d->buff);
-    if (!StatusIsGood(r) || d->isBroadcast())
-        return r;
-    for (int i = 0; i < count; ++i)
-        values[i] = (d->buff[i / 8] & static_cast<uint8_t>(1 << (i % 8))) != 0;
-    return Status_Good;
-}
-#endif // MBF_READ_COILS_DISABLE
-
-#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
-Modbus::StatusCode ModbusClientPort::readDiscreteInputsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    Modbus::StatusCode r = readDiscreteInputs(client, unit, offset, count, d->buff);
-    if (!StatusIsGood(r) || d->isBroadcast())
-        return r;
-    for (int i = 0; i < count; ++i)
-        values[i] = (d->buff[i / 8] & static_cast<uint8_t>(1 << (i % 8))) != 0;
-    return Status_Good;
-}
-#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
-
-#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
-Modbus::StatusCode ModbusClientPort::writeMultipleCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const bool *values)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    if (this->currentClient() == nullptr)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            if (!(i & 7))
-                d->buff[i / 8] = 0;
-            if (values[i] != 0)
-                d->buff[i / 8] |= (1 << (i % 8));
-        }
-        return writeMultipleCoils(client, unit, offset, count, d->buff);
-    }
-    else if (this->currentClient() == client)
-        return writeMultipleCoils(client, unit, offset, count, d->buff);
-    return Status_Processing;
-}
-#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
-
-#ifndef MBF_READ_COILS_DISABLE
-StatusCode ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)
-{
-    return readCoils(this, unit, offset, count, values);
-}
-#endif // MBF_READ_COILS_DISABLE
-
-#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
-StatusCode ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)
-{
-    return readDiscreteInputs(this, unit, offset, count, values);
-}
-#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
-
-#ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
-StatusCode ModbusClientPort::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
-{
-    return readHoldingRegisters(this, unit, offset, count, values);
-}
-#endif // MBF_READ_HOLDING_REGISTERS_DISABLE
-
-#ifndef MBF_READ_INPUT_REGISTERS_DISABLE
-StatusCode ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)
-{
-    return readInputRegisters(this, unit, offset, count, values);
-}
-#endif // MBF_READ_INPUT_REGISTERS_DISABLE
-
-#ifndef MBF_WRITE_SINGLE_COIL_DISABLE
-StatusCode ModbusClientPort::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)
-{
-    return writeSingleCoil(this, unit, offset, value);
-}
-#endif // MBF_WRITE_SINGLE_COIL_DISABLE
-
-#ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
-StatusCode ModbusClientPort::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)
-{
-    return writeSingleRegister(this, unit, offset, value);
-}
-#endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
-
-#ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
-StatusCode ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *value)
-{
-    return readExceptionStatus(this, unit, value);
-}
-#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
-{
-    return diagnosticsReturnQueryData(this, unit, insize, indata, outsize, outdata);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
-StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog)
-{
-    return diagnosticsRestartCommunicationsOption(this, unit, clearEventLog);
-}
-#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value)
-{
-    return diagnosticsReturnDiagnosticRegister(this, unit, value);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
-StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter)
-{
-    return diagnosticsChangeAsciiInputDelimiter(this, unit, delimiter);
-}
-#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
-StatusCode ModbusClientPort::diagnosticsForceListenOnlyMode(uint8_t unit)
-{
-    return diagnosticsForceListenOnlyMode(this, unit);
-}
-#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
-StatusCode ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit)
-{
-    return diagnosticsClearCountersAndDiagnosticRegister(this, unit);
-}
-#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count)
-{
-    return diagnosticsReturnBusMessageCount(this, unit, count);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count)
-{
-    return diagnosticsReturnBusCommunicationErrorCount(this, unit, count);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count)
-{
-    return diagnosticsReturnBusExceptionErrorCount(this, unit, count);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count)
-{
-    return diagnosticsReturnServerMessageCount(this, unit, count);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count)
-{
-    return diagnosticsReturnServerNoResponseCount(this, unit, count);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count)
-{
-    return diagnosticsReturnServerNAKCount(this, unit, count);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count)
-{
-    return diagnosticsReturnServerBusyCount(this, unit, count);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count)
-{
-    return diagnosticsReturnBusCharacterOverrunCount(this, unit, count);
-}
-#endif // MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
-StatusCode ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(uint8_t unit)
-{
-    return diagnosticsClearOverrunCounterAndFlag(this, unit);
-}
-#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
-
-#endif // MBF_DIAGNOSTICS_DISABLE
-
-#ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
-Modbus::StatusCode ModbusClientPort::getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount)
-{
-    return getCommEventCounter(this, unit, status, eventCount);
-}
-#endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
-
-#ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-Modbus::StatusCode ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
-{
-    return getCommEventLog(this, unit, status, eventCount, messageCount,eventBuffSize, eventBuff);
-}
-#endif // MBF_GET_COMM_EVENT_LOG_DISABLE
-
-#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
-StatusCode ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)
-{
-    return writeMultipleCoils(this, unit, offset, count, values);
-}
-#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
-
-#ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
-StatusCode ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)
-{
-    return writeMultipleRegisters(this, unit, offset, count, values);
-}
-#endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
-
-#ifndef MBF_REPORT_SERVER_ID_DISABLE
-StatusCode ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)
-{
-    return reportServerID(this, unit, count, data);
-}
-#endif // MBF_REPORT_SERVER_ID_DISABLE
-
-#ifndef MBF_READ_FILE_RECORD_DISABLE
-StatusCode ModbusClientPort::readFileRecord(uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t *outSize, void *outData)
-{
-    return readFileRecord(this, unit, recordsCount, records, outSize, outData);
-}
-#endif // MBF_READ_FILE_RECORD_DISABLE
-
-#ifndef MBF_WRITE_FILE_RECORD_DISABLE
-StatusCode ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const FileRecord *records, const void *inData)
-{
-    return writeFileRecord(this, unit, recordsCount, records, inData);
-}
-#endif // MBF_WRITE_FILE_RECORD_DISABLE
-
-#ifndef MBF_MASK_WRITE_REGISTER_DISABLE
-StatusCode ModbusClientPort::maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)
-{
-    return maskWriteRegister(this, unit, offset, andMask, orMask);
-}
-#endif // MBF_MASK_WRITE_REGISTER_DISABLE
-
-#ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
-StatusCode ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)
-{
-    return readWriteMultipleRegisters(this, unit, readOffset, readCount, readValues, writeOffset, writeCount, writeValues);
-}
-#endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
-
-#ifndef MBF_READ_FIFO_QUEUE_DISABLE
-Modbus::StatusCode ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)
-{
-    return readFIFOQueue(this, unit, fifoadr, count, values);
-}
-#endif // MBF_READ_FIFO_QUEUE_DISABLE
-
-#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-
-#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
-Modbus::StatusCode ModbusClientPort::readDeviceIdentification(uint8_t unit, uint8_t readDevId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId)
-{
-    return readDeviceIdentification(this, unit, readDevId, objectId, dataSize, data, numberOfObjects, conformityLevel, moreFollows, nextObjectId);
 }
 #endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
 

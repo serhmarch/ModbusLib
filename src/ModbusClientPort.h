@@ -158,36 +158,68 @@ public:
 public: // Main interface
 
 #ifndef MBF_READ_COILS_DISABLE
-    /// \details Same as `ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values) override;
+
+    /// \details Same as `ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`,
+    /// but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+
+    /// \details Same as `ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`,
+    /// but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    inline Modbus::StatusCode readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readCoilsAsBoolArray(this, unit, offset, count, values); }
+
+    /// \details Same as `ModbusClientPort::readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)`,
+    /// but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
 #endif // MBF_READ_COILS_DISABLE
 
 #ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
-    /// \details Same as `ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values) override;
+
+    /// \details Same as `ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`,
+    /// but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readDiscreteInputs(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values);
+
+    /// \details Same as `ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`,
+    /// but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    inline Modbus::StatusCode readDiscreteInputsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readDiscreteInputsAsBoolArray(this, unit, offset, count, values); }
+
+    /// \details Same as `ModbusClientPort::readDiscreteInputsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)`,
+    /// but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode readDiscreteInputsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
 #endif // MBF_READ_DISCRETE_INPUTS_DISABLE
 
 #ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
+    Modbus::StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) override;
+
     /// \details Same as `ModbusClientPort::readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readHoldingRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
 #endif // MBF_READ_HOLDING_REGISTERS_DISABLE
 
 #ifndef MBF_READ_INPUT_REGISTERS_DISABLE
+    Modbus::StatusCode readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) override;
+
     /// \details Same as `ModbusClientPort::readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readInputRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values);
 #endif // MBF_READ_INPUT_REGISTERS_DISABLE
 
 #ifndef MBF_WRITE_SINGLE_COIL_DISABLE
+    Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value) override;
+
     /// \details Same as `ModbusClientPort::writeSingleCoil(uint8_t unit, uint16_t offset, bool value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeSingleCoil(ModbusObject *client, uint8_t unit, uint16_t offset, bool value);
 #endif // MBF_WRITE_SINGLE_COIL_DISABLE
 
 #ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
+    Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value) override;
+
     /// \details Same as `ModbusClientPort::writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeSingleRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t value);
 #endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
 
 #ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
+    Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *value) override;
+
     /// \details Same as `ModbusClientPort::readExceptionStatus(uint8_t unit, uint8_t *status)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readExceptionStatus(ModbusObject *client, uint8_t unit, uint8_t *value);
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
@@ -195,76 +227,106 @@ public: // Main interface
 #ifndef MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+    Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t maxOutsize, void *outdata, uint8_t *outsize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
 #endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+    Modbus::StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsRestartCommunicationsOption(ModbusObject *client, uint8_t unit, bool clearEventLog);
 #endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+    Modbus::StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnDiagnosticRegister(ModbusObject *client, uint8_t unit, uint16_t *value);
 #endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+    Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(uint8_t unit, uint16_t *value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(ModbusObject *client, uint8_t unit, char delimiter);
 #endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+    Modbus::StatusCode diagnosticsForceListenOnlyMode(uint8_t unit) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsForceListenOnlyMode(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsForceListenOnlyMode(ModbusObject *client, uint8_t unit);
 #endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+    Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(ModbusObject *client, uint8_t unit);
 #endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnBusMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count);
 #endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count);
 #endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(ModbusObject *client, uint8_t unit, uint16_t *count);
 #endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnServerMessageCount(ModbusObject *client, uint8_t unit, uint16_t *count);
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnServerNoResponseCount(ModbusObject *client, uint8_t unit, uint16_t *count);
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnServerNAKCount(ModbusObject *client, uint8_t unit, uint16_t *count);
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnServerBusyCount(ModbusObject *client, uint8_t unit, uint16_t *count);
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+    Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(ModbusObject *client, uint8_t unit, uint16_t *count);
 #endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+    Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit) override;
+
     /// \details Same as `ModbusClientPort::diagnosticsClearOverrunCounterAndFlag(uint8_t unit)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(ModbusObject *client, uint8_t unit);
 #endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
@@ -272,51 +334,79 @@ public: // Main interface
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
+    Modbus::StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount) override;
+
     /// \details Same as `ModbusClientPort::getCommEventCounter(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode getCommEventCounter(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount);
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
+    Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff) override;
+
     /// \details Same as `ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *events)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode getCommEventLog(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
+    Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values) override;
+
     /// \details Same as `ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeMultipleCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const void *values);
+
+    /// \details Same as `ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`,
+    /// but the input buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
+    inline Modbus::StatusCode writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values) { return writeMultipleCoilsAsBoolArray(this, unit, offset, count, values); }
+
+    /// \details Same as `ModbusClientPort::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values)`,
+    /// but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode writeMultipleCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const bool *values);
 #endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
+    Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) override;
+
     /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
+    Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data) override;
+
     /// \details Same as `ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode reportServerID(ModbusObject *client, uint8_t unit, uint8_t *count, uint8_t *data);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
+    Modbus::StatusCode readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData) override;
+
     /// \details Same as `ModbusClientPort::readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData);
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData) override;
+
     /// \details Same as `ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode writeFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData);
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
+    Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask) override;
+
     /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode maskWriteRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
 #endif // MBF_MASK_WRITE_REGISTER_DISABLE
 
 #ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
+    Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues) override;
+
     /// \details Same as `ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t offset, readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readWriteMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
+    Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values) override;
+
     /// \details Same as `ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readFIFOQueue(ModbusObject *client, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
@@ -324,6 +414,8 @@ public: // Main interface
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 #ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+    Modbus::StatusCode readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr) override;
+
     /// \details Read Device Identification (FC43/MEI 0x0E).
     /// Has `client` as first parameter to seize current `ModbusClientPort` resource.
     /// \param[in]  client          Pointer to client object for port resource arbitration.
@@ -340,178 +432,6 @@ public: // Main interface
 #endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
 
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-
-#ifndef MBF_READ_COILS_DISABLE
-    /// \details Same as `ModbusClientPort::readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode readCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
-#endif // MBF_READ_COILS_DISABLE
-
-#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
-    /// \details Same as `ModbusClientPort::readDiscreteInputsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode readDiscreteInputsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, bool *values);
-#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
-
-#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
-    /// \details Same as `ModbusClientPort::writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode writeMultipleCoilsAsBoolArray(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, const bool *values);
-#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
-
-public: // Modbus Interface
-
-#ifndef MBF_READ_COILS_DISABLE
-    Modbus::StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values) override;
-#endif // MBF_READ_COILS_DISABLE
-
-#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
-    Modbus::StatusCode readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values) override;
-#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
-
-#ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
-    Modbus::StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) override;
-#endif // MBF_READ_HOLDING_REGISTERS_DISABLE
-
-#ifndef MBF_READ_INPUT_REGISTERS_DISABLE
-    Modbus::StatusCode readInputRegisters(uint8_t unit, uint16_t offset, uint16_t count, uint16_t *values) override;
-#endif // MBF_READ_INPUT_REGISTERS_DISABLE
-
-#ifndef MBF_WRITE_SINGLE_COIL_DISABLE
-    Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value) override;
-#endif // MBF_WRITE_SINGLE_COIL_DISABLE
-
-#ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
-    Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value) override;
-#endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
-
-#ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
-    Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *value) override;
-#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
-    Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata) override;
-#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
-    Modbus::StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog) override;
-#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
-    Modbus::StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value) override;
-#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
-    Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter) override;
-#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
-    Modbus::StatusCode diagnosticsForceListenOnlyMode(uint8_t unit) override;
-#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
-    Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit) override;
-#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
-    Modbus::StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count) override;
-#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
-    Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count) override;
-#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
-    Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count) override;
-#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
-    Modbus::StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count) override;
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
-    Modbus::StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count) override;
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
-    Modbus::StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count) override;
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
-    Modbus::StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count) override;
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
-    Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count) override;
-#endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
-
-#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
-    Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit) override;
-#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
-
-#endif // MBF_DIAGNOSTICS_DISABLE
-
-#ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
-    Modbus::StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount) override;
-#endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
-
-#ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-    Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff) override;
-#endif // MBF_GET_COMM_EVENT_LOG_DISABLE
-
-#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
-    Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values) override;
-#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
-
-#ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
-    Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) override;
-#endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
-
-#ifndef MBF_REPORT_SERVER_ID_DISABLE
-    Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data) override;
-#endif // MBF_REPORT_SERVER_ID_DISABLE
-
-#ifndef MBF_READ_FILE_RECORD_DISABLE
-    Modbus::StatusCode readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData) override;
-#endif // MBF_READ_FILE_RECORD_DISABLE
-
-#ifndef MBF_WRITE_FILE_RECORD_DISABLE
-    Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData) override;
-#endif // MBF_WRITE_FILE_RECORD_DISABLE
-
-#ifndef MBF_MASK_WRITE_REGISTER_DISABLE
-    Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask) override;
-#endif // MBF_MASK_WRITE_REGISTER_DISABLE
-
-#ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
-    Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues) override;
-#endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
-
-#ifndef MBF_READ_FIFO_QUEUE_DISABLE
-    Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values) override;
-#endif // MBF_READ_FIFO_QUEUE_DISABLE
-
-#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-
-#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
-    Modbus::StatusCode readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr) override;
-#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
-
-#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
-
-#ifndef MBF_READ_COILS_DISABLE
-    /// \details Same as `ModbusClientPort::readCoils(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
-    inline Modbus::StatusCode readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readCoilsAsBoolArray(this, unit, offset, count, values); }
-#endif // MBF_READ_COILS_DISABLE
-
-#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
-    /// \details Same as `ModbusClientPort::readDiscreteInputs(uint8_t unit, uint16_t offset, uint16_t count, void *values)`, but the output buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
-    inline Modbus::StatusCode readDiscreteInputsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values) { return readDiscreteInputsAsBoolArray(this, unit, offset, count, values); }
-#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
-
-#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
-    /// \details Same as `ModbusClientPort::writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values)`, but the input buffer of values `values` is an array, where each discrete value is located in a separate element of the array of type `bool`.
-    inline Modbus::StatusCode writeMultipleCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, const bool *values) { return writeMultipleCoilsAsBoolArray(this, unit, offset, count, values); }
-#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
 
 public:
     /// \details Returns the status of the last operation performed.
