@@ -540,7 +540,6 @@ Modbus::StatusCode ModbusClientPort::diagnosticsRestartCommunicationsOption(Modb
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
     uint16_t szOutBuff, outSubfunc;
-    uint8_t sz;
 
     ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
     switch (status)
@@ -637,8 +636,7 @@ Modbus::StatusCode ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(Modbus
 
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
-    uint16_t szOutBuff, outSubfunc, outValue;
-    uint16_t inValue = static_cast<uint8_t>(delimiter);
+    uint16_t szOutBuff, outSubfunc;
 
     ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
     switch (status)
