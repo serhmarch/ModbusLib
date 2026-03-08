@@ -1158,11 +1158,11 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
 #ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
     case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
         buff[0] = MBF_MEI_READ_DEVICE_ID;
-        buff[1] = d->readDeviceIdCode; 
-        buff[2] = d->readDeviceIdObjectId; 
-        buff[3] = d->conformityLevel; 
-        buff[4] = d->moreFollows ? MB_MEI_MORE_FOLLOWS : MB_MEI_NO_MORE_FOLLOWS;
-        buff[5] = d->nextObjectId;
+        buff[1] = d->readDeviceIdCode;
+        buff[2] = d->conformityLevel;
+        buff[3] = d->moreFollows ? MB_MEI_MORE_FOLLOWS : MB_MEI_NO_MORE_FOLLOWS;
+        buff[4] = d->nextObjectId;
+        buff[5] = d->numberOfObjects;
         memcpy(&buff[6], d->valueBuff, d->outByteCount);
         sz = d->outByteCount+6;
         break;

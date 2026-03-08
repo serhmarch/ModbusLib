@@ -73,10 +73,9 @@ Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t uni
     case ModbusClientPort::Enable:
         if (count > MB_MAX_DISCRETS)
         {
-            const size_t len = 200;
+            const size_t len = 100;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC01. Requested count of coils %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_DISCRETS);
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1];    // Start coil offset - MS BYTE
@@ -149,7 +148,6 @@ Modbus::StatusCode ModbusClientPort::readDiscreteInputs(ModbusObject *client, ui
             const size_t len = 200;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC02. Requested count of inputs %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_DISCRETS);
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1];   // Start input offset - MS BYTE
@@ -222,7 +220,6 @@ Modbus::StatusCode ModbusClientPort::readHoldingRegisters(ModbusObject *client, 
             const size_t len = 200;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC03. Requested count of registers %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_REGISTERS);
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1]; // Start register offset - MS BYTE
@@ -285,7 +282,6 @@ Modbus::StatusCode ModbusClientPort::readInputRegisters(ModbusObject *client, ui
             const size_t len = 200;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC04. Requested count of registers %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_REGISTERS);
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1]; // Start register offset - MS BYTE
@@ -474,58 +470,6 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
 }
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
-/*
-Modbus::StatusCode ModbusClientPort::diagnostics(ModbusObject *client, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
-{
-    ModbusClientPortPrivate *d = d_cast(d_ptr);
-
-    const uint16_t szBuff = 300;
-
-    uint8_t buff[szBuff];
-    Modbus::StatusCode r;
-    uint16_t szOutBuff, outSubfunc;
-    uint8_t sz;
-
-    ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
-    switch (status)
-    {
-    case ModbusClientPort::Enable:
-        buff[0] = reinterpret_cast<uint8_t*>(&subfunc)[1]; // Sub function - MS BYTE
-        buff[1] = reinterpret_cast<uint8_t*>(&subfunc)[0]; // Sub function - LS BYTE
-        memcpy(&buff[2], indata, insize);
-        d->subfunc = subfunc;
-        MB_FALLTHROUGH
-    case ModbusClientPort::Process:
-        r = this->request(unit,             // unit ID
-                          MBF_DIAGNOSTICS,  // modbus function number
-                          buff,             // in buffer
-                          insize+2,         // count of input data bytes
-                          buff,             // out buffer
-                          szBuff,           // maximum size of buffer
-                          &szOutBuff);      // count of output data bytes
-        if (StatusIsProcessing(r))
-            return r;
-        if (!StatusIsGood(r) || d->isBroadcast())
-            RAISE_COMPLETED(r);
-
-        if (szOutBuff < 2)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC08. Incorrect received data size"));
-
-        outSubfunc = buff[1] | (buff[0] << 8);
-        if (outSubfunc != d->subfunc)
-            RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("'Subfunc' is not match received one"));
-        sz = static_cast<uint8_t>(szOutBuff-2);
-        if (sz > insize)
-            sz = insize;
-        memcpy(outdata, &buff[2], sz);
-        if (outsize)
-            *outsize = sz;
-        RAISE_COMPLETED(Modbus::Status_Good);
-    default:
-        return Status_Processing;
-    }
-}
-*/
 #ifndef MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
@@ -554,7 +498,6 @@ Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *cl
             const size_t len = 100;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC08. ReturnQueryData. Input data size %u is too large (max=%u)"), insize, (uint16_t)(szBuff - 2));
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
         d->subfunc = MBF_DIAGNOSTICS_RETURN_QUERY_DATA;
@@ -1480,7 +1423,6 @@ Modbus::StatusCode ModbusClientPort::writeMultipleCoils(ModbusObject *client, ui
             const size_t len = 200;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC15. Requested count of coils %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_DISCRETS);
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1]; // Start coil offset - MS BYTE
@@ -1566,7 +1508,6 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
             const size_t len = 200;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC16. Requested count of registers %hu is too large (max=%hu)"), count, (uint16_t)MB_MAX_REGISTERS);
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&offset)[1];   // start register offset - MS BYTE
@@ -1686,7 +1627,6 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
             const size_t len = 100;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC20. Requested records count %u is too large (max=%u)"), recordsCount, 35u);
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
 
@@ -1919,7 +1859,6 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
             const size_t len = 200;
             Char errbuff[len];
             snprintf(errbuff, len, StringLiteral("FC23. Requested count of registers (read=%hu, write=%hu) is too large (max=%hu)"), readCount, writeCount, (uint16_t)MB_MAX_REGISTERS);
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
         buff[0] = reinterpret_cast<uint8_t*>(&readOffset)[1];   // read starting offset - MS BYTE
@@ -2049,7 +1988,6 @@ Modbus::StatusCode ModbusClientPort::readDeviceIdentification(ModbusObject *clie
         // Validate Read Device ID code (1=Basic, 2=Regular, 3=Extended, 4=Specific)
         if (readDeviceId < MB_MEI_READ_DEVICE_ID_BASIC || readDeviceId > MB_MEI_READ_DEVICE_ID_SPECIFIC)
         {
-            this->cancelRequest(client);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, StringLiteral("FC43. Invalid Read Device ID code"));
         }
         // Pack 3-byte MEI request: [MEI Type, Read Dev ID Code, Object ID]
