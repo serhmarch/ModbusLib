@@ -1386,7 +1386,7 @@ Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8
         *messageCount = buff[6] | (buff[5] << 8);
 
         byteCount = byteCount-6;
-        if (byteCount > GET_COMM_EVENT_LOG_MAX)
+        if (byteCount > MB_GET_COMM_EVENT_LOG_MAX)
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC12. 'EventCount' is bigger than 64"));
         *eventBuffSize = byteCount;
         memcpy(eventBuff, &buff[7], byteCount);
@@ -1615,18 +1615,18 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
     uint16_t szOutBuff;
-    uint8_t byteCount = 0, c;
-    uint8_t i;
+    uint8_t byteCount = 0;
+    int i, opos;
 
     ModbusClientPort::RequestStatus status = this->getRequestStatus(client);
     switch (status)
     {
     case ModbusClientPort::Enable:
-        if (recordsCount > 35) // floor(255 / 7)
+        if (recordsCount > MB_FILE_RECORD_MAX) // floor(255 / 7)
         {
             const size_t len = 100;
             Char errbuff[len];
-            snprintf(errbuff, len, StringLiteral("FC20. Requested records count %u is too large (max=%u)"), recordsCount, 35u);
+            snprintf(errbuff, len, StringLiteral("FC20. Requested records count %u is too large (max=%u)"), recordsCount, MB_FILE_RECORD_MAX);
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
         }
 
@@ -1634,6 +1634,13 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
         buff[0] = byteCount;
         for (i = 0; i < recordsCount; ++i)
         {
+            if (records[i].recordLength > MB_FILE_RECORD_BUFF_SZ)
+            {
+                const size_t len = 100;
+                Char errbuff[len];
+                snprintf(errbuff, len, StringLiteral("FC20. Requested record buffer len is too large (max=%u)"), MB_FILE_RECORD_BUFF_SZ);
+                RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
+            }
             buff[1 + i * 7] = 0x06; // Reference Type
             buff[2 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].fileNumber)[1];
             buff[3 + i * 7] = reinterpret_cast<const uint8_t*>(&records[i].fileNumber)[0];
@@ -1660,14 +1667,14 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC20. Incorrect received data size"));
 
         byteCount = buff[0];
-        if (szOutBuff != static_cast<uint16_t>(byteCount + 1))
+        if (szOutBuff != (static_cast<uint16_t>(byteCount) + 1))
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC20. 'ByteCount' parameter doesn't match actual data size"));
         
-        c = 0;
+        opos = 0;
         for (i = 1; i < byteCount; )
         {
             uint8_t fileRespLength = buff[i];
-            if ((fileRespLength < 1) || (fileRespLength & 1))
+            if ((fileRespLength < 1) || (fileRespLength > MB_FILE_RECORD_BUFF_SZ))
             {
                 const size_t len = 120;
                 Char errbuff[len];
@@ -1680,20 +1687,21 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
             {
                 const size_t len = 150;
                 Char errbuff[len];
-                snprintf(errbuff, len, StringLiteral("FC20. Incorrect Reference Type %u in record %u (expected 6)"), refType, (i-1)/7);
+                snprintf(errbuff, len, StringLiteral("FC20. Incorrect Reference Type %u in record %u (expected 0x06)"), refType, (i-1)/7);
                 RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, errbuff);
             }
 
-            for (uint8_t j = 0; j < (fileRespLength-1)/2; ++j)
+            const uint8_t cRegs = (fileRespLength-1)/2;
+            for (uint8_t j = 0; j < cRegs; ++j)
             {
-                reinterpret_cast<uint8_t*>(outData)[c  ] = buff[i + 3 + j*2];
-                reinterpret_cast<uint8_t*>(outData)[c+1] = buff[i + 2 + j*2];
-                c += 2;
+                reinterpret_cast<uint8_t*>(outData)[opos  ] = buff[i + 3 + j*2];
+                reinterpret_cast<uint8_t*>(outData)[opos+1] = buff[i + 2 + j*2];
+                opos += 2;
             }
             i += fileRespLength+1;
         }
 
-        *outSize = c;
+        *outSize = opos;
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
         return Status_Processing;
@@ -1716,7 +1724,7 @@ StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit,
     uint8_t buff[szBuff];
     Modbus::StatusCode r;
     uint16_t szOutBuff;
-    uint16_t c;
+    int c, ipos;
     uint16_t pos;
     uint8_t i;
 
@@ -1724,10 +1732,27 @@ StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit,
     switch (status)
     {
     case ModbusClientPort::Enable:
+        if (recordsCount > MB_FILE_RECORD_MAX)
+        {
+            const size_t len = 100;
+            Char errbuff[len];
+            snprintf(errbuff, len, StringLiteral("FC21. Requested records count %u is too large (max=%u)"), recordsCount, MB_FILE_RECORD_MAX);
+            RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
+        }
         pos = 1;
         c = 0;
+        ipos = 0;
         for (i = 0; i < recordsCount; ++i)
         {
+            uint16_t len = records[i].recordLength;
+            uint16_t bufflen = 7+len*2;
+            if ((c+bufflen) > MB_FILE_RECORD_BUFF_SZ)
+            {
+                const size_t len = 100;
+                Char errbuff[len];
+                snprintf(errbuff, len, StringLiteral("FC21. Requested record buffer len is too large (max=%u)"), MB_FILE_RECORD_BUFF_SZ);
+                RAISE_ERROR_COMPLETED(Status_BadNotCorrectRequest, errbuff);
+            }
             buff[pos++] = 0x06; // Reference Type
             buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].fileNumber)[1];
             buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].fileNumber)[0];
@@ -1735,13 +1760,12 @@ StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit,
             buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].recordNumber)[0];
             buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].recordLength)[1];
             buff[pos++] = reinterpret_cast<const uint8_t*>(&records[i].recordLength)[0];
-            uint16_t len = records[i].recordLength;
-            for (uint16_t j = 0; j < len; ++j)
+            for (uint16_t j = 0; j < len; ++j, ipos += 2)
             {
-                buff[pos++] = reinterpret_cast<const uint8_t*>(inData)[c + j*2 + 1];
-                buff[pos++] = reinterpret_cast<const uint8_t*>(inData)[c + j*2];
+                buff[pos++] = reinterpret_cast<const uint8_t*>(inData)[ipos+1];
+                buff[pos++] = reinterpret_cast<const uint8_t*>(inData)[ipos  ];
             }
-            c += len * 2;
+            c += bufflen;
         }
         buff[0] = static_cast<uint8_t>(c);
         MB_FALLTHROUGH

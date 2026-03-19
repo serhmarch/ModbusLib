@@ -254,7 +254,13 @@
 #define MB_NET_IO_BUFF_SZ 268
 
 /// \brief Maximum events for `GetCommEventLog` function
-#define GET_COMM_EVENT_LOG_MAX 64
+#define MB_GET_COMM_EVENT_LOG_MAX 64
+
+/// \brief Maximum records for `Read/Write FileRecord` functions,  floor(255 / 7)
+#define MB_FILE_RECORD_MAX 35
+
+/// \brief Maximum buff length for `Read/Write FileRecord` functions
+#define MB_FILE_RECORD_BUFF_SZ 251
 
 /// \brief Maximum events for `GetCommEventLog` function
 #define MB_READ_FIFO_QUEUE_MAX 31
