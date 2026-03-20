@@ -377,30 +377,30 @@ public: // Main interface
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
-    Modbus::StatusCode readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData) override;
+    Modbus::StatusCode readFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize = nullptr) override;
 
-    /// \details Same as `ModbusClientPort::readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode readFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData);
+    /// \details Same as `ModbusClientPort::readFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode readFileRecord(ModbusObject *client, uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize = nullptr);
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
-    Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData) override;
+    Modbus::StatusCode writeFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize = nullptr) override;
 
-    /// \details Same as `ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode writeFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData);
+    /// \details Same as `ModbusClientPort::writeFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode writeFileRecord(ModbusObject *client, uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize = nullptr);
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
     Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask) override;
 
-    /// \details Same as `ModbusClientPort::writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    /// \details Same as `ModbusClientPort::maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode maskWriteRegister(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
 #endif // MBF_MASK_WRITE_REGISTER_DISABLE
 
 #ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
     Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues) override;
 
-    /// \details Same as `ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t offset, readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    /// \details Same as `ModbusClientPort::readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readWriteMultipleRegisters(ModbusObject *client, uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 

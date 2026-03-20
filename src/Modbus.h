@@ -308,23 +308,24 @@ public:
     /// \details Function is used to read one or more file records from a remote device.
     /// Request and response payloads contain File Record sub-requests/sub-responses as defined by MODBUS specification.
     /// \param[in]  unit          Address of the remote Modbus device.
-    /// \param[in]  recordsCount  Count of file records to read.
     /// \param[in]  records       Pointer to array of `Modbus::FileRecord` structures representing the file records to read.
-    /// \param[out] outSize       Returned size of response payload (in bytes).
+    /// \param[in]  recordsCount  Count of file records to read.
     /// \param[out] outData       Pointer to response payload buffer (File Record sub-responses).
+    /// \param[out] outSize       Returned count of read bytes within `outData` buffer (can be nullptr if not needed).
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode readFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, uint8_t *outSize, void *outData);
+    virtual Modbus::StatusCode readFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize = nullptr);
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
     /// \details Function is used to write one or more file records to a remote device.
     /// Request and response payloads contain File Record sub-requests/sub-responses as defined by MODBUS specification.
     /// \param[in]  unit          Address of the remote Modbus device.
-    /// \param[in]  recordsCount  Count of file records to write.
     /// \param[in]  records       Pointer to array of `Modbus::FileRecord` structures representing the file records to write.
+    /// \param[in]  recordsCount  Count of file records to write.
     /// \param[in]  inData        Pointer to input payload buffer (File Record sub-requests).
+    /// \param[out] inSize        Returned count of written bytes. Can be nullptr if not needed.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode writeFileRecord(uint8_t unit, uint8_t recordsCount, const Modbus::FileRecord *records, const void *inData);
+    virtual Modbus::StatusCode writeFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize = nullptr);
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE

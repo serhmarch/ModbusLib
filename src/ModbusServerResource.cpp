@@ -562,7 +562,7 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
         uint8_t dataBuff[szDataBuff];
         d->recordsCount = 0;
         auto records = d->fileRecordBuff();
-        uint8_t c = 0;
+        uint8_t dataPtr = 0;
         for (uint8_t i = 1; i < sz;)
         {
             const uint8_t *recBuff = &buff[i];
@@ -580,15 +580,16 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             auto len = records[d->recordsCount].recordLength;
             for (uint16_t j = 0; j < len; ++j)
             {
-                dataBuff[j*2  ] = recBuff[8+j*2];
-                dataBuff[j*2+1] = recBuff[7+j*2];
+                dataBuff[dataPtr+j*2  ] = recBuff[8+j*2];
+                dataBuff[dataPtr+j*2+1] = recBuff[7+j*2];
             }
             d->recordsCount++;
-            c += len*2;
+            uint8_t c = len*2;
+            dataPtr += c;
             i += 7 + c;
         }
-        memcpy(d->fileDataBuff(), dataBuff, c);
-        d->fileDataBuffSize = c;
+        memcpy(d->fileDataBuff(), dataBuff, dataPtr);
+        d->fileDataBuffSize = dataPtr;
     }
         break;
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
@@ -881,13 +882,13 @@ StatusCode ModbusServerResource::processDevice()
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
     case MBF_READ_FILE_RECORD:
-        r = d->device->readFileRecord(d->unit, d->recordsCount, d->fileRecordBuff(), &d->fileDataBuffSize, d->fileDataBuff());
+        r = d->device->readFileRecord(d->unit, d->fileRecordBuff(), d->recordsCount, d->fileDataBuff(), &d->fileDataBuffSize);
         break;
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
     case MBF_WRITE_FILE_RECORD:
-        r = d->device->writeFileRecord(d->unit, d->recordsCount, d->fileRecordBuff(), d->fileDataBuff());
+        r = d->device->writeFileRecord(d->unit, d->fileRecordBuff(), d->recordsCount, d->fileDataBuff(), &d->fileDataBuffSize);
         break;
 #endif // MBF_WRITE_FILE_RECORD_DISABLE
 
@@ -1071,13 +1072,13 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
 #ifndef MBF_READ_FILE_RECORD_DISABLE
     case MBF_READ_FILE_RECORD:
     {
-        uint8_t buffSz = 1;
+        uint8_t buffSz = 0;
         uint8_t dataPtr = 0;
         for (uint8_t i = 0; i < d->recordsCount; i++)
         {
             const auto &rec = d->fileRecordBuff()[i];
-            uint8_t *recBuff = &buff[buffSz];
-            recBuff[0] = rec.recordLength*2+1; // reference type
+            uint8_t *recBuff = &buff[buffSz+1];
+            recBuff[0] = rec.recordLength*2+1; // record length
             recBuff[1] = 0x06; // reference type
             for (uint16_t j = 0; j < rec.recordLength; ++j)
             {
@@ -1087,7 +1088,7 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
             dataPtr += rec.recordLength * 2;
             buffSz += rec.recordLength * 2 + 2;
         }
-        buff[0] = buffSz+1; // byte count
+        buff[0] = buffSz; // byte count
         sz = buffSz + 1;
     }
         break;
@@ -1096,12 +1097,12 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
     case MBF_WRITE_FILE_RECORD:
     {
-        uint8_t buffSz = 1;
+        uint8_t buffSz = 0;
         uint8_t dataPtr = 0;
         for (uint8_t i = 0; i < d->recordsCount; i++)
         {
             const auto &rec = d->fileRecordBuff()[i];
-            uint8_t *recBuff = &buff[buffSz];
+            uint8_t *recBuff = &buff[buffSz+1];
             recBuff[0] = 0x06; // reference type
             recBuff[1] = reinterpret_cast<const uint8_t*>(&rec.fileNumber)[1];
             recBuff[2] = reinterpret_cast<const uint8_t*>(&rec.fileNumber)[0]; 
@@ -1117,7 +1118,7 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
             dataPtr += rec.recordLength * 2;
             buffSz += rec.recordLength * 2 + 7;
         }
-        buff[0] = buffSz+1; // byte count
+        buff[0] = buffSz; // byte count
         sz = buffSz + 1;
     }
         break;

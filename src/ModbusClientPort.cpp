@@ -1601,12 +1601,12 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
-StatusCode ModbusClientPort::readFileRecord(uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t *outSize, void *outData)
+StatusCode ModbusClientPort::readFileRecord(uint8_t unit, const FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize)
 {
-    return readFileRecord(this, unit, recordsCount, records, outSize, outData);
+    return readFileRecord(this, unit, records, recordsCount, outData, outSize);
 }
 
-StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const FileRecord *records, uint8_t *outSize, void *outData)
+StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, const FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 
@@ -1700,8 +1700,9 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
             }
             i += fileRespLength+1;
         }
-
-        *outSize = opos;
+        
+        if (outSize)
+            *outSize = opos;
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
         return Status_Processing;
@@ -1710,12 +1711,12 @@ StatusCode ModbusClientPort::readFileRecord(ModbusObject *client, uint8_t unit, 
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
-StatusCode ModbusClientPort::writeFileRecord(uint8_t unit, uint8_t recordsCount, const FileRecord *records, const void *inData)
+StatusCode ModbusClientPort::writeFileRecord(uint8_t unit, const FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize)
 {
-    return writeFileRecord(this, unit, recordsCount, records, inData);
+    return writeFileRecord(this, unit, records, recordsCount, inData, inSize);
 }
 
-StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit, uint8_t recordsCount, const FileRecord *records, const void *inData)
+StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit, const FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 
@@ -1768,6 +1769,8 @@ StatusCode ModbusClientPort::writeFileRecord(ModbusObject *client, uint8_t unit,
             c += bufflen;
         }
         buff[0] = static_cast<uint8_t>(c);
+        if (inSize)
+            *inSize = ipos;
         MB_FALLTHROUGH
     case ModbusClientPort::Process:
         r = this->request(unit,                  // unit ID

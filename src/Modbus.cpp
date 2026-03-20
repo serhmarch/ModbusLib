@@ -948,14 +948,14 @@ Modbus::StatusCode ModbusInterface::reportServerID(uint8_t /*unit*/, uint8_t * /
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
-Modbus::StatusCode ModbusInterface::readFileRecord(uint8_t /*unit*/, uint8_t /*recordsCount*/, const Modbus::FileRecord * /*records*/, uint8_t * /*outSize*/, void * /*outData*/)
+Modbus::StatusCode ModbusInterface::readFileRecord(uint8_t /*unit*/, const Modbus::FileRecord * /*records*/, uint8_t /*recordsCount*/, void * /*outData*/, uint8_t * /*outSize*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
 #endif // MBF_READ_FILE_RECORD_DISABLE
 
 #ifndef MBF_WRITE_FILE_RECORD_DISABLE
-Modbus::StatusCode ModbusInterface::writeFileRecord(uint8_t /*unit*/, uint8_t /*recordsCount*/, const Modbus::FileRecord * /*records*/, const void * /*inData*/)
+Modbus::StatusCode ModbusInterface::writeFileRecord(uint8_t /*unit*/, const Modbus::FileRecord * /*records*/, uint8_t /*recordsCount*/, const void * /*inData*/, uint8_t * /*inSize*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
