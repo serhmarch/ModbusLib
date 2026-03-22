@@ -446,7 +446,7 @@ TEST_F(ModbusClientTest, WrappedFunctionsCallPortWithExpectedParams)
         bool moreFollows = false;
         uint8_t nextObjectId = 0;
         verifyWrappedCall(MBF_ENCAPSULATED_INTERFACE_TRANSPORT, req, sizeof(req), resp, sizeof(resp), [&] {
-            return client->readDeviceIdentification(MB_MEI_READ_DEVICE_ID_BASIC, 0x00, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+            return client->readDeviceIdentification(MB_MEI_READ_DEVICE_ID_BASIC, 0x00, data, &dataSize, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
         });
     }
 #endif

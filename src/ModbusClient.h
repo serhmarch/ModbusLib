@@ -300,7 +300,7 @@ public:
 #ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
     /// \details Same as `ModbusClientPort::readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId)`,
     /// but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
-    Modbus::StatusCode readDeviceIdentification(uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr);
+    Modbus::StatusCode readDeviceIdentification(uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr);
 #endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
 
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE

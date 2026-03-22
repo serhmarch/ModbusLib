@@ -2453,7 +2453,7 @@ TEST_F(ModbusClientPortTest, ReadDeviceIdentificationSuccess)
     EXPECT_EQ(signalCounter.rxCount      , 0); // Check init value
     EXPECT_EQ(signalCounter.completeCount, 0); // Check init value
 
-    StatusCode result = clientPort->readDeviceIdentification(unit, readDeviceId, objectId, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+    StatusCode result = clientPort->readDeviceIdentification(unit, readDeviceId, objectId, data, &dataSize, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
 
     EXPECT_EQ(result, Status_Good);
     EXPECT_EQ(signalCounter.txCount      , 1); // Tx signal should be emitted because write() returned Good
@@ -2482,19 +2482,19 @@ TEST_F(ModbusClientPortTest, ReadDeviceIdentificationSuccess)
     EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Check init value
     EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Check init value
 
-    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, data, &dataSize, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
     EXPECT_EQ(result, Status_Processing); // First call write() returns Processing
     EXPECT_EQ(signalCounterNonBlock.txCount      , 0); // Tx signal should not be emitted yet because write() is still processing
     EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is not called yet
     EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
 
-    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, data, &dataSize, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
     EXPECT_EQ(result, Status_Processing); // First call write() returns Good, but read() returns Processing
     EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
     EXPECT_EQ(signalCounterNonBlock.rxCount      , 0); // Rx signal should not be emitted yet because read() is still processing
     EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // Complete signal should not be emitted yet because operation is not complete yet
 
-    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, &dataSize, data, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
+    result = clientPortNonBlock->readDeviceIdentification(unit, readDeviceId, objectId, data, &dataSize, &numberOfObjects, &conformityLevel, &moreFollows, &nextObjectId);
     EXPECT_EQ(result, Status_Good); // read() call returns Good, operation should be complete and returns Good as well
     EXPECT_EQ(signalCounterNonBlock.txCount      , 1); // Tx signal should be emitted because write() returned Good
     EXPECT_EQ(signalCounterNonBlock.rxCount      , 1); // Rx signal should be emitted because read() returned Good

@@ -3266,7 +3266,7 @@ TEST_F(ModbusServerResourceTest, ReadDeviceIdentificationRequest)
     uint8_t expectedPayload[] = {0x00, 0x42, 0x43};
     EXPECT_CALL(*mockDevice, readDeviceIdentification(unit, readDeviceId, objectId, _, _, _, _, _, _))
         .Times(1)
-        .WillOnce(Invoke([&expectedPayload](uint8_t, uint8_t, uint8_t, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId) {
+        .WillOnce(Invoke([&expectedPayload](uint8_t, uint8_t, uint8_t, void *data, uint8_t *dataSize, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId) {
             *dataSize = static_cast<uint8_t>(sizeof(expectedPayload));
             memcpy(data, expectedPayload, sizeof(expectedPayload));
             *numberOfObjects = 0x01;

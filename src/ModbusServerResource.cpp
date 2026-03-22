@@ -912,7 +912,7 @@ StatusCode ModbusServerResource::processDevice()
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
     case MBF_ENCAPSULATED_INTERFACE_TRANSPORT:
-        r = d->device->readDeviceIdentification(d->unit, d->readDeviceIdCode, d->readDeviceIdObjectId, &d->outByteCount, d->valueBuff, &d->numberOfObjects, &d->conformityLevel, &d->moreFollows, &d->nextObjectId);
+        r = d->device->readDeviceIdentification(d->unit, d->readDeviceIdCode, d->readDeviceIdObjectId, d->valueBuff, &d->outByteCount, &d->numberOfObjects, &d->conformityLevel, &d->moreFollows, &d->nextObjectId);
         break;
 #endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 

@@ -375,15 +375,15 @@ public:
     /// \param[in]  unit            Address of the remote Modbus device.
     /// \param[in]  readDevId       Read Device ID code: 1=Basic, 2=Regular, 3=Extended, 4=Specific.
     /// \param[in]  objectId        Starting object ID to read from (0x00-0xFF).
-    /// \param[out] dataSize        Number of bytes written into data buffer.
     /// \param[out] data            Pointer to output buffer for raw MEI response data.
     ///                             Buffer must be at least MB_VALUE_BUFF_SZ bytes.
+    /// \param[out] dataSize        Number of bytes written into data buffer.
     /// \param[out] numberOfObjects Number of objects returned in the response. Can be nullptr if not needed.
     /// \param[out] conformityLevel Conformity level of the device. Can be nullptr if not needed.
     /// \param[out] moreFollows     Indicates if more objects follow in subsequent responses. Can be nullptr if not needed.
     /// \param[out] nextObjectId    The next object ID to read from in subsequent responses. Can be nullptr if not needed.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr);
+    virtual Modbus::StatusCode readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr);
 
 #endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
 

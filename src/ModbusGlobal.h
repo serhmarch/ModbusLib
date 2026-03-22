@@ -170,19 +170,19 @@
 #define MB_MEI_READ_DEVICE_ID_SPECIFIC      0x04
 
 /// \brief Device ID Object: Vendor Name (mandatory, basic)
-#define MB_MEI_DEVICE_ID_VENDOR_NAME            0x00
+#define MB_MEI_OBJECT_ID_VENDOR_NAME            0x00
 /// \brief Device ID Object: Product Code (mandatory, basic)
-#define MB_MEI_DEVICE_ID_PRODUCT_CODE           0x01
+#define MB_MEI_OBJECT_ID_PRODUCT_CODE           0x01
 /// \brief Device ID Object: Major Minor Revision (mandatory, basic)
-#define MB_MEI_DEVICE_ID_MAJOR_MINOR_REVISION   0x02
+#define MB_MEI_OBJECT_ID_MAJOR_MINOR_REVISION   0x02
 /// \brief Device ID Object: Vendor URL (optional, regular)
-#define MB_MEI_DEVICE_ID_VENDOR_URL             0x03
+#define MB_MEI_OBJECT_ID_VENDOR_URL             0x03
 /// \brief Device ID Object: Product Name (optional, regular)
-#define MB_MEI_DEVICE_ID_PRODUCT_NAME           0x04
+#define MB_MEI_OBJECT_ID_PRODUCT_NAME           0x04
 /// \brief Device ID Object: Model Name (optional, regular)
-#define MB_MEI_DEVICE_ID_MODEL_NAME             0x05
+#define MB_MEI_OBJECT_ID_MODEL_NAME             0x05
 /// \brief Device ID Object: User Application Name (optional, regular)
-#define MB_MEI_DEVICE_ID_USER_APPLICATION_NAME  0x06
+#define MB_MEI_OBJECT_ID_USER_APPLICATION_NAME  0x06
 
 /// \brief More Follows flag: additional objects available
 #define MB_MEI_MORE_FOLLOWS                     0xFF

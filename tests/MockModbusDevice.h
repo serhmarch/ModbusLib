@@ -44,7 +44,7 @@ public:
     MOCK_METHOD(Modbus::StatusCode, maskWriteRegister         , (uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask), (override));
     MOCK_METHOD(Modbus::StatusCode, readWriteMultipleRegisters, (uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues), (override));
     MOCK_METHOD(Modbus::StatusCode, readFIFOQueue             , (uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values), (override));
-    MOCK_METHOD(Modbus::StatusCode, readDeviceIdentification  , (uint8_t unit, uint8_t readDeviceId, uint8_t objectId, uint8_t *dataSize, void *data, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId), (override));
+    MOCK_METHOD(Modbus::StatusCode, readDeviceIdentification  , (uint8_t unit, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId), (override));
 };
 
 #endif // MOCKMODBUSDEVICE_H
