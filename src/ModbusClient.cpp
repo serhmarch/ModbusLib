@@ -108,10 +108,10 @@ StatusCode ModbusClient::readExceptionStatus(uint8_t *value)
 #ifndef MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
-StatusCode ModbusClient::diagnosticsReturnQueryData(uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
+StatusCode ModbusClient::diagnosticsReturnQueryData(const void *indata, uint8_t insize, void *outdata, uint8_t *outsize)
 {
     ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->diagnosticsReturnQueryData(this, d->unit, insize, indata, outsize, outdata);
+    return d->port->diagnosticsReturnQueryData(this, d->unit, indata, insize, outdata, outsize);
 }
 #endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
 
@@ -238,10 +238,10 @@ StatusCode ModbusClient::getCommEventCounter(uint16_t *status, uint16_t *eventCo
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-StatusCode ModbusClient::getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
+StatusCode ModbusClient::getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize)
 {
     ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->getCommEventLog(this, d->unit, status, eventCount, messageCount, eventBuffSize, eventBuff);
+    return d->port->getCommEventLog(this, d->unit, status, eventCount, messageCount, eventBuff, eventBuffSize);
 }
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
@@ -268,10 +268,10 @@ StatusCode ModbusClient::writeMultipleRegisters(uint16_t offset, uint16_t count,
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
-StatusCode ModbusClient::reportServerID(uint8_t *count, uint8_t *data)
+StatusCode ModbusClient::reportServerID(void *data, uint8_t *dataSize)
 {
     ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->reportServerID(this, d->unit, count, data);
+    return d->port->reportServerID(this, d->unit, data, dataSize);
 }
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
@@ -308,10 +308,10 @@ StatusCode ModbusClient::readWriteMultipleRegisters(uint16_t readOffset, uint16_
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
-StatusCode ModbusClient::readFIFOQueue(uint16_t fifoadr, uint16_t *count, uint16_t *values)
+StatusCode ModbusClient::readFIFOQueue(uint16_t fifoadr, uint16_t *values, uint16_t *count)
 {
     ModbusClientPrivate *d = d_cast(d_ptr);
-    return d->port->readFIFOQueue(this, d->unit, fifoadr, count, values);
+    return d->port->readFIFOQueue(this, d->unit, fifoadr, values, count);
 }
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 

@@ -142,7 +142,7 @@ public:
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
     /// \details Same as `ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t maxOutsize, void *outdata, uint8_t *outsize)`,
     /// but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
-    Modbus::StatusCode diagnosticsReturnQueryData(uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+    Modbus::StatusCode diagnosticsReturnQueryData(const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
 #endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
@@ -238,9 +238,9 @@ public:
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-    /// \details Same as `ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *events)`,
+    /// \details Same as `ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuff, uint8_t *eventBuffSize)`,
     /// but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
-    Modbus::StatusCode getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+    Modbus::StatusCode getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize);
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
@@ -260,9 +260,9 @@ public:
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
-    /// \details Same as `ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)`,
+    /// \details Same as `ModbusClientPort::reportServerID(uint8_t unit, uint8_t *data, uint8_t *dataSize)`,
     /// but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
-    Modbus::StatusCode reportServerID(uint8_t *count, uint8_t *data);
+    Modbus::StatusCode reportServerID(void *data, uint8_t *dataSize);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
@@ -290,9 +290,9 @@ public:
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
-    /// \details Same as `ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)`,
+    /// \details Same as `ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count)`,
     /// but the `unit` address of the remote Modbus device is missing. It is preset in the constructor.
-    Modbus::StatusCode readFIFOQueue(uint16_t fifoadr, uint16_t *count, uint16_t *values);
+    Modbus::StatusCode readFIFOQueue(uint16_t fifoadr, uint16_t *values, uint16_t *count);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE

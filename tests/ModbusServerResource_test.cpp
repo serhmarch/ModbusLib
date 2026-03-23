@@ -964,9 +964,9 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnQueryDataRequest)
             SetArgPointee<4>(6),
             Return(Status_Good)));
 
-    EXPECT_CALL(*mockDevice, diagnosticsReturnQueryData(unit, 4, _, _, _))
+    EXPECT_CALL(*mockDevice, diagnosticsReturnQueryData(unit, _, 4, _, _))
         .Times(1)
-        .WillOnce(Invoke([](uint8_t, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata) {
+        .WillOnce(Invoke([](uint8_t, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize) {
             memcpy(outdata, indata, insize);
             *outsize = insize;
             return Status_Good;
@@ -2138,7 +2138,7 @@ TEST_F(ModbusServerResourceTest, ProcessGetCommEventLogRequest)
     uint8_t outByteCount = 0; // No event data
     EXPECT_CALL(*mockDevice, getCommEventLog(unit, _, _, _, _, _))
         .Times(1)
-        .WillOnce(Invoke([status, count, messageCount, outByteCount](uint8_t, uint16_t* pStatus, uint16_t* pCount, uint16_t* pMessageCount, uint8_t* pOutByteCount, void*) {
+        .WillOnce(Invoke([status, count, messageCount, outByteCount](uint8_t, uint16_t* pStatus, uint16_t* pCount, uint16_t* pMessageCount, void*, uint8_t* pOutByteCount) {
             *pStatus = status;
             *pCount = count;
             *pMessageCount = messageCount;
@@ -2180,7 +2180,7 @@ TEST_F(ModbusServerResourceTest, ProcessGetCommEventLogRequest)
     outByteCount = sizeof(eventData);
     EXPECT_CALL(*mockDevice, getCommEventLog(unit, _, _, _, _, _))
         .Times(1)
-        .WillOnce(Invoke([status, count, messageCount, outByteCount, &eventData](uint8_t, uint16_t* pStatus, uint16_t* pCount, uint16_t* pMessageCount, uint8_t* pOutByteCount, void* events) {
+        .WillOnce(Invoke([status, count, messageCount, outByteCount, &eventData](uint8_t, uint16_t* pStatus, uint16_t* pCount, uint16_t* pMessageCount, void* events, uint8_t* pOutByteCount) {
             *pStatus = status;
             *pCount = count;
             *pMessageCount = messageCount;
@@ -2599,8 +2599,8 @@ TEST_F(ModbusServerResourceTest, ProcessReportServerIdRequest)
     uint8_t serverIdCount = sizeof(serverIdData);
     EXPECT_CALL(*mockDevice, reportServerID(unit, _, _))
         .Times(1)
-        .WillOnce(Invoke([serverIdCount, &serverIdData](uint8_t, uint8_t* count, uint8_t* data) {
-            *count = serverIdCount;
+        .WillOnce(Invoke([serverIdCount, &serverIdData](uint8_t, void* data, uint8_t* dataSize) {
+            *dataSize = serverIdCount;
             memcpy(data, serverIdData, serverIdCount);
             return Status_Good;
         }));
@@ -2635,7 +2635,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadFileRecordRequest)
         0x00, 0x07,
         0x00, 0x02
     };
-    uint8_t responseData[8] = {0};
+    uint8_t responseData[7] = {0};
 
     setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
 
@@ -2645,7 +2645,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadFileRecordRequest)
         .WillOnce(DoAll(
             SetArgReferee<0>(unit),
             SetArgReferee<1>(MBF_READ_FILE_RECORD),
-            SetArrayArgument<2>(requestData, requestData + 7),
+            SetArrayArgument<2>(requestData, requestData + sizeof(requestData)),
             SetArgPointee<4>(7),
             Return(Status_Good)));
 
@@ -2672,7 +2672,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadFileRecordRequest)
             SetArgPointee<4>(8),
             Return(Status_Good)));
 
-    EXPECT_CALL(*mockDevice, readFileRecord(unit, 1, _, _, _))
+    EXPECT_CALL(*mockDevice, readFileRecord(unit, _, 1, _, _))
         .Times(1)
         .WillOnce(Invoke([](uint8_t, const Modbus::FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize) {
             EXPECT_EQ(recordsCount, 1);
@@ -2685,8 +2685,21 @@ TEST_F(ModbusServerResourceTest, ProcessReadFileRecordRequest)
             return Status_Good;
         }));
 
-    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_READ_FILE_RECORD, _, 8))
-        .Times(1);
+    uint8_t expectedData[7] = {
+        0x06,
+        0x05,
+        0x06,
+        0x12, 0x34,
+        0x56, 0x78
+    };
+
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_READ_FILE_RECORD, _, sizeof(expectedData)))
+        .Times(1)
+        .WillOnce(Invoke([&expectedData](uint8_t, uint8_t, const uint8_t *buff, uint16_t) {
+            EXPECT_EQ(memcmp(buff, expectedData, sizeof(expectedData)), 0);
+            return Status_Good;
+        }))
+        ;
 
     result = serverResource->process();
     EXPECT_EQ(result, Status_Good);
@@ -2714,7 +2727,7 @@ TEST_F(ModbusServerResourceTest, ProcessWriteFileRecordRequest)
         0x12, 0x34,
         0x56, 0x78
     };
-    uint8_t responseData[16] = {0};
+    uint8_t responseData[12] = {0};
 
     setupBufferMethodExpectations(requestData, sizeof(requestData), responseData, sizeof(responseData));
 
@@ -2728,7 +2741,7 @@ TEST_F(ModbusServerResourceTest, ProcessWriteFileRecordRequest)
             SetArgPointee<4>(7),
             Return(Status_Good)));
 
-    EXPECT_CALL(*mockDevice, writeFileRecord(_, _, _, _))
+    EXPECT_CALL(*mockDevice, writeFileRecord(_, _, _, _, _))
         .Times(0);
 
     EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
@@ -2751,9 +2764,9 @@ TEST_F(ModbusServerResourceTest, ProcessWriteFileRecordRequest)
             SetArgPointee<4>(12),
             Return(Status_Good)));
 
-    EXPECT_CALL(*mockDevice, writeFileRecord(unit, records, 1, inData, nullptr))
+    EXPECT_CALL(*mockDevice, writeFileRecord(unit, _, 1, _, _))
         .Times(1)
-        .WillOnce(Invoke([](uint8_t, const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData) {
+        .WillOnce(Invoke([](uint8_t, const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize) {
             EXPECT_EQ(recordsCount, 1);
             EXPECT_EQ(records[0].fileNumber, 0x0004);
             EXPECT_EQ(records[0].recordNumber, 0x0007);
@@ -2764,8 +2777,23 @@ TEST_F(ModbusServerResourceTest, ProcessWriteFileRecordRequest)
             return Status_Good;
         }));
 
-    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_WRITE_FILE_RECORD, _, 13))
-        .Times(1);
+    uint8_t expectedData[12] = {
+        0x0B,
+        0x06,
+        0x00, 0x04,
+        0x00, 0x07,
+        0x00, 0x02,
+        0x12, 0x34,
+        0x56, 0x78
+    };
+
+    EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_WRITE_FILE_RECORD, _, sizeof(expectedData)))
+        .Times(1)
+        .WillOnce(Invoke([&expectedData](uint8_t, uint8_t, const uint8_t *buff, uint16_t) {
+            EXPECT_EQ(memcmp(buff, expectedData, sizeof(expectedData)), 0);
+            return Status_Good;
+        }))
+        ;
 
     result = serverResource->process();
     EXPECT_EQ(result, Status_Good);
@@ -3178,7 +3206,7 @@ TEST_F(ModbusServerResourceTest, ProcessReadFifoQueueRequest)
     uint16_t fifoData[5] = {0x1234, 0x5678, 0x9ABC, 0xDEF0, 0x1111};
     EXPECT_CALL(*mockDevice, readFIFOQueue(unit, fifoAddress, _, _))
         .Times(1)
-        .WillOnce(Invoke([&count, &fifoData](uint8_t, uint16_t, uint16_t* outCount, uint16_t* values) {
+        .WillOnce(Invoke([&count, &fifoData](uint8_t, uint16_t, uint16_t* values, uint16_t* outCount) {
             *outCount = count;
             memcpy(values, fifoData, count * sizeof(uint16_t));
             return Status_Good;
@@ -3278,10 +3306,10 @@ TEST_F(ModbusServerResourceTest, ReadDeviceIdentificationRequest)
 
     responseData[0] = MBF_MEI_READ_DEVICE_ID;
     responseData[1] = readDeviceId;
-    responseData[2] = objectId;
-    responseData[3] = 0x02;
-    responseData[4] = 0xFF;
-    responseData[5] = 0x03;
+    responseData[2] = 0x02;
+    responseData[3] = 0xFF;
+    responseData[4] = 0x03;
+    responseData[5] = 0x01;
     responseData[6] = expectedPayload[0];
     responseData[7] = expectedPayload[1];
     responseData[8] = expectedPayload[2];

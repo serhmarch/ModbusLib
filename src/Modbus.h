@@ -126,7 +126,7 @@ public:
     /// \param[out] outdata    Pointer to the buffer where the output data is stored.
     /// \param[out] outsize    Size of the buffer (in bytes) where the output data is stored.
     /// \return The result `Modbus::StatusCode` of the operation.
-    virtual Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+    virtual Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
 #endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
@@ -255,8 +255,8 @@ public:
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
     /// \details Function is used to get a status word and an event count from the remote device's communication event counter.
     /// \param[in]  unit        Address of the remote Modbus device.
-    /// \param[out] status      Returned status word.
-    /// \param[out] eventCount  Returned event counter.
+    /// \param[out] status      Returned status register.
+    /// \param[out] eventCount  Returned event counter register.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
     virtual Modbus::StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount);
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
@@ -269,10 +269,10 @@ public:
     /// \param[out] status        Returned status word.
     /// \param[out] eventCount    Returned event counter.
     /// \param[out] messageCount  Returned message counter.
-    /// \param[out] eventBuffSize Size of the buffer where the output events (bytes) is stored.
     /// \param[out] eventBuff     Pointer to the buffer where the output events (bytes) is stored.
+    /// \param[out] eventBuffSize Size of the buffer where the output events (bytes) is stored.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+    virtual Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize);
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
@@ -297,11 +297,11 @@ public:
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
     /// \details Function to read the description of the type, the current status, and other information specific to a remote device.
-    /// \param[in]  unit    Address of the remote Modbus device.
-    /// \param[in]  count   Count of bytes returned.
-    /// \param[in]  data    Pointer to the output buffer where the read data are stored.
+    /// \param[in]  unit        Address of the remote Modbus device.
+    /// \param[in]  data        Pointer to the output buffer where the read data are stored.
+    /// \param[in]  dataSize    Count of bytes returned.
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data);
+    virtual Modbus::StatusCode reportServerID(uint8_t unit, void *data, uint8_t *dataSize);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
@@ -358,10 +358,10 @@ public:
     /// \details Function for read the contents of a First-In-First-Out (FIFO) queue of register in a remote device.
     /// \param[in]  unit    Address of the remote Modbus device.
     /// \param[in]  fifoadr Address of FIFO (0-based).
-    /// \param[in]  count   Count of registers.
     /// \param[out] values  Pointer to the output buffer where the read values are stored.
+    /// \param[out] count   Count of registers in `values` buffer (size of queue).
     /// \return The result `Modbus::StatusCode` of the operation. Default implementation returns `Status_BadIllegalFunction`.
-    virtual Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
+    virtual Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE

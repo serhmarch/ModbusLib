@@ -806,7 +806,7 @@ Modbus::StatusCode ModbusInterface::readExceptionStatus(uint8_t /*unit*/, uint8_
 #ifndef MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
-Modbus::StatusCode ModbusInterface::diagnosticsReturnQueryData(uint8_t /*unit*/, uint8_t /*insize*/, const void * /*indata*/, uint8_t * /*outsize*/, void * /*outdata*/)
+Modbus::StatusCode ModbusInterface::diagnosticsReturnQueryData(uint8_t /*unit*/, const void * /*indata*/, uint8_t /*insize*/, void * /*outdata*/, uint8_t * /*outsize*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
@@ -920,7 +920,7 @@ Modbus::StatusCode ModbusInterface::getCommEventCounter(uint8_t /*unit*/, uint16
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-Modbus::StatusCode ModbusInterface::getCommEventLog(uint8_t /*unit*/, uint16_t * /*status*/, uint16_t * /*eventCount*/, uint16_t * /*messageCount*/, uint8_t * /*eventBuffSize*/, uint8_t * /*eventBuff*/)
+Modbus::StatusCode ModbusInterface::getCommEventLog(uint8_t /*unit*/, uint16_t * /*status*/, uint16_t * /*eventCount*/, uint16_t * /*messageCount*/, void * /*eventBuff*/, uint8_t * /*eventBuffSize*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
@@ -941,7 +941,7 @@ Modbus::StatusCode ModbusInterface::writeMultipleRegisters(uint8_t /*unit*/, uin
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
-Modbus::StatusCode ModbusInterface::reportServerID(uint8_t /*unit*/, uint8_t * /*count*/, uint8_t * /*data*/)
+Modbus::StatusCode ModbusInterface::reportServerID(uint8_t /*unit*/, void * /*data*/, uint8_t * /*dataSize*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }
@@ -976,7 +976,7 @@ Modbus::StatusCode ModbusInterface::readWriteMultipleRegisters(uint8_t /*unit*/,
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
-Modbus::StatusCode ModbusInterface::readFIFOQueue(uint8_t /*unit*/, uint16_t /*fifoadr*/, uint16_t * /*count*/, uint16_t * /*values*/)
+Modbus::StatusCode ModbusInterface::readFIFOQueue(uint8_t /*unit*/, uint16_t /*fifoadr*/, uint16_t * /*values*/, uint16_t * /*count*/)
 {
     return Modbus::Status_BadIllegalFunction;
 }

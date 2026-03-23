@@ -473,12 +473,12 @@ StatusCode ModbusClientPort::readExceptionStatus(ModbusObject *client, uint8_t u
 #ifndef MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
-StatusCode ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
+StatusCode ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize)
 {
-    return diagnosticsReturnQueryData(this, unit, insize, indata, outsize, outdata);
+    return diagnosticsReturnQueryData(this, unit, indata, insize, outdata, outsize);
 }
 
-Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata)
+Modbus::StatusCode ModbusClientPort::diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 
@@ -1343,12 +1343,12 @@ Modbus::StatusCode ModbusClientPort::getCommEventCounter(ModbusObject *client, u
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-Modbus::StatusCode ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
+Modbus::StatusCode ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize)
 {
-    return getCommEventLog(this, unit, status, eventCount, messageCount, eventBuffSize, eventBuff);
+    return getCommEventLog(this, unit, status, eventCount, messageCount, eventBuff, eventBuffSize);
 }
 
-Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff)
+Modbus::StatusCode ModbusClientPort::getCommEventLog(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 
@@ -1552,12 +1552,12 @@ Modbus::StatusCode ModbusClientPort::writeMultipleRegisters(ModbusObject *client
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
-StatusCode ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)
+StatusCode ModbusClientPort::reportServerID(uint8_t unit, void *data, uint8_t *dataSize)
 {
-    return reportServerID(this, unit, count, data);
+    return reportServerID(this, unit, data, dataSize);
 }
 
-Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_t unit, uint8_t *count, uint8_t *data)
+Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_t unit, void *data, uint8_t *dataSize)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 
@@ -1591,7 +1591,7 @@ Modbus::StatusCode ModbusClientPort::reportServerID(ModbusObject *client, uint8_
         byteCount = buff[0];
         if (szOutBuff != (byteCount+1))
             RAISE_ERROR_COMPLETED(Status_BadNotCorrectResponse, StringLiteral("FC17. 'ByteCount' parameter doesn't match actual data size"));
-        *count = byteCount;
+        *dataSize = byteCount;
         memcpy(data, &buff[1], byteCount);
         RAISE_COMPLETED(Modbus::Status_Good);
     default:
@@ -1935,12 +1935,12 @@ StatusCode ModbusClientPort::readWriteMultipleRegisters(ModbusObject *client, ui
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
-Modbus::StatusCode ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)
+Modbus::StatusCode ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count)
 {
-    return readFIFOQueue(this, unit, fifoadr, count, values);
+    return readFIFOQueue(this, unit, fifoadr, values, count);
 }
 
-Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)
+Modbus::StatusCode ModbusClientPort::readFIFOQueue(ModbusObject *client, uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count)
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
 

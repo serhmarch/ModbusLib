@@ -757,7 +757,7 @@ StatusCode ModbusServerResource::processDevice()
         {
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
         case MBF_DIAGNOSTICS_RETURN_QUERY_DATA:
-            r = d->device->diagnosticsReturnQueryData(d->unit, d->byteCount, d->valueBuff, &d->outByteCount, d->valueBuff);
+            r = d->device->diagnosticsReturnQueryData(d->unit, d->valueBuff, d->byteCount, d->valueBuff, &d->outByteCount);
             break;
 #endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
 
@@ -858,7 +858,7 @@ StatusCode ModbusServerResource::processDevice()
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
     case MBF_GET_COMM_EVENT_LOG:
-        r = d->device->getCommEventLog(d->unit, &d->status, &d->count, &d->messageCount, &d->outByteCount, d->valueBuff);
+        r = d->device->getCommEventLog(d->unit, &d->status, &d->count, &d->messageCount, d->valueBuff, &d->outByteCount);
         break;
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
@@ -876,7 +876,7 @@ StatusCode ModbusServerResource::processDevice()
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
     case MBF_REPORT_SERVER_ID:
-        r = d->device->reportServerID(d->unit, &d->outByteCount, d->valueBuff);
+        r = d->device->reportServerID(d->unit, d->valueBuff, &d->outByteCount);
         break;
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
@@ -906,7 +906,7 @@ StatusCode ModbusServerResource::processDevice()
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
     case MBF_READ_FIFO_QUEUE:
-        r = d->device->readFIFOQueue(d->unit, d->offset, &d->count, reinterpret_cast<uint16_t*>(d->valueBuff));
+        r = d->device->readFIFOQueue(d->unit, d->offset, reinterpret_cast<uint16_t*>(d->valueBuff), &d->count);
         break;
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 

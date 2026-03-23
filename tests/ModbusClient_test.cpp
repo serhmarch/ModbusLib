@@ -170,7 +170,7 @@ TEST_F(ModbusClientTest, WrappedFunctionsCallPortWithExpectedParams)
         uint8_t outSize = 0;
         uint8_t outData[4] = {0};
         verifyWrappedCall(MBF_DIAGNOSTICS, req, sizeof(req), resp, sizeof(resp), [&] {
-            return client->diagnosticsReturnQueryData(sizeof(inData), inData, &outSize, outData);
+            return client->diagnosticsReturnQueryData(inData, sizeof(inData), outData, &outSize);
         });
     }
 #endif
@@ -331,7 +331,7 @@ TEST_F(ModbusClientTest, WrappedFunctionsCallPortWithExpectedParams)
         uint8_t eventBuffSize = 0;
         uint8_t eventBuff[8] = {0};
         verifyWrappedCall(MBF_GET_COMM_EVENT_LOG, nullptr, 0, resp, sizeof(resp), [&] {
-            return client->getCommEventLog(&status, &eventCount, &messageCount, &eventBuffSize, eventBuff);
+            return client->getCommEventLog(&status, &eventCount, &messageCount, eventBuff, &eventBuffSize);
         });
     }
 #endif
@@ -363,8 +363,9 @@ TEST_F(ModbusClientTest, WrappedFunctionsCallPortWithExpectedParams)
         uint8_t resp[] = {0x02, 0xFF, 0x01};
         uint8_t count = 0;
         uint8_t data[8] = {0};
+        uint8_t dataSize = 0;
         verifyWrappedCall(MBF_REPORT_SERVER_ID, nullptr, 0, resp, sizeof(resp), [&] {
-            return client->reportServerID(&count, data);
+            return client->reportServerID(data, &dataSize);
         });
     }
 #endif
@@ -392,8 +393,8 @@ TEST_F(ModbusClientTest, WrappedFunctionsCallPortWithExpectedParams)
         records[0].recordNumber = 0x0007;
         records[0].recordLength = 0x0002;
         uint16_t inData[2] = {0x1234, 0x5678};
-        uint8_t req[]  = {0x04, 0x06, 0x00, 0x04, 0x00};
-        uint8_t resp[] = {0x04, 0x06, 0x00, 0x04, 0x00};
+        uint8_t req[]  = {0x0B, 0x06, 0x00, 0x04, 0x00, 0x07, 0x00, 0x02, 0x12, 0x34, 0x56, 0x78};
+        uint8_t resp[] = {0x0B, 0x06, 0x00, 0x04, 0x00, 0x07, 0x00, 0x02, 0x12, 0x34, 0x56, 0x78};
         verifyWrappedCall(MBF_WRITE_FILE_RECORD, req, sizeof(req), resp, sizeof(resp), [&] {
             return client->writeFileRecord(records, 1, inData, nullptr);
         });
@@ -429,7 +430,7 @@ TEST_F(ModbusClientTest, WrappedFunctionsCallPortWithExpectedParams)
         uint16_t count = 0;
         uint16_t values[4] = {0};
         verifyWrappedCall(MBF_READ_FIFO_QUEUE, req, sizeof(req), resp, sizeof(resp), [&] {
-            return client->readFIFOQueue(10, &count, values);
+            return client->readFIFOQueue(10, values, &count);
         });
     }
 #endif

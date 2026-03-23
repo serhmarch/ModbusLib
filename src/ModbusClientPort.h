@@ -227,10 +227,10 @@ public: // Main interface
 #ifndef MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
-    Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata) override;
+    Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize) override;
 
-    /// \details Same as `ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, uint8_t insize, const void *indata, uint8_t maxOutsize, void *outdata, uint8_t *outsize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+    /// \details Same as `ModbusClientPort::diagnosticsReturnQueryData(uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode diagnosticsReturnQueryData(ModbusObject *client, uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
 #endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
@@ -250,7 +250,7 @@ public: // Main interface
 #ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
     Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter) override;
 
-    /// \details Same as `ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(uint8_t unit, uint16_t *value)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    /// \details Same as `ModbusClientPort::diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(ModbusObject *client, uint8_t unit, char delimiter);
 #endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
 
@@ -341,10 +341,10 @@ public: // Main interface
 #endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-    Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff) override;
+    Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize) override;
 
-    /// \details Same as `ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *events)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode getCommEventLog(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+    /// \details Same as `ModbusClientPort::getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode getCommEventLog(ModbusObject *client, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize);
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
@@ -370,10 +370,10 @@ public: // Main interface
 #endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
-    Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data) override;
+    Modbus::StatusCode reportServerID(uint8_t unit, void *data, uint8_t *dataSize) override;
 
-    /// \details Same as `ModbusClientPort::reportServerID(uint8_t unit, uint8_t *count, uint8_t *data)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode reportServerID(ModbusObject *client, uint8_t unit, uint8_t *count, uint8_t *data);
+    /// \details Same as `ModbusClientPort::reportServerID(uint8_t unit, void *data, uint8_t *dataSize)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode reportServerID(ModbusObject *client, uint8_t unit, void *data, uint8_t *dataSize);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
 
 #ifndef MBF_READ_FILE_RECORD_DISABLE
@@ -405,10 +405,10 @@ public: // Main interface
 #endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
-    Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values) override;
+    Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count) override;
 
-    /// \details Same as `ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
-    Modbus::StatusCode readFIFOQueue(ModbusObject *client, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
+    /// \details Same as `ModbusClientPort::readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
+    Modbus::StatusCode readFIFOQueue(ModbusObject *client, uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
 
 #ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
@@ -416,18 +416,7 @@ public: // Main interface
 #ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
     Modbus::StatusCode readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr) override;
 
-    /// \details Read Device Identification (FC43/MEI 0x0E).
-    /// Has `client` as first parameter to seize current `ModbusClientPort` resource.
-    /// \param[in]  client          Pointer to client object for port resource arbitration.
-    /// \param[in]  unit            Address of the remote Modbus device.
-    /// \param[in]  readDeviceId    Read Device ID code: 1=Basic, 2=Regular, 3=Extended, 4=Specific.
-    /// \param[in]  objectId        Starting object ID to read from (0x00-0xFF).
-    /// \param[out] data            Pointer to output buffer for raw MEI response data.
-    /// \param[out] dataSize        Number of bytes written into data buffer.
-    /// \param[out] numberOfObjects Number of objects returned. Can be `nullptr` if not needed.
-    /// \param[out] conformityLevel Conformity level of the device. Can be `nullptr` if not needed.
-    /// \param[out] moreFollows     Indicates if more objects follow. Can be `nullptr` if not needed.
-    /// \param[out] nextObjectId    The next object ID to read from in subsequent responses. Can be `nullptr` if not needed.
+    /// \details Same as `ModbusClientPort::readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId)` but has `client` as first parameter to seize current `ModbusClientPort` resource.
     Modbus::StatusCode readDeviceIdentification(ModbusObject *client, uint8_t unit, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr);
 #endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
 
