@@ -153,6 +153,54 @@
 #define MBF_EXCEPTION                           128
 ///\}
 
+// --------------------------------------------------------------------------------------------------------
+// ----------------------------------- Modbus diagnostic function codes -----------------------------------
+// --------------------------------------------------------------------------------------------------------
+
+/// \name Modbus Functions
+/// Modbus Function's codes.
+///\{ 
+#define MBF_DIAGNOSTICS_RETURN_QUERY_DATA                      0
+#define MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION          1
+#define MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER             2
+#define MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER           3
+#define MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE                 4
+#define MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER 10
+#define MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT               11
+#define MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT   12
+#define MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT       13
+#define MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT            14
+#define MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT        15
+#define MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT                16
+#define MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT               17
+#define MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT     18
+#define MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG         20
+///\}
+
+
+// --------------------------------------------------------------------------------------------------------
+// ---------------------------------------- Modbus Events Constants ---------------------------------------
+// --------------------------------------------------------------------------------------------------------
+
+#define MB_RECEIVE_EVENT_COMMUNICATION_ERROR            0x82
+#define MB_RECEIVE_EVENT_CHARACTER_OVERRUN              0x90
+#define MB_RECEIVE_EVENT_CURRENTLY_IN_LISTEN_ONLY_MODE  0xA0
+#define MB_RECEIVE_EVENT_BROADCAST_RECEIVED             0xC0
+
+#define MB_SEND_EVENT_READ_EXCEPTION_SENT               0x41
+#define MB_SEND_EVENT_SERVER_ABORT_EXCEPTION_SENT       0x42
+#define MB_SEND_EVENT_SERVER_BUSY_EXCEPTION_SENT        0x44
+#define MB_SEND_EVENT_SERVER_PROGRAM_NAK_EXCEPTION_SENT 0x48
+#define MB_SEND_EVENT_WRITE_TIMEOUT_ERROR_OCCURRED      0x50
+#define MB_SEND_EVENT_CURRENTLY_IN_LISTEN_ONLY_MODE     0x60
+
+#define MB_EVENT_ENTERED_LISTEN_ONLY_MODE               0x04
+#define MB_EVENT_INITIATED_COMMUNICATION_RESTART        0x00
+
+// --------------------------------------------------------------------------------------------------------
+// ----------------------------- Modbus Encapsulated Interface (MEI) Constants ----------------------------
+// --------------------------------------------------------------------------------------------------------
+
 /// \name MEI (Modbus Encapsulated Interface) Constants
 /// Constants for FC43 Encapsulated Interface Transport
 ///\{
@@ -188,31 +236,6 @@
 #define MB_MEI_MORE_FOLLOWS                     0xFF
 /// \brief More Follows flag: no more objects
 #define MB_MEI_NO_MORE_FOLLOWS                  0x00
-///\}
-
-
-// --------------------------------------------------------------------------------------------------------
-// ----------------------------------- Modbus diagnostic function codes -----------------------------------
-// --------------------------------------------------------------------------------------------------------
-
-/// \name Modbus Functions
-/// Modbus Function's codes.
-///\{ 
-#define MBF_DIAGNOSTICS_RETURN_QUERY_DATA                      0
-#define MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION          1
-#define MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER             2
-#define MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER           3
-#define MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE                 4
-#define MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER 10
-#define MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT               11
-#define MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT   12
-#define MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT       13
-#define MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT            14
-#define MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT        15
-#define MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT                16
-#define MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT               17
-#define MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT     18
-#define MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG         20
 ///\}
 
 
