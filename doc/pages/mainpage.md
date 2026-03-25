@@ -3,13 +3,13 @@
 
 ## Overview
 
-ModbusLib is a free, open-source Modbus library written in C++. 
-It implements client and server functions for TCP, RTU and ASCII versions of Modbus Protocol.
-It has interface for C language (implements in cModbus.h header file).
-Also it has optional wrapper to use with Qt (implements in ModbusQt.h header file).
-Library can work in both blocking and non-blocking mode.
+ModbusLib are cross-platform (Windows, Linux) C++ library (client/server) that supports 
+TCP, UDP, RTU, ASCII, RTU/ASCII over TCP/UDP Modbus protocol types. 
+It has interface for plain C language (implements in `cModbus.h` header file).
+Also it has optional wrapper to use with Qt (implements in `ModbusQt.h` header file).
 
-Library implements such Modbus functions as:
+Supported Modbus functions:
+
 * `1`  (`0x01`) - `READ_COILS`
 * `2`  (`0x02`) - `READ_DISCRETE_INPUTS`
 * `3`  (`0x03`) - `READ_HOLDING_REGISTERS`
@@ -17,15 +17,18 @@ Library implements such Modbus functions as:
 * `5`  (`0x05`) - `WRITE_SINGLE_COIL`
 * `6`  (`0x06`) - `WRITE_SINGLE_REGISTER`
 * `7`  (`0x07`) - `READ_EXCEPTION_STATUS`
-* `8`  (`0x08`) - `DIAGNOSTICS`
-* `11` (`0x0B`) - `GET_COMM_EVENT_COUNTER`
-* `12` (`0x0C`) - `GET_COMM_EVENT_LOG`
+* `8`  (`0x08`) - `DIAGNOSTICS` (v0.5+)
+* `11` (`0x0B`) - `GET_COMM_EVENT_COUNTER` (v0.4+)
+* `12` (`0x0C`) - `GET_COMM_EVENT_LOG` (v0.4+)
 * `15` (`0x0F`) - `WRITE_MULTIPLE_COILS`
 * `16` (`0x10`) - `WRITE_MULTIPLE_REGISTERS`
-* `17` (`0x11`) - `REPORT_SERVER_ID`
-* `22` (`0x16`) - `MASK_WRITE_REGISTER`
-* `23` (`0x17`) - `WRITE_MULTIPLE_REGISTERS`
-* `24` (`0x18`) - `READ_FIFO_QUEUE`
+* `17` (`0x11`) - `REPORT_SERVER_ID`(v0.4+)
+* `20` (`0x14`) - `READ_FILE_RECORD` (v0.5+)
+* `21` (`0x15`) - `WRITE_FILE_RECORD` (v0.5+)
+* `22` (`0x16`) - `MASK_WRITE_REGISTER` (v0.3+)
+* `23` (`0x17`) - `READ_WRITE_MULTIPLE_REGISTERS` (v0.3+)
+* `24` (`0x18`) - `READ_FIFO_QUEUE` (v0.4+)
+* `43/14` (`0x2B/0x0E`) - `READ_DEVICE_ID` (v0.5+)
 
 ## Using Library
 
@@ -244,9 +247,12 @@ To use the library with pure C language user needs to include only one header: `
 This header includes functions that wraps Modbus interface classes and its methods.
 
 > Note for C API users (stable interface alignment):
-> - FC08 diagnostics is represented by dedicated functions per subfunction (`cDiagnosticsReturnQueryData`, `cDiagnosticsRestartCommunicationsOption`, etc.) instead of one generic diagnostics call.
-> - Signatures follow `ModbusInterface` order: `cGetCommEventLog(..., eventBuff, eventBuffSize)`, `cReportServerID(..., data, dataSize)`, `cReadFIFOQueue(..., values, count)`.
-> - `cCreateModbusDevice(...)` now includes callback slots for all enabled diagnostics subfunctions and also `readFileRecord`, `writeFileRecord`, `readDeviceIdentification`.
+> - FC08 diagnostics is represented by dedicated functions per subfunction (`cDiagnosticsReturnQueryData`,
+>  `cDiagnosticsRestartCommunicationsOption`, etc.) instead of one generic diagnostics call.
+> - Signatures follow `ModbusInterface` order: `cGetCommEventLog(..., eventBuff, eventBuffSize)`,
+> `cReportServerID(..., data, dataSize)`, `cReadFIFOQueue(..., values, count)`.
+> - `cCreateModbusDevice(...)` now includes callback slotsfor all enabled diagnostics subfunctions
+> and also `readFileRecord`, `writeFileRecord`, `readDeviceIdentification`.
 
 ```c
 #include <cModbus.h>

@@ -4,13 +4,16 @@
 
 ## Overview {#protocol-overview}
 
-Modbus is a widely-used communication protocol in industrial automation and control systems. The ModbusLib library supports three major protocol variants, each optimized for different communication media and requirements:
+Modbus is a widely-used communication protocol in industrial automation and control systems. The ModbusLib library supports all `ProtocolType` variants implemented in the current codebase:
 
 - **Modbus TCP/IP**: Ethernet-based protocol for modern networked systems
+- **Modbus UDP**: Datagram-based Modbus transport with transaction ID support
 - **Modbus RTU**: Binary protocol for serial communications (RS-232, RS-485)
 - **Modbus ASCII**: Human-readable protocol for serial communications with debugging advantages
+- **Modbus ASCII over TCP / RTU over TCP**: Serial framing carried over TCP transport
+- **Modbus ASCII over UDP / RTU over UDP**: Serial framing carried over UDP transport
 
-All three variants share the same basic PDU (Protocol Data Unit) structure containing function codes and data, but differ in their ADU (Application Data Unit) framing and error checking mechanisms.
+All variants share the same basic PDU (Protocol Data Unit) structure containing function codes and data, but differ in ADU framing, transport behavior, and error-checking strategy.
 
 ---
 
@@ -73,29 +76,28 @@ Hex: 00 01 00 00 00 17 01 03 14 [20 data bytes]
 
 ```cpp
 #include <Modbus.h>
+#include <ModbusClientPort.h>
 #include <ModbusTcpPort.h>
 
-// Create TCP client
-Modbus::TcpPort client;
-client.setHostName("192.168.1.100");
-client.setPort(502);
+ModbusTcpPort *tcp = new ModbusTcpPort(false);
+tcp->setHost("192.168.1.100");
+tcp->setPort(502);
 
-if (client.open()) {
-    // Read 10 holding registers starting at address 0
-    Modbus::Response response = client.readHoldingRegisters(
-        1,      // Unit ID
-        0,      // Start address
-        10      // Number of registers
-    );
-    
-    if (response.isValid()) {
-        const QVector<uint16_t>& values = response.values();
-        for (int i = 0; i < values.size(); ++i) {
-            qDebug() << "Register" << i << ":" << values[i];
-        }
-    }
-    client.close();
+ModbusClientPort client(tcp);
+
+uint16_t regs[10] = {0};
+Modbus::StatusCode status = client.readHoldingRegisters(1, 0, 10, regs);
+while (Modbus::StatusIsProcessing(status))
+    status = client.readHoldingRegisters(1, 0, 10, regs);
+
+if (Modbus::StatusIsGood(status)) {
+    for (int i = 0; i < 10; ++i)
+        std::cout << "Register " << i << ": " << regs[i] << std::endl;
+} else {
+    std::cout << "Error: " << client.lastErrorText() << std::endl;
 }
+
+client.close();
 ```
 
 ### Advantages {#tcp-advantages}
@@ -112,6 +114,54 @@ if (client.open()) {
 - **Network dependency**: Requires Ethernet infrastructure
 - **Not deterministic**: Subject to network latency and congestion
 - **Security concerns**: Requires additional measures (firewalls, VPNs)
+
+---
+
+## Modbus UDP Protocol {#modbus-udp-protocol}
+
+### Overview {#udp-overview}
+
+Modbus UDP uses datagram transport and is implemented by `ModbusUdpPort`. It is useful in closed networks where low-latency request/response is preferred over connection-oriented delivery.
+
+### Transport Characteristics {#udp-transport-characteristics}
+
+- **Connectionless**: No session establishment handshake
+- **Datagram-based**: Each request/response is an independent packet
+- **No retransmission by transport**: Packet loss/reordering must be handled at application level
+- **Transaction ID support**: `ModbusUdpPort` provides transaction ID management APIs (`transactionId()`, `setTransactionId()`, `setNextRequestRepeated()`)
+
+### C++ Implementation Example {#protocol-udp-impl}
+
+```cpp
+#include <Modbus.h>
+#include <ModbusClientPort.h>
+#include <ModbusUdpPort.h>
+
+ModbusUdpPort *udp = new ModbusUdpPort(false);
+udp->setHost("192.168.1.120");
+udp->setPort(502);
+
+ModbusClientPort client(udp);
+
+uint16_t regs[4] = {0};
+Modbus::StatusCode status = client.readHoldingRegisters(1, 0, 4, regs);
+while (Modbus::StatusIsProcessing(status))
+    status = client.readHoldingRegisters(1, 0, 4, regs);
+
+if (Modbus::StatusIsBad(status))
+    std::cout << "UDP read error: " << client.lastErrorText() << std::endl;
+```
+
+### Advantages {#udp-advantages}
+
+- **Low overhead**: No connection state and lightweight transport
+- **Simple deployment**: Useful for request/response polling on local networks
+
+### Disadvantages {#udp-disadvantages}
+
+- **No delivery guarantee**: Lost packets require application retries
+- **Possible reordering**: Responses may arrive out of sequence on unstable networks
+- **Security concerns**: Requires network isolation or additional controls
 
 ---
 
@@ -214,34 +264,31 @@ Byte 2 (0x6B = 01101011): Coils 27-34
 
 ```cpp
 #include <Modbus.h>
+#include <ModbusClientPort.h>
 #include <ModbusRtuPort.h>
 
-// Create RTU client on COM1
-Modbus::RtuPort client;
-client.setPortName("COM1");
-client.setBaudRate(9600);
-client.setDataBits(8);
-client.setParity(Modbus::EvenParity);
-client.setStopBits(1);
+ModbusRtuPort *rtu = new ModbusRtuPort(false);
+rtu->setPortName("COM1");
+rtu->setBaudRate(9600);
+rtu->setDataBits(8);
+rtu->setParity(Modbus::EvenParity);
+rtu->setStopBits(Modbus::OneStop);
 
-if (client.open()) {
-    // Read 100 coils starting at address 0
-    Modbus::Response response = client.readCoils(
-        1,      // Slave address
-        0,      // Start address
-        100     // Number of coils
-    );
-    
-    if (response.isValid()) {
-        const QBitArray& coils = response.coils();
-        for (int i = 0; i < coils.size(); ++i) {
-            if (coils.testBit(i)) {
-                qDebug() << "Coil" << i << "is ON";
-            }
-        }
-    }
-    client.close();
+ModbusClientPort client(rtu);
+
+bool coils[100] = {false};
+Modbus::StatusCode status = client.readCoilsAsBoolArray(1, 0, 100, coils);
+while (Modbus::StatusIsProcessing(status))
+    status = client.readCoilsAsBoolArray(1, 0, 100, coils);
+
+if (Modbus::StatusIsGood(status)) {
+    for (int i = 0; i < 100; ++i)
+        if (coils[i]) std::cout << "Coil " << i << " is ON" << std::endl;
+} else {
+    std::cout << "Error: " << client.lastErrorText() << std::endl;
 }
+
+client.close();
 ```
 
 ### Advantages {#rtu-advantages}
@@ -354,29 +401,28 @@ F8    - LRC
 
 ```cpp
 #include <Modbus.h>
+#include <ModbusClientPort.h>
 #include <ModbusAscPort.h>
 
-// Create ASCII client
-Modbus::AscPort client;
-client.setPortName("COM2");
-client.setBaudRate(9600);
-client.setDataBits(7);  // Typically 7 bits for ASCII
-client.setParity(Modbus::EvenParity);
-client.setStopBits(1);
+ModbusAscPort *asc = new ModbusAscPort(false);
+asc->setPortName("COM2");
+asc->setBaudRate(9600);
+asc->setDataBits(7);
+asc->setParity(Modbus::EvenParity);
+asc->setStopBits(Modbus::OneStop);
 
-if (client.open()) {
-    // Write single register
-    Modbus::Response response = client.writeSingleRegister(
-        1,      // Slave address
-        100,    // Register address
-        0x1234  // Value
-    );
-    
-    if (response.isValid()) {
-        qDebug() << "Register written successfully";
-    }
-    client.close();
-}
+ModbusClientPort client(asc);
+
+Modbus::StatusCode status = client.writeSingleRegister(1, 100, 0x1234);
+while (Modbus::StatusIsProcessing(status))
+    status = client.writeSingleRegister(1, 100, 0x1234);
+
+if (Modbus::StatusIsGood(status))
+    std::cout << "Register written successfully" << std::endl;
+else
+    std::cout << "Error: " << client.lastErrorText() << std::endl;
+
+client.close();
 ```
 
 ### Advantages {#ascii-advantages}
@@ -397,6 +443,69 @@ if (client.open()) {
 
 ---
 
+## RTU/ASCII over TCP and UDP {#rtu-ascii-over-tcp-udp}
+
+### Overview {#rtu-ascii-over-tcp-udp-overview}
+
+ModbusLib also provides hybrid transports that keep RTU/ASCII framing while using socket transports:
+
+- `ModbusAscOverTcpPort`  (`Modbus::ASCvTCP`)
+- `ModbusRtuOverTcpPort`  (`Modbus::RTUvTCP`)
+- `ModbusAscOverUdpPort`  (`Modbus::ASCvUDP`)
+- `ModbusRtuOverUdpPort`  (`Modbus::RTUvUDP`)
+
+These classes are useful for protocol gateways, compatibility testing, and mixed infrastructures where serial-style framing must be preserved over IP transport.
+
+### C++ Implementation Examples {#rtu-ascii-over-tcp-udp-impl}
+
+```cpp
+#include <Modbus.h>
+#include <ModbusClientPort.h>
+#include <ModbusAscOverTcpPort.h>
+#include <ModbusRtuOverUdpPort.h>
+
+// ASCII over TCP
+ModbusAscOverTcpPort *ascTcp = new ModbusAscOverTcpPort(false);
+ascTcp->setHost("192.168.1.50");
+ascTcp->setPort(502);
+ModbusClientPort ascTcpClient(ascTcp);
+
+// RTU over UDP
+ModbusRtuOverUdpPort *rtuUdp = new ModbusRtuOverUdpPort(false);
+rtuUdp->setHost("192.168.1.51");
+rtuUdp->setPort(502);
+ModbusClientPort rtuUdpClient(rtuUdp);
+```
+
+### Practical Notes {#rtu-ascii-over-tcp-udp-notes}
+
+- Choose `ASCvTCP/ASCvUDP` when human-readable ASCII framing is needed over IP.
+- Choose `RTUvTCP/RTUvUDP` when RTU-style binary framing compatibility is required.
+- Apply the same `StatusCode` handling and retry logic as with standard TCP/UDP client ports.
+
+---
+
+## Protocol Variant Comparison {#protocol-variant-comparison}
+
+| ProtocolType | Main class | Transport | Framing | Frame check | Delivery guarantee | Human-readable |
+|--------------|------------|-----------|---------|-------------|--------------------|----------------|
+| `Modbus::TCP` | `ModbusTcpPort` | TCP stream | MBAP + PDU | Transport-level checks | Yes (TCP) | No |
+| `Modbus::UDP` | `ModbusUdpPort` | UDP datagram | MBAP-like datagram framing + PDU | Transport-level checks | No (app retries recommended) | No |
+| `Modbus::RTU` | `ModbusRtuPort` | Serial (RS-232/RS-485) | RTU ADU | CRC-16 | N/A (serial link) | No |
+| `Modbus::ASC` | `ModbusAscPort` | Serial (RS-232/RS-485) | ASCII ADU (`:` ... CRLF) | LRC | N/A (serial link) | Yes |
+| `Modbus::ASCvTCP` | `ModbusAscOverTcpPort` | TCP stream | ASCII framing over TCP | LRC + TCP reliability | Yes (TCP) | Yes |
+| `Modbus::RTUvTCP` | `ModbusRtuOverTcpPort` | TCP stream | RTU framing over TCP | CRC-16 + TCP reliability | Yes (TCP) | No |
+| `Modbus::ASCvUDP` | `ModbusAscOverUdpPort` | UDP datagram | ASCII framing over UDP | LRC | No (app retries recommended) | Yes |
+| `Modbus::RTUvUDP` | `ModbusRtuOverUdpPort` | UDP datagram | RTU framing over UDP | CRC-16 | No (app retries recommended) | No |
+
+**Selection guidance:**
+- Use `TCP` for standard industrial Ethernet interoperability.
+- Use `UDP` when low overhead is preferred and your application can tolerate or handle packet loss.
+- Use `RTU`/`ASC` for native serial buses.
+- Use `RTUvTCP/ASCvTCP/RTUvUDP/ASCvUDP` for gateways and compatibility scenarios where serial framing must be preserved over IP.
+
+---
+
 ## Modbus Function Codes {#modbus-function-codes}
 
 ### Function Code Overview {#function-code-overview}
@@ -409,10 +518,19 @@ if (client.open()) {
 | 04 | Read Input Registers | Word Read | Read 1-125 contiguous input registers |
 | 05 | Write Single Coil | Bit Write | Write single coil (ON/OFF) |
 | 06 | Write Single Register | Word Write | Write single holding register |
+| 07 | Read Exception Status | Special | Read device exception status byte |
+| 08 | Diagnostics | Special | Diagnostics subfunctions (serial line diagnostics and counters) |
+| 11 | Get Comm Event Counter | Special | Read communication status/event counter |
+| 12 | Get Comm Event Log | Special | Read communication event log |
 | 15 | Write Multiple Coils | Bit Write | Write multiple coils (1-1968) |
 | 16 | Write Multiple Registers | Word Write | Write multiple registers (1-123) |
+| 17 | Report Server ID | Special | Read server identification payload |
+| 20 | Read File Record | File | Read one or more file records |
+| 21 | Write File Record | File | Write one or more file records |
 | 22 | Mask Write Register | Word Write | Modify register using AND/OR masks |
 | 23 | Read/Write Multiple Registers | Word Read/Write | Combined read/write operation |
+| 24 | Read FIFO Queue | Special | Read FIFO queue of register values |
+| 43/14 | Read Device Identification | Encapsulated Interface | Read identity objects via MEI type 0x0E |
 
 ### FC 01: Read Coils (0x01) {#fc-01-read-coils-0x01}
 
@@ -437,11 +555,8 @@ Reads the ON/OFF status of discrete output coils.
 **Example:**
 ```cpp
 // Read 20 coils starting at address 100
-Modbus::Response resp = port.readCoils(slaveId, 100, 20);
-if (resp.isValid()) {
-    QBitArray coils = resp.coils();
-    // coils[0] = coil 100, coils[1] = coil 101, etc.
-}
+bool coils[20] = {false};
+Modbus::StatusCode status = port.readCoilsAsBoolArray(slaveId, 100, 20, coils);
 ```
 
 ### FC 02: Read Discrete Inputs (0x02) {#fc-02-read-discrete-inputs-0x02}
@@ -453,7 +568,8 @@ Reads the ON/OFF status of discrete inputs (read-only).
 **Example:**
 ```cpp
 // Read 16 discrete inputs starting at address 0
-Modbus::Response resp = port.readDiscreteInputs(slaveId, 0, 16);
+bool inputs[16] = {false};
+Modbus::StatusCode status = port.readDiscreteInputsAsBoolArray(slaveId, 0, 16, inputs);
 ```
 
 ### FC 03: Read Holding Registers (0x03) {#fc-03-read-holding-registers-0x03}
@@ -479,11 +595,8 @@ Reads 16-bit holding registers (read/write).
 **Example:**
 ```cpp
 // Read 10 holding registers starting at address 0
-Modbus::Response resp = port.readHoldingRegisters(slaveId, 0, 10);
-if (resp.isValid()) {
-    QVector<uint16_t> values = resp.values();
-    qDebug() << "First register:" << values[0];
-}
+uint16_t values[10] = {0};
+Modbus::StatusCode status = port.readHoldingRegisters(slaveId, 0, 10, values);
 ```
 
 ### FC 04: Read Input Registers (0x04) {#fc-04-read-input-registers-0x04}
@@ -495,7 +608,8 @@ Reads 16-bit input registers (read-only, typically for sensor data).
 **Example:**
 ```cpp
 // Read 5 input registers starting at address 10
-Modbus::Response resp = port.readInputRegisters(slaveId, 10, 5);
+uint16_t values[5] = {0};
+Modbus::StatusCode status = port.readInputRegisters(slaveId, 10, 5, values);
 ```
 
 ### FC 05: Write Single Coil (0x05) {#fc-05-write-single-coil-0x05}
@@ -517,10 +631,10 @@ Writes a single coil to ON (0xFF00) or OFF (0x0000).
 **Example:**
 ```cpp
 // Turn ON coil at address 50
-Modbus::Response resp = port.writeSingleCoil(slaveId, 50, true);
+Modbus::StatusCode status = port.writeSingleCoil(slaveId, 50, true);
 
 // Turn OFF coil at address 50
-resp = port.writeSingleCoil(slaveId, 50, false);
+status = port.writeSingleCoil(slaveId, 50, false);
 ```
 
 ### FC 06: Write Single Register (0x06) {#fc-06-write-single-register-0x06}
@@ -540,7 +654,105 @@ Writes a single 16-bit register.
 **Example:**
 ```cpp
 // Write value 1234 to register 100
-Modbus::Response resp = port.writeSingleRegister(slaveId, 100, 1234);
+Modbus::StatusCode status = port.writeSingleRegister(slaveId, 100, 1234);
+```
+
+### FC 07: Read Exception Status (0x07) {#fc-07-read-exception-status-0x07}
+
+Reads one-byte exception status from the remote device.
+
+**Request PDU:**
+```
++--------------+
+| Function (1) |
+|     0x07     |
++--------------+
+```
+
+**Response PDU:**
+```
++--------------+--------------+
+| Function (1) | Status (1)   |
+|     0x07     | bit flags    |
++--------------+--------------+
+```
+
+**Example:**
+```cpp
+uint8_t exceptionStatus = 0;
+Modbus::StatusCode status = port.readExceptionStatus(slaveId, &exceptionStatus);
+```
+
+### FC 08: Diagnostics (0x08) {#fc-08-diagnostics-0x08}
+
+In v0.5, diagnostics are exposed as dedicated subfunction methods instead of a generic `diagnostics(...)` entry point.
+
+Common diagnostics methods include:
+- `diagnosticsReturnQueryData(...)`
+- `diagnosticsRestartCommunicationsOption(...)`
+- `diagnosticsReturnDiagnosticRegister(...)`
+- `diagnosticsReturnBusMessageCount(...)`
+- `diagnosticsReturnBusCommunicationErrorCount(...)`
+- `diagnosticsReturnServerMessageCount(...)`
+- `diagnosticsClearOverrunCounterAndFlag(...)`
+
+**FC08 Subfunction map (v0.5):**
+
+| Subfunction (hex) | Name | Method |
+|-------------------|------|--------|
+| `0x00` | Return Query Data | `diagnosticsReturnQueryData(...)` |
+| `0x01` | Restart Communications Option | `diagnosticsRestartCommunicationsOption(...)` |
+| `0x02` | Return Diagnostic Register | `diagnosticsReturnDiagnosticRegister(...)` |
+| `0x03` | Change ASCII Input Delimiter | `diagnosticsChangeAsciiInputDelimiter(...)` |
+| `0x04` | Force Listen Only Mode | `diagnosticsForceListenOnlyMode(...)` |
+| `0x0A` | Clear Counters and Diagnostic Register | `diagnosticsClearCountersAndDiagnosticRegister(...)` |
+| `0x0B` | Return Bus Message Count | `diagnosticsReturnBusMessageCount(...)` |
+| `0x0C` | Return Bus Communication Error Count | `diagnosticsReturnBusCommunicationErrorCount(...)` |
+| `0x0D` | Return Bus Exception Error Count | `diagnosticsReturnBusExceptionErrorCount(...)` |
+| `0x0E` | Return Server Message Count | `diagnosticsReturnServerMessageCount(...)` |
+| `0x0F` | Return Server No Response Count | `diagnosticsReturnServerNoResponseCount(...)` |
+| `0x10` | Return Server NAK Count | `diagnosticsReturnServerNAKCount(...)` |
+| `0x11` | Return Server Busy Count | `diagnosticsReturnServerBusyCount(...)` |
+| `0x12` | Return Bus Character Overrun Count | `diagnosticsReturnBusCharacterOverrunCount(...)` |
+| `0x14` | Clear Overrun Counter and Flag | `diagnosticsClearOverrunCounterAndFlag(...)` |
+
+**Example:**
+```cpp
+uint16_t busMessageCount = 0;
+Modbus::StatusCode status = port.diagnosticsReturnBusMessageCount(slaveId, &busMessageCount);
+```
+
+### FC 11: Get Comm Event Counter (0x0B) {#fc-11-get-comm-event-counter-0x0b}
+
+Reads communication status and event counter.
+
+**Example:**
+```cpp
+uint16_t commStatus = 0;
+uint16_t eventCount = 0;
+Modbus::StatusCode status = port.getCommEventCounter(slaveId, &commStatus, &eventCount);
+```
+
+### FC 12: Get Comm Event Log (0x0C) {#fc-12-get-comm-event-log-0x0c}
+
+Reads communication event log payload.
+
+**Example:**
+```cpp
+uint16_t commStatus = 0;
+uint16_t eventCount = 0;
+uint16_t messageCount = 0;
+uint8_t eventLog[64] = {0};
+uint8_t eventLogSize = sizeof(eventLog);
+
+Modbus::StatusCode status = port.getCommEventLog(
+    slaveId,
+    &commStatus,
+    &eventCount,
+    &messageCount,
+    eventLog,
+    &eventLogSize
+);
 ```
 
 ### FC 15 (0x0F): Write Multiple Coils {#fc-15-0x0f-write-multiple-coils}
@@ -566,11 +778,10 @@ Writes multiple contiguous coils.
 **Example:**
 ```cpp
 // Write 10 coils starting at address 20
-QBitArray coils(10);
-coils.setBit(0, true);   // Coil 20 = ON
-coils.setBit(5, true);   // Coil 25 = ON
-// Others default to OFF
-Modbus::Response resp = port.writeMultipleCoils(slaveId, 20, coils);
+bool coils[10] = {false};
+coils[0] = true;   // Coil 20 = ON
+coils[5] = true;   // Coil 25 = ON
+Modbus::StatusCode status = port.writeMultipleCoilsAsBoolArray(slaveId, 20, 10, coils);
 ```
 
 ### FC 16 (0x10): Write Multiple Registers {#fc-16-0x10-write-multiple-registers}
@@ -596,8 +807,49 @@ Writes multiple contiguous 16-bit registers.
 **Example:**
 ```cpp
 // Write 5 registers starting at address 100
-QVector<uint16_t> values = {100, 200, 300, 400, 500};
-Modbus::Response resp = port.writeMultipleRegisters(slaveId, 100, values);
+uint16_t values[] = {100, 200, 300, 400, 500};
+Modbus::StatusCode status = port.writeMultipleRegisters(slaveId, 100, 5, values);
+```
+
+### FC 17: Report Server ID (0x11) {#fc-17-report-server-id-0x11}
+
+Reads server identification payload.
+
+**Example:**
+```cpp
+uint8_t serverId[255] = {0};
+uint8_t serverIdSize = sizeof(serverId);
+Modbus::StatusCode status = port.reportServerID(slaveId, serverId, &serverIdSize);
+```
+
+### FC 20: Read File Record (0x14) {#fc-20-read-file-record-0x14}
+
+Reads one or more file records.
+
+**Example:**
+```cpp
+Modbus::FileRecord records[1] = {
+    {0x0001, 0x0000, 4} // file=1, record=0, length=4 registers
+};
+
+uint8_t outData[128] = {0};
+uint8_t outSize = sizeof(outData);
+Modbus::StatusCode status = port.readFileRecord(slaveId, records, 1, outData, &outSize);
+```
+
+### FC 21: Write File Record (0x15) {#fc-21-write-file-record-0x15}
+
+Writes one or more file records.
+
+**Example:**
+```cpp
+Modbus::FileRecord records[1] = {
+    {0x0001, 0x0000, 2}
+};
+
+uint16_t payloadRegs[] = {0x1111, 0x2222};
+uint8_t writtenSize = 0;
+Modbus::StatusCode status = port.writeFileRecord(slaveId, records, 1, payloadRegs, &writtenSize);
 ```
 
 ### FC 22 (0x16): Mask Write Register {#fc-22-0x16-mask-write-register}
@@ -619,7 +871,7 @@ Result = (Current_Value AND And_Mask) OR (Or_Mask AND (NOT And_Mask))
 **Example:**
 ```cpp
 // Set bits 0, 2, 5 without changing other bits in register 10
-Modbus::Response resp = port.maskWriteRegister(
+Modbus::StatusCode status = port.maskWriteRegister(
     slaveId, 
     10,           // Register address
     0xFFFF,       // AND mask (keep all bits)
@@ -654,19 +906,54 @@ Combines read and write operations in a single transaction.
 **Example:**
 ```cpp
 // Read 6 registers from address 3, write 3 registers to address 14
-QVector<uint16_t> writeValues = {100, 200, 300};
-Modbus::Response resp = port.readWriteMultipleRegisters(
+uint16_t writeValues[] = {100, 200, 300};
+uint16_t readValues[6] = {0};
+Modbus::StatusCode status = port.readWriteMultipleRegisters(
     slaveId,
     3,              // Read start address
     6,              // Read quantity
+    readValues,     // Read output buffer
     14,             // Write start address
+    3,              // Write quantity
     writeValues     // Values to write
 );
+```
 
-if (resp.isValid()) {
-    QVector<uint16_t> readValues = resp.values();
-    // Process read values
-}
+### FC 24: Read FIFO Queue (0x18) {#fc-24-read-fifo-queue-0x18}
+
+Reads values from a FIFO queue in the remote device.
+
+**Example:**
+```cpp
+uint16_t fifoValues[32] = {0};
+uint16_t fifoCount = 0;
+Modbus::StatusCode status = port.readFIFOQueue(slaveId, 0, fifoValues, &fifoCount);
+```
+
+### FC 43 / MEI 0x0E: Read Device Identification {#fc-43-mei-0x0e-read-device-identification}
+
+Reads identity objects (vendor/product/revision and extended objects).
+
+**Example:**
+```cpp
+uint8_t idData[256] = {0};
+uint8_t idDataSize = sizeof(idData);
+uint8_t objectCount = 0;
+uint8_t conformityLevel = 0;
+bool moreFollows = false;
+uint8_t nextObjectId = 0;
+
+Modbus::StatusCode status = port.readDeviceIdentification(
+    slaveId,
+    1, // Basic device identification
+    0, // Start object id
+    idData,
+    &idDataSize,
+    &objectCount,
+    &conformityLevel,
+    &moreFollows,
+    &nextObjectId
+);
 ```
 
 ---
@@ -728,30 +1015,26 @@ RTU Hex: 01 83 02 [CRC]
 ### C++ Exception Handling {#c-exception-handling}
 
 ```cpp
-Modbus::Response response = port.readHoldingRegisters(slaveId, 9999, 10);
+uint16_t values[10] = {0};
+Modbus::StatusCode status = port.readHoldingRegisters(slaveId, 9999, 10, values);
 
-if (!response.isValid()) {
-    if (response.isException()) {
-        uint8_t exceptionCode = response.exceptionCode();
-        
-        switch (exceptionCode) {
-            case Modbus::IllegalFunction:
-                qDebug() << "Function not supported";
-                break;
-            case Modbus::IllegalDataAddress:
-                qDebug() << "Address out of range";
-                break;
-            case Modbus::IllegalDataValue:
-                qDebug() << "Invalid data value";
-                break;
-            case Modbus::SlaveDeviceFailure:
-                qDebug() << "Device failure";
-                break;
-            default:
-                qDebug() << "Exception code:" << exceptionCode;
-        }
-    } else {
-        qDebug() << "Communication error:" << response.errorString();
+if (Modbus::StatusIsBad(status)) {
+    switch (status) {
+        case Modbus::Status_BadIllegalFunction:
+            std::cout << "Function not supported" << std::endl;
+            break;
+        case Modbus::Status_BadIllegalDataAddress:
+            std::cout << "Address out of range" << std::endl;
+            break;
+        case Modbus::Status_BadIllegalDataValue:
+            std::cout << "Invalid data value" << std::endl;
+            break;
+        case Modbus::Status_BadServerDeviceFailure:
+            std::cout << "Device failure" << std::endl;
+            break;
+        default:
+            std::cout << "Error: " << port.lastErrorText() << std::endl;
+            break;
     }
 }
 ```
@@ -769,31 +1052,19 @@ In addition to Modbus exceptions, protocol-level errors can occur:
 
 **Handling Communication Errors:**
 ```cpp
-Modbus::RtuPort port;
-port.setTimeout(1000);  // 1 second timeout
-port.setRetries(3);     // Retry up to 3 times
+ModbusRtuPort *rtu = new ModbusRtuPort(false);
+rtu->setTimeout(1000);
+ModbusClientPort port(rtu);
+port.setTries(3);
 
-Modbus::Response resp = port.readHoldingRegisters(1, 0, 10);
+uint16_t regs[10] = {0};
+Modbus::StatusCode status = port.readHoldingRegisters(1, 0, 10, regs);
+while (Modbus::StatusIsProcessing(status))
+    status = port.readHoldingRegisters(1, 0, 10, regs);
 
-if (!resp.isValid()) {
-    Modbus::ErrorCode error = resp.errorCode();
-    
-    switch (error) {
-        case Modbus::TimeoutError:
-            qDebug() << "No response from device";
-            break;
-        case Modbus::CrcError:
-            qDebug() << "CRC check failed";
-            break;
-        case Modbus::FramingError:
-            qDebug() << "Invalid frame format";
-            break;
-        case Modbus::SerialError:
-            qDebug() << "Serial port error";
-            break;
-        default:
-            qDebug() << "Error:" << resp.errorString();
-    }
+if (Modbus::StatusIsBad(status)) {
+    std::cout << "Error status: " << status << std::endl;
+    std::cout << "Error text: " << port.lastErrorText() << std::endl;
 }
 ```
 
@@ -930,19 +1201,13 @@ Echo of request: :0506003212344A7\r\n
 
 1. **Connection Management**
    ```cpp
-   // Use connection pooling for multiple devices
-   QMap<QString, Modbus::TcpPort*> connections;
-   
-   Modbus::TcpPort* getConnection(const QString& host, int port) {
-       QString key = QString("%1:%2").arg(host).arg(port);
-       if (!connections.contains(key)) {
-           auto* conn = new Modbus::TcpPort();
-           conn->setHostName(host);
-           conn->setPort(port);
-           connections[key] = conn;
-       }
-       return connections[key];
-   }
+   // One ModbusClientPort per endpoint
+   ModbusTcpPort *tcp = new ModbusTcpPort(false);
+   tcp->setHost("192.168.1.100");
+   tcp->setPort(502);
+
+   ModbusClientPort client(tcp);
+   client.setTries(3);
    ```
 
 2. **Transaction Management**
@@ -961,12 +1226,16 @@ Echo of request: :0506003212344A7\r\n
    int retries = 0;
    const int maxRetries = 3;
    int delay = 100; // ms
+   uint16_t regs[10] = {0};
    
    while (retries < maxRetries) {
-       Modbus::Response resp = port.readHoldingRegisters(1, 0, 10);
-       if (resp.isValid()) break;
+       Modbus::StatusCode status = port.readHoldingRegisters(1, 0, 10, regs);
+       while (Modbus::StatusIsProcessing(status))
+           status = port.readHoldingRegisters(1, 0, 10, regs);
+
+       if (Modbus::StatusIsGood(status)) break;
        
-       QThread::msleep(delay);
+       Modbus::msleep(delay);
        delay *= 2;  // Exponential backoff
        retries++;
    }
@@ -980,7 +1249,7 @@ Echo of request: :0506003212344A7\r\n
    port.setBaudRate(9600);      // or 19200 for faster comms
    port.setDataBits(8);
    port.setParity(Modbus::EvenParity);  // Even parity for error detection
-   port.setStopBits(1);
+    port.setStopBits(Modbus::OneStop);
    port.setFlowControl(Modbus::NoFlowControl);
    ```
 
@@ -997,12 +1266,13 @@ Echo of request: :0506003212344A7\r\n
 4. **Bus Contention**
    ```cpp
    // Implement master arbitration for multi-master systems
-   QMutex busMutex;
+   std::mutex busMutex;
    
    void sendRequest() {
-       QMutexLocker locker(&busMutex);
+       std::lock_guard<std::mutex> locker(busMutex);
        // Only one master can transmit at a time
-       Modbus::Response resp = port.readCoils(1, 0, 100);
+       uint8_t coils[13] = {0}; // 100 bits
+       Modbus::StatusCode status = port.readCoils(1, 0, 100, coils);
    }
    ```
 
@@ -1040,17 +1310,23 @@ Echo of request: :0506003212344A7\r\n
 4. **LRC Validation**
    ```cpp
    // Always validate LRC
-   bool validateFrame(const QByteArray& frame) {
-       if (frame[0] != ':') return false;
+   bool validateFrame(const std::string& frame) {
+       if (frame.empty() || frame[0] != ':') return false;
        if (frame.size() < 11) return false;  // Minimum frame size
        
        // Extract LRC and data
-       QByteArray data = frame.mid(1, frame.size() - 5);
-       QByteArray lrcStr = frame.mid(frame.size() - 4, 2);
-       
-       // Calculate and compare
-       uint8_t expectedLRC = calculateLRC(data);
-       uint8_t receivedLRC = lrcStr.toUShort(nullptr, 16);
+       std::string dataHex = frame.substr(1, frame.size() - 5);
+       std::string lrcHex = frame.substr(frame.size() - 4, 2);
+
+       std::vector<uint8_t> dataBytes(dataHex.size() / 2);
+       uint32_t byteCount = Modbus::asciiToBytes(
+           reinterpret_cast<const uint8_t*>(dataHex.data()),
+           dataBytes.data(),
+           static_cast<uint32_t>(dataHex.size())
+       );
+
+       uint8_t expectedLRC = calculateLRC(dataBytes.data(), byteCount);
+       uint8_t receivedLRC = static_cast<uint8_t>(std::stoul(lrcHex, nullptr, 16));
        
        return expectedLRC == receivedLRC;
    }
@@ -1072,16 +1348,16 @@ Echo of request: :0506003212344A7\r\n
        int count;
        int priority;  // 1=high, 5=low
        int interval;  // ms
-       qint64 lastPoll;
+       Modbus::Timer lastPoll;
    };
    
-   void pollDevices(QVector<PollItem>& items) {
-       qint64 now = QDateTime::currentMSecsSinceEpoch();
+   void pollDevices(std::vector<PollItem>& items) {
+       Modbus::Timer now = Modbus::timer();
        
        // Sort by priority and interval
        std::sort(items.begin(), items.end(), [now](const PollItem& a, const PollItem& b) {
-           qint64 aDue = a.lastPoll + a.interval - now;
-           qint64 bDue = b.lastPoll + b.interval - now;
+           int32_t aDue = static_cast<int32_t>(a.lastPoll + a.interval - now);
+           int32_t bDue = static_cast<int32_t>(b.lastPoll + b.interval - now);
            if (aDue == bDue) return a.priority < b.priority;
            return aDue < bDue;
        });
@@ -1112,19 +1388,18 @@ Echo of request: :0506003212344A7\r\n
 
 4. **Logging and Diagnostics**
    ```cpp
-   // Enable detailed logging for troubleshooting
-   port.setDebugEnabled(true);
-   
-   // Custom logging
-   connect(&port, &Modbus::Port::frameTransmitted, 
-           [](const QByteArray& frame) {
-       qDebug() << "TX:" << frame.toHex(' ');
-   });
-   
-   connect(&port, &Modbus::Port::frameReceived,
-           [](const QByteArray& frame) {
-       qDebug() << "RX:" << frame.toHex(' ');
-   });
+   void onTx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
+   {
+       std::cout << source << " TX: " << Modbus::bytesToString(buff, size) << std::endl;
+   }
+
+   void onRx(const Modbus::Char *source, const uint8_t *buff, uint16_t size)
+   {
+       std::cout << source << " RX: " << Modbus::bytesToString(buff, size) << std::endl;
+   }
+
+   port.connect(&ModbusClientPort::signalTx, onTx);
+   port.connect(&ModbusClientPort::signalRx, onRx);
    ```
 
 5. **Thread Safety**
@@ -1132,13 +1407,17 @@ Echo of request: :0506003212344A7\r\n
    // Use separate port instances per thread
    // or protect with mutex
    class ThreadSafeModbusPort {
-       Modbus::TcpPort port;
-       QMutex mutex;
+       std::mutex mutex;
+       ModbusTcpPort *tcp;
+       ModbusClientPort client;
        
    public:
-       Modbus::Response readRegisters(int addr, int count) {
-           QMutexLocker locker(&mutex);
-           return port.readHoldingRegisters(1, addr, count);
+       ThreadSafeModbusPort() : tcp(new ModbusTcpPort(false)), client(tcp) {}
+       ~ThreadSafeModbusPort() { delete tcp; }
+
+       Modbus::StatusCode readRegisters(int addr, int count, uint16_t *values) {
+           std::lock_guard<std::mutex> locker(mutex);
+           return client.readHoldingRegisters(1, static_cast<uint16_t>(addr), static_cast<uint16_t>(count), values);
        }
    };
    ```
@@ -1153,13 +1432,19 @@ Echo of request: :0506003212344A7\r\n
 
 ## Summary {#protocol-summary}
 
-This document provides comprehensive protocol-level details for implementing Modbus TCP, RTU, and ASCII communications using the ModbusLib C++ library. Key takeaways:
+This document provides protocol-level details for implementing
+all currently supported ModbusLib protocol variants.
+Key takeaways:
 
 - **TCP** is best for modern Ethernet networks with minimal overhead
+- **UDP** is lightweight but requires application-level reliability handling
 - **RTU** provides efficient binary communication over serial links
 - **ASCII** offers human-readable debugging for serial applications
+- **ASCvTCP/RTUvTCP/ASCvUDP/RTUvUDP** provide serial-style framing over IP transports for compatibility and gateway scenarios
 
-Each protocol has specific timing, framing, and error checking requirements that must be followed for reliable communication. The ModbusLib library abstracts these details while providing full control when needed.
+Each protocol has specific timing, framing, and error checking requirements
+that must be followed for reliable communication.
+The ModbusLib library abstracts these details while providing full control when needed.
 
 For implementation details and API reference, see:
 - \ref client_guide "Client Implementation Guide"

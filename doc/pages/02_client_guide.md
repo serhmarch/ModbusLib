@@ -263,7 +263,7 @@ Modbus::StatusCode readCoils(uint8_t unit, uint16_t offset, uint16_t count, void
 ```cpp
 // Read 16 coils starting at offset 0
 uint8_t coilData[2]; // 16 coils = 2 bytes
-Modbus::StatusCode status = client.readCoils(0, 16, coilData);
+Modbus::StatusCode status = clientPort.readCoils(unit, 0, 16, coilData);
 if (Modbus::StatusIsGood(status))
 {
     for (int i = 0; i < 16; i++)
@@ -307,7 +307,7 @@ Modbus::StatusCode readHoldingRegisters(uint8_t unit, uint16_t offset, uint16_t 
 ```cpp
 // Read 10 registers
 uint16_t registers[10];
-Modbus::StatusCode status = client.readHoldingRegisters(0, 10, registers);
+Modbus::StatusCode status = clientPort.readHoldingRegisters(unit, 0, 10, registers);
 if (Modbus::StatusIsGood(status))
 {
     for (int i = 0; i < 10; i++)
@@ -348,7 +348,7 @@ Modbus::StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value);
 
 **Example:**
 ```cpp
-Modbus::StatusCode status = client.writeSingleCoil(0, true);
+Modbus::StatusCode status = clientPort.writeSingleCoil(unit, 0, true);
 if (Modbus::StatusIsGood(status))
 {
     // Coil written successfully
@@ -366,7 +366,7 @@ Modbus::StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t v
 
 **Example:**
 ```cpp
-Modbus::StatusCode status = client.writeSingleRegister(0, 1234);
+Modbus::StatusCode status = clientPort.writeSingleRegister(unit, 0, 1234);
 if (Modbus::StatusIsGood(status))
 {
     // Register written successfully
@@ -395,7 +395,7 @@ Modbus::StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t co
 ```cpp
 // Write 8 coils: on, off, on, off, on, off, on, off
 uint8_t coilValues = 0b01010101;
-Modbus::StatusCode status = client.writeMultipleCoils(0, 8, &coilValues);
+Modbus::StatusCode status = clientPort.writeMultipleCoils(unit, 0, 8, &coilValues);
 ```
 
 #### writeMultipleRegisters (Function Code 16) {#writemultipleregisters-function-code-16}
@@ -411,7 +411,7 @@ Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_
 ```cpp
 // Write 3 registers with values 1000, 2000, 3000
 uint16_t registerValues[] = {1000, 2000, 3000};
-Modbus::StatusCode status = client.writeMultipleRegisters(0, 3, registerValues);
+Modbus::StatusCode status = clientPort.writeMultipleRegisters(unit, 0, 3, registerValues);
 ```
 
 ### Advanced Functions {#advanced-functions}
@@ -432,7 +432,7 @@ Modbus::StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t and
 // Set bits 4-7, clear bits 0-3
 uint16_t andMask = 0x00F0;  // Keep high nibble
 uint16_t orMask = 0x00F0;   // Set high nibble
-Modbus::StatusCode status = client.maskWriteRegister(0, andMask, orMask);
+Modbus::StatusCode status = clientPort.maskWriteRegister(unit, 0, andMask, orMask);
 ```
 
 #### readWriteMultipleRegisters (Function Code 23) {#readwritemultipleregisters-function-code-23}
@@ -448,7 +448,7 @@ Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset,
 ```cpp
 uint16_t writeData[] = {100, 200};
 uint16_t readData[5];
-Modbus::StatusCode status = client.readWriteMultipleRegisters(
+Modbus::StatusCode status = clientPort.readWriteMultipleRegisters(unit, 
     0, 5, readData,     // Read 5 registers from offset 0
     10, 2, writeData    // Write 2 registers to offset 10
 );
@@ -463,13 +463,27 @@ Reads exception status (diagnostic function).
 Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *value);
 ```
 
-#### diagnostics (Function Code 08) {#diagnostics-function-code-08}
+#### Diagnostics (Function Code 08, subfunctions) {#diagnostics-function-code-08}
 
-Sends diagnostic command to device.
+ModbusLib provides dedicated APIs for each diagnostics subfunction.
 
 **Signature:**
 ```cpp
-Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
+Modbus::StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog);
+Modbus::StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value);
+Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter);
+Modbus::StatusCode diagnosticsForceListenOnlyMode(uint8_t unit);
+Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit);
+Modbus::StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count);
+Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count);
+Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count);
+Modbus::StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count);
+Modbus::StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count);
+Modbus::StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count);
+Modbus::StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count);
+Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count);
+Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit);
 ```
 
 #### readFIFOQueue (Function Code 24) {#readfifoqueue-function-code-24}

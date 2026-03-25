@@ -3,7 +3,8 @@
 ## Overview {#architecture-overview}
 
 ModbusLib is a comprehensive Modbus library for C++ that implements
-client and server functionality for TCP, RTU, and ASCII protocols.
+client and server functionality for TCP, UDP, RTU, and ASCII protocol variants
+(including RTU/ASCII over TCP and UDP).
 The library is structured following object-oriented principles with
 clear separation of concerns and supports both Qt and non-Qt environments.
 
@@ -11,15 +12,17 @@ clear separation of concerns and supports both Qt and non-Qt environments.
 
 ### 1. Protocol Abstraction {#protocol-abstraction}
 
-All protocol implementations (TCP, RTU, ASCII) share a common interface through abstract base classes:
+All protocol implementations (TCP, UDP, RTU, ASCII, RTU/ASCII over TCP/UDP)
+share a common interface through abstract base classes:
 
 * `ModbusPort` - Abstract interface for low-level communication
-* `ModbusClientPort` - Abstract interface for client-side operations  
+* `ModbusClientPort` - Concrete client-side protocol engine built on `ModbusPort`
 * `ModbusServerPort` - Abstract interface for server-side operations
 
 ### 2. Interface-Based Design {#interface-based-design}
 
-* `ModbusInterface` - Defines all supported Modbus functions (FC 01-24)
+* `ModbusInterface` - Defines supported Modbus functions
+(FC 01-24, file record FC 20/21, and FC 43/MEI 0x0E)
 * Client implementations delegate to this interface
 * Server implementations accept objects implementing this interface
 
@@ -51,13 +54,14 @@ All protocol implementations (TCP, RTU, ASCII) share a common interface through 
                |
 +--------------v----------------------------------+
 |         Protocol Layer                          |
-|  ModbusTcpPort, ModbusRtuPort, ModbusAscPort    |
+|  ModbusTcpPort/ModbusUdpPort, RTU/ASCII ports   |
+|  and RTU/ASCII over TCP/UDP variants            |
 |  Handles framing, checksums, serialization      |
 +--------------+----------------------------------+
                |
 +--------------v----------------------------------+
 |         Transport Layer                         |
-|  Socket (TCP), Serial Port (RTU/ASCII)          |
+|  Socket (TCP/UDP), Serial Port (RTU/ASCII)      |
 |  Low-level I/O operations                       |
 +-------------------------------------------------+
 ```
@@ -73,7 +77,7 @@ All protocol implementations (TCP, RTU, ASCII) share a common interface through 
   * Defines protocol-independent interface
   * Supports blocking/non-blocking modes
 
-* **ModbusClientPort** - Base client port implementation
+* **ModbusClientPort** - Concrete client port implementation
   * Implements `ModbusInterface`
   * Manages request/response state machine
   * Handles error recovery and timeouts
@@ -89,6 +93,9 @@ All protocol implementations (TCP, RTU, ASCII) share a common interface through 
 
 **TCP Protocol:**
 * `ModbusTcpPort` - Client TCP port
+* `ModbusUdpPort` - Client UDP port
+* `ModbusAscOverTcpPort` / `ModbusRtuOverTcpPort` - ASCII/RTU framing over TCP transport
+* `ModbusAscOverUdpPort` / `ModbusRtuOverUdpPort` - ASCII/RTU framing over UDP transport
 * `ModbusTcpServer` - Multi-connection TCP server
 * Uses socket I/O for communication
 
@@ -157,7 +164,9 @@ ModbusClient client2(2, &port);
 Methods include:
 * Read functions: `readCoils`, `readDiscreteInputs`, `readHoldingRegisters`, `readInputRegisters`
 * Write functions: `writeSingleCoil`, `writeSingleRegister`, `writeMultipleCoils`, `writeMultipleRegisters`
-* Advanced: `diagnostics`, `maskWriteRegister`, `readWriteMultipleRegisters`, `readFIFOQueue`
+* Diagnostics: dedicated FC08 subfunction methods (`diagnosticsReturnQueryData`, `diagnosticsRestartCommunicationsOption`, ...)
+* Advanced: `getCommEventCounter`, `getCommEventLog`, `reportServerID`, `readFileRecord`, `writeFileRecord`,
+`maskWriteRegister`, `readWriteMultipleRegisters`, `readFIFOQueue`, `readDeviceIdentification`
 
 ## Data Flow {#data-flow}
 
@@ -227,7 +236,9 @@ The client port operates through distinct states:
 * **Error** - Error occurred, error state active until cleared
 * **Closed** - Port is closed, no operations allowed
 
-Transitions occur based on operation calls, timeouts, and response completion. In blocking mode, the state machine advances automatically until completion. In non-blocking mode, the application checks state between poll cycles.
+Transitions occur based on operation calls, timeouts, and response completion.
+In blocking mode, the state machine advances automatically until completion.
+In non-blocking mode, the application checks state between poll cycles.
 
 ### Server Port State Machine {#server-port-state-machine}
 
@@ -240,7 +251,9 @@ The server port manages connection and request handling:
 * **Transmitting** - Sending response back to client
 * **Closed** - Connection or server closed
 
-For TCP servers, each connection maintains independent state. For serial resources, a single connection state is managed. State transitions are event-driven by socket/serial I/O completion and timeout conditions.
+For TCP servers, each connection maintains independent state.
+For serial resources,a single connection state is managed.
+State transitions are event-driven by socket/serial I/O completion and timeout conditions.
 
 ## Signal/Callback Mechanism {#signal-callback-mechanism}
 
@@ -252,6 +265,9 @@ ModbusLib implements a signal/slot system for event callbacks (Qt-style but can 
 * `signalTx` - Emitted before transmitting data
 * `signalRx` - Emitted after receiving data
 * `signalError` - Emitted on error
+* `signalCompleted` - Emitted when operation completed regardless of result
+* `signalNewConnection` - Emitted when connection accepted (only for TCP, RTU/ASCII over TCP versions)
+* `signalCloseConnection` - Emitted when connection closed (only for TCP, RTU/ASCII over TCP versions)
 
 **Callback Signature:**
 ```cpp
@@ -269,7 +285,7 @@ void errorCallback(const Modbus::Char *source, Modbus::StatusCode code, const Mo
 * `Status_Processing` - Operation in progress (non-blocking mode)
 * `Status_Bad*` - Various error conditions
 * Standard Modbus exceptions (0x01-0x0B)
-* Protocol-specific errors (TCP, RTU, ASCII)
+* Protocol-specific errors (TCP, UDP, RTU, ASCII)
 * Common errors (timeout, buffer overflow, etc.)
 
 ## Module Organization {#module-organization}
@@ -277,26 +293,35 @@ void errorCallback(const Modbus::Char *source, Modbus::StatusCode code, const Mo
 ```
 ModbusLib/
 +- src/
-|   +-- Modbus.h/cpp              # Core definitions, status codes
-|   +-- ModbusGlobal.h            # Global definitions and macros
-|   +-- ModbusQt.h/cpp            # Additional functionality for Qt integration (optional)
-|   +-- ModbusObject.h/cpp        # Base object class
-|   +-- ModbusPort.h/cpp          # ModbusPort abstract base
-|   +-- ModbusClientPort.h/cpp    # ModbusClientPort implementation
-|   +-- ModbusClient.h/cpp        # ModbusClient wrapper
-|   +-- ModbusTcpPort.h/cpp       # TCP protocol implementation
-|   +-- ModbusSerialPort.h/cpp    # Serial port base class
-|   +-- ModbusRtuPort.h/cpp       # RTU protocol implementation
-|   +-- ModbusAscPort.h/cpp       # ASCII protocol implementation
-|   +-- ModbusServerPort.h/cpp    # ModbusServerPort base
-|   +-- ModbusServerResource.h/cpp # Server port implementation for RTU/ASCII or single TCP connection
-|   +-- ModbusTcpServer.h/cpp     # TCP server implementation
-|   +-- win/                      # Windows-specific implementations
-|   \-- unix/                     # Unix/Linux-specific implementations
+|   +-- Modbus.h/cpp               # Core definitions, status codes
+|   +-- ModbusGlobal.h             # Global definitions and macros
+|   +-- ModbusQt.h/cpp             # Additional functionality for Qt integration (optional)
+|   +-- ModbusObject.h/cpp         # Base object class
+|   +-- ModbusPort.h/cpp           # ModbusPort abstract base
+|   +-- ModbusNetPort.h/cpp        # Common network port base
+|   +-- ModbusTcpPortBase.h/cpp    # TCP transport base
+|   +-- ModbusUdpPortBase.h/cpp    # UDP transport base
+|   +-- ModbusClientPort.h/cpp     # ModbusClientPort implementation
+|   +-- ModbusClient.h/cpp         # ModbusClient wrapper
+|   +-- ModbusTcpPort.h/cpp        # TCP protocol implementation
+|   +-- ModbusUdpPort.h/cpp        # UDP protocol implementation
+|   +-- ModbusSerialPort.h/cpp     # Serial port base class
+|   +-- ModbusRtuPort.h/cpp        # RTU protocol implementation
+|   +-- ModbusAscPort.h/cpp        # ASCII protocol implementation
+|   +-- ModbusAscOverTcpPort.h/cpp # ASCII-over-TCP protocol implementation
+|   +-- ModbusRtuOverTcpPort.h/cpp # RTU-over-TCP protocol implementation
+|   +-- ModbusAscOverUdpPort.h/cpp # ASCII-over-UDP protocol implementation
+|   +-- ModbusRtuOverUdpPort.h/cpp # RTU-over-UDP protocol implementation
+|   +-- ModbusServerPort.h/cpp     # ModbusServerPort base
+|   +-- ModbusServerResource.h/cpp # Server port implementation for UDP/RTU/ASCII or single TCP connection
+|   +-- ModbusTcpServer.h/cpp      # TCP server implementation
+|   +-- cModbus.h/cpp              # C API bridge (optional)
+|   +-- win/                       # Windows-specific implementations
+|   \-- unix/                      # Unix/Linux-specific implementations
 +-- examples/
-|   +-- client/                   # Client examples
-|   \-- server/                   # Server examples
-\-- tests/                        # Unit tests (GoogleTest)
+|   +-- client/                    # Client examples
+|   \-- server/                    # Server examples
+\-- tests/                         # Unit tests (GoogleTest)
 ```
 
 ## Key Design Patterns {#key-design-patterns}

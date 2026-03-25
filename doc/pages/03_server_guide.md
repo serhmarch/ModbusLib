@@ -291,17 +291,25 @@ virtual Modbus::StatusCode readExceptionStatus(uint8_t unit, uint8_t *status);
 #### Function Code 08 - Diagnostics {#function-code-08-diagnostics}
 
 ```cpp
-virtual Modbus::StatusCode diagnostics(uint8_t unit, uint16_t subfunc, 
-                                       uint8_t insize, const void *indata, 
-                                       uint8_t *outsize, void *outdata);
+virtual Modbus::StatusCode diagnosticsReturnQueryData(uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
+virtual Modbus::StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog);
+virtual Modbus::StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value);
+virtual Modbus::StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter);
+virtual Modbus::StatusCode diagnosticsForceListenOnlyMode(uint8_t unit);
+virtual Modbus::StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit);
+virtual Modbus::StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count);
+virtual Modbus::StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count);
+virtual Modbus::StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count);
+virtual Modbus::StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count);
+virtual Modbus::StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count);
+virtual Modbus::StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count);
+virtual Modbus::StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count);
+virtual Modbus::StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count);
+virtual Modbus::StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit);
 ```
 **Parameters:**
 * `unit` - Device unit address
-* `subfunc` - Diagnostic sub-function code
-* `insize` - Size of input data buffer (bytes)
-* `indata` - Input data buffer
-* `outsize` - Size of output data buffer (bytes) - set by implementation
-* `outdata` - Output data buffer
+* Each diagnostics subfunction has dedicated arguments as shown in the signatures above.
 
 #### Function Code 11 - Get Comm Event Counter {#function-code-11-get-comm-event-counter}
 
@@ -319,15 +327,15 @@ virtual Modbus::StatusCode getCommEventCounter(uint8_t unit, uint16_t *status,
 ```cpp
 virtual Modbus::StatusCode getCommEventLog(uint8_t unit, uint16_t *status, 
                                            uint16_t *eventCount, uint16_t *messageCount,
-                                           uint8_t *eventBuffSize, uint8_t *eventBuff);
+                                           void *eventBuff, uint8_t *eventBuffSize);
 ```
 **Parameters:**
 * `unit` - Device unit address
 * `status` - Output status word
 * `eventCount` - Output event counter
 * `messageCount` - Output message counter
-* `eventBuffSize` - Output event buffer size (bytes) - set by implementation
 * `eventBuff` - Output event buffer (max 64 bytes)
+* `eventBuffSize` - Output event buffer size (bytes) - set by implementation
 
 #### Function Code 15 - Write Multiple Coils {#function-code-15-write-multiple-coils}
 
@@ -356,13 +364,13 @@ virtual Modbus::StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset,
 #### Function Code 17 - Report Server ID {#function-code-17-report-server-id}
 
 ```cpp
-virtual Modbus::StatusCode reportServerID(uint8_t unit, uint8_t *count, 
-                                          uint8_t *data);
+virtual Modbus::StatusCode reportServerID(uint8_t unit, void *data, 
+                                          uint8_t *dataSize);
 ```
 **Parameters:**
 * `unit` - Device unit address
-* `count` - Output data size (bytes) - set by implementation
 * `data` - Output buffer for server ID data (max 255 bytes)
+* `dataSize` - Output data size (bytes) - set by implementation
 
 #### Function Code 22 - Mask Write Register {#function-code-22-mask-write-register}
 
@@ -400,13 +408,13 @@ virtual Modbus::StatusCode readWriteMultipleRegisters(uint8_t unit,
 
 ```cpp
 virtual Modbus::StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, 
-                                         uint16_t *count, uint16_t *values);
+                                         uint16_t *values, uint16_t *count);
 ```
 **Parameters:**
 * `unit` - Device unit address
 * `fifoadr` - FIFO address
-* `count` - Output count of values read - set by implementation (max 31)
 * `values` - Output array for FIFO values
+* `count` - Output count of values read - set by implementation (max 31)
 
 ## Complete Server Examples {#complete-server-examples}
 

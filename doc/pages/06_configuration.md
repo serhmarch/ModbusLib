@@ -4,11 +4,11 @@
 
 ## Overview {#configuration-overview}
 
-This document provides a comprehensive reference for configuring ModbusLib components. ModbusLib offers extensive configuration options for TCP, RTU, and ASCII protocol implementations, supporting both client and server modes with flexible timeout management, connection settings, and protocol-specific parameters.
+This document provides a comprehensive reference for configuring ModbusLib components. ModbusLib offers extensive configuration options for TCP, UDP, RTU, ASCII, and RTU/ASCII-over-TCP/UDP protocol implementations, supporting both client and server modes with flexible timeout management, connection settings, and protocol-specific parameters.
 
 All configuration in ModbusLib follows a consistent pattern:
-- **Settings Structures**: Use `Modbus::SerialSettings` and `Modbus::TcpSettings` for initial configuration
-- **Defaults Classes**: Each port class provides a `Defaults` nested class with recommended default values
+- **Settings Structures**: Use `Modbus::SerialSettings` and `Modbus::NetSettings` for initial configuration
+- **Defaults Classes**: Use `Modbus::NetDefaults` and `Modbus::SerialDefaults` for recommended default values
 - **Setter Methods**: Runtime configuration through dedicated setter methods (e.g., `setTimeout()`, `setBaudRate()`)
 - **Factory Functions**: Convenient port creation via `Modbus::createPort()`, `Modbus::createClientPort()`, and `Modbus::createServerPort()`
 
@@ -16,7 +16,7 @@ All configuration in ModbusLib follows a consistent pattern:
 
 1. **Blocking vs. Non-Blocking Mode**: Determines whether operations wait for completion or return immediately with `Status_Processing`
 2. **Timeout Management**: Controls how long operations wait for responses or data
-3. **Protocol-Specific Settings**: Each protocol (TCP, RTU, ASCII) has unique configuration requirements
+3. **Protocol-Specific Settings**: Each protocol family (TCP/UDP, RTU/ASCII, RTU/ASCII over TCP/UDP) has unique configuration requirements
 4. **Client vs. Server Configuration**: Different settings apply depending on operational mode
 5. **Qt Integration**: Enhanced configuration support when using Qt framework
 
@@ -50,10 +50,10 @@ bool isNonBlocking = port.isNonBlocking();
 ```cpp
 ModbusTcpPort port(false);
 Modbus::StatusCode status;
-
-if (Modbus::StatusIsGood(status)) {
-    // Port opened successfully
-}
+do {
+    status = port.open();
+    Modbus::msleep(1);
+} while (Modbus::StatusIsProcessing(status));
 ```
 
 ### Timeout Settings {#timeout-settings}
@@ -83,7 +83,7 @@ TCP-based Modbus communication operates over TCP/IP networks, typically on port 
 The IP address or DNS hostname of the remote Modbus device.
 
 **Type:** `const Modbus::Char *` (C-string)  
-**Default:** `"127.0.0.1"` (localhost)  
+**Default:** `"localhost"`  
 **Examples:** `"192.168.1.100"`, `"modbus.example.com"`, `"localhost"`
 
 ```cpp
@@ -125,8 +125,8 @@ uint32_t timeout = port.timeout();
 ### Default Values Class {#tcp-default-values}
 
 ```cpp
-Modbus::NetDefaults::Defaults() :
-    host   ("127.0.0.1"),
+Modbus::NetDefaults::NetDefaults() :
+    host   ("localhost"),
     port   (502),
     timeout(3000)
 {
@@ -141,7 +141,7 @@ const Modbus::NetDefaults &defaults = Modbus::NetDefaults::instance();
 For use with factory functions:
 
 ```cpp
-Modbus::TcpSettings settings;
+Modbus::NetSettings settings;
 settings.host    = "192.168.1.100";
 settings.port    = 502;
 settings.timeout = 5000;
@@ -168,7 +168,7 @@ client->setTries(3);
 client->setBroadcastEnabled(true);
 
 // Method 2: Using settings structure
-Modbus::TcpSettings settings;
+Modbus::NetSettings settings;
 settings.host    = "192.168.1.50";
 settings.port    = 502;
 settings.timeout = 5000;
@@ -177,8 +177,9 @@ ModbusClientPort *client2 = Modbus::createClientPort(Modbus::TCP, &settings, fal
 
 // Open and use
 Modbus::StatusCode status;
+uint16_t registers[10];
 do {
-    status = client->readHoldingRegisters(0, 10, registers);
+    status = client->readHoldingRegisters(1, 0, 10, registers);
     Modbus::msleep(1);
 } while (Modbus::StatusIsProcessing(status));
 
@@ -277,8 +278,8 @@ port.setParity(Modbus::NoParity);
 Modbus::Parity parity = port.parity();
 
 // String conversion
-const Modbus::Char *parityStr = Modbus::sparity(parity); // "NoParity"
-Modbus::Parity p = Modbus::toparity("EvenParity");
+const Modbus::Char *parityStr = Modbus::sparity(parity); // "No"
+Modbus::Parity p = Modbus::toparity("Even");
 ```
 
 #### Stop Bits {#stop-bits}
@@ -301,8 +302,8 @@ port.setStopBits(Modbus::OneStop);
 Modbus::StopBits stops = port.stopBits();
 
 // String conversion
-const Modbus::Char *stopStr = Modbus::sstopBits(stops); // "OneStop"
-Modbus::StopBits s = Modbus::tostopBits("TwoStop");
+const Modbus::Char *stopStr = Modbus::sstopBits(stops); // "1"
+Modbus::StopBits s = Modbus::tostopBits("2");
 ```
 
 #### Flow Control {#flow-control}
@@ -360,7 +361,7 @@ uint32_t timeout = port.timeoutInterByte();
 ### Default Values Class {#serial-default-values}
 
 ```cpp
-ModbusSerialPort::Defaults::Defaults() :
+Modbus::SerialDefaults::SerialDefaults() :
     portName        ("COM1"),  // Windows
     baudRate        (9600),
     dataBits        (8),
@@ -373,7 +374,7 @@ ModbusSerialPort::Defaults::Defaults() :
 }
 
 // Access defaults
-const ModbusSerialPort::Defaults &defaults = ModbusSerialPort::Defaults::instance();
+const Modbus::SerialDefaults &defaults = Modbus::SerialDefaults::instance();
 ```
 
 ### RTU Configuration Structure {#rtu-configuration-structure}
@@ -515,7 +516,8 @@ ModbusClientPort *client = new ModbusClientPort(ascPort);
 client->setTries(3);
 
 // Open and use
-Modbus::StatusCode status = client.readHoldingRegisters(0, 10, registers);
+uint16_t registers[10];
+Modbus::StatusCode status = client->readHoldingRegisters(1, 0, 10, registers);
 ```
 
 ### Common ASCII Configurations {#common-ascii-configurations}
@@ -592,7 +594,7 @@ client.writeSingleRegister(0, 100, 1234);
 #include <ModbusTcpPort.h>
 
 // Create and configure TCP port
-Modbus::TcpSettings tcpSettings;
+Modbus::NetSettings tcpSettings;
 tcpSettings.host    = "192.168.1.100";
 tcpSettings.port    = 502;
 tcpSettings.timeout = 5000;
@@ -609,7 +611,7 @@ client->setBroadcastEnabled(true); // Enable broadcast
 
 // Read holding registers
 uint16_t regs[10];
-status = client->readHoldingRegisters(1, 0, 10, regs);
+Modbus::StatusCode status = client->readHoldingRegisters(1, 0, 10, regs);
 
 // Check statistics
 uint32_t actualTries = client->lastTries();
@@ -633,24 +635,24 @@ The TCP server exposes settings to control listening behavior and connection han
 
 - **Bind Address**: `ipaddr` — local IP address to bind the server.
     - Examples: `127.0.0.1` (loopback), `0.0.0.0` (all interfaces), specific NIC IP like `192.168.1.10`.
-- **Port**: `port` — TCP port number (default `STANDARD_TCP_PORT`, usually `502`).
+- **Port**: `port` — TCP port number (default `Modbus::STANDARD_TCP_PORT`, usually `502`).
 - **Timeout**: `timeout` — read timeout per connection (ms).
 - **Max Connections**: `maxconn` — maximum simultaneous connections.
 
 ```cpp
-ModbusTcpServer server(device);
+ModbusTcpServer server(Modbus::TCP, &device);
 server.setIpaddr("0.0.0.0");
 server.setPort(50200);
 server.setTimeout(10000);
 server.setMaxConnections(8);
 ```
 
-Alternatively, use `Modbus::TcpSettings`:
+Alternatively, use `Modbus::NetSettings`:
 
 ```cpp
-Modbus::TcpSettings ts;
+Modbus::NetSettings ts;
 ts.ipaddr = "127.0.0.1";
-ts.port = STANDARD_TCP_PORT;
+ts.port = Modbus::STANDARD_TCP_PORT;
 ts.timeout = 7000;
 ts.maxconn = 16;
 ```
@@ -658,14 +660,14 @@ ts.maxconn = 16;
 
 Local IP address for the server to bind.
 
-**Type:** `const Char *` (C-string)  
+**Type:** `const Modbus::Char *` (C-string)  
 **Default:** `"0.0.0.0"` (all interfaces)  
 **Property:** `ipaddr()` / `setIpaddr()`
 
 ```cpp
-ModbusTcpServer server(device);
+ModbusTcpServer server(Modbus::TCP, &device);
 server.setIpaddr("0.0.0.0");
-const Char *addr = server.ipaddr();
+const Modbus::Char *addr = server.ipaddr();
 ``` 
 
 #### TCP Port Number {#tcp-server-port}
@@ -677,7 +679,7 @@ Port on which the server listens for incoming connections.
 **Property:** `port()` / `setPort()`
 
 ```cpp
-ModbusTcpServer server(device);
+ModbusTcpServer server(Modbus::TCP, &device);
 server.setPort(502);
 uint16_t port = server.port();
 ```
@@ -692,7 +694,7 @@ Timeout for each individual client connection.
 **Units:** milliseconds
 
 ```cpp
-ModbusTcpServer server(device);
+ModbusTcpServer server(Modbus::TCP, &device);
 server.setTimeout(5000); // 5 second timeout per connection
 uint32_t timeout = server.timeout();
 ```
@@ -707,7 +709,7 @@ Maximum number of simultaneous client connections.
 **Property:** `maxConnections()` / `setMaxConnections()`
 
 ```cpp
-ModbusTcpServer server(device);
+ModbusTcpServer server(Modbus::TCP, &device);
 server.setMaxConnections(20); // Allow 20 concurrent clients
 uint32_t maxConn = server.maxConnections();
 ```
@@ -721,7 +723,7 @@ Enable handling of broadcast requests (unit 0).
 **Property:** `isBroadcastEnabled()` / `setBroadcastEnabled()`
 
 ```cpp
-ModbusTcpServer server(device);
+ModbusTcpServer server(Modbus::TCP, &device);
 server.setBroadcastEnabled(true);
 bool enabled = server.isBroadcastEnabled();
 ```
@@ -734,7 +736,7 @@ Filter which unit addresses the server responds to.
 **Property:** `unitMap()` / `setUnitMap()`
 
 ```cpp
-ModbusTcpServer server(device);
+ModbusTcpServer server(Modbus::TCP, &device);
 
 // Enable units 1, 2, 5
 uint8_t unitmap[MB_UNITMAP_SIZE] = {0};
@@ -750,6 +752,7 @@ const uint8_t *map = server.unitMap();
 
 ```cpp
 ModbusTcpServer::Defaults::Defaults() :
+    ipaddr ("0.0.0.0"),
     port   (502),   // Modbus::STANDARD_TCP_PORT
     timeout(3000),
     maxconn(10)
@@ -762,13 +765,13 @@ const ModbusTcpServer::Defaults &defaults = ModbusTcpServer::Defaults::instance(
 #### TCP Server Configuration Structure {#tcp-server-structure}
 
 ```cpp
-Modbus::TcpSettings settings;
+Modbus::NetSettings settings;
 settings.host    = nullptr;    // Not used for server
 settings.port    = 502;        // Listening port
 settings.timeout = 5000;       // Per-connection timeout
 settings.maxconn = 20;         // Max simultaneous connections
 
-ModbusServerPort *server = Modbus::createServerPort(&device, Modbus::TCP, &settings);
+ModbusServerPort *server = Modbus::createServerPort(&device, Modbus::TCP, &settings, false);
 ```
 
 #### Complete TCP Server Example {#config-tcp-server-example}
@@ -793,7 +796,7 @@ private:
 MyDevice device;
 
 // Create and configure server
-ModbusTcpServer server(&device);
+ModbusTcpServer server(Modbus::TCP, &device);
 server.setPort(502);
 server.setTimeout(5000);
 server.setMaxConnections(10);
@@ -919,7 +922,7 @@ s.timeoutFirstByte  // "timeoutFirstByte"
 s.timeoutInterByte  // "timeoutInterByte"
 
 // Enum string values
-s.TCP, s.RTU, s.ASC // Protocol types
+Modbus::enumKey<Modbus::ProtocolType>(Modbus::TCP) // "TCP"
 s.NoParity, s.EvenParity, s.OddParity // Parity values
 s.OneStop, s.TwoStop // Stop bits
 s.NoFlowControl, s.HardwareControl // Flow control
@@ -933,17 +936,18 @@ Modbus::Defaults::Defaults() :
     type              (Modbus::TCP),
     tries             (1),
     host              (Modbus::NetDefaults::instance().host),
+    ipaddr            (Modbus::NetDefaults::instance().ipaddr),
     port              (Modbus::NetDefaults::instance().port),
     timeout           (Modbus::NetDefaults::instance().timeout),
-    maxconn           (ModbusTcpServer::Defaults::instance().maxconn),
-    serialPortName    (ModbusSerialPort::Defaults::instance().portName),
-    baudRate          (ModbusSerialPort::Defaults::instance().baudRate),
-    dataBits          (ModbusSerialPort::Defaults::instance().dataBits),
-    parity            (ModbusSerialPort::Defaults::instance().parity),
-    stopBits          (ModbusSerialPort::Defaults::instance().stopBits),
-    flowControl       (ModbusSerialPort::Defaults::instance().flowControl),
-    timeoutFirstByte  (ModbusSerialPort::Defaults::instance().timeoutFirstByte),
-    timeoutInterByte  (ModbusSerialPort::Defaults::instance().timeoutInterByte),
+    maxconn           (Modbus::NetDefaults::instance().maxconn),
+    serialPortName    (Modbus::SerialDefaults::instance().portName),
+    baudRate          (Modbus::SerialDefaults::instance().baudRate),
+    dataBits          (Modbus::SerialDefaults::instance().dataBits),
+    parity            (Modbus::SerialDefaults::instance().parity),
+    stopBits          (Modbus::SerialDefaults::instance().stopBits),
+    flowControl       (Modbus::SerialDefaults::instance().flowControl),
+    timeoutFirstByte  (Modbus::SerialDefaults::instance().timeoutFirstByte),
+    timeoutInterByte  (Modbus::SerialDefaults::instance().timeoutInterByte),
     isBroadcastEnabled(true)
 {
 }
@@ -983,7 +987,7 @@ Modbus::Settings settings;
 const Modbus::Strings &s = Modbus::Strings::instance();
 
 settings[s.unit]    = 1;
-settings[s.type]    = s.TCP;
+settings[s.type]    = Modbus::enumKey<Modbus::ProtocolType>(Modbus::TCP);
 settings[s.host]    = QString("192.168.1.100");
 settings[s.port]    = 502;
 settings[s.timeout] = 5000;
@@ -999,6 +1003,7 @@ ModbusClient client(unit, clientPort);
 
 // Open and use
 uint16_t registers[10];
+Modbus::StatusCode status;
 do {
     status = client.readHoldingRegisters(0, 10, registers);
     Modbus::msleep(1);
@@ -1041,7 +1046,7 @@ ModbusClient tcpClient(1, tcpPort);
 
 | Port Type | Parameter | Default Value | Units |
 |-----------|-----------|---------------|-------|
-| **TCP** | host | `"127.0.0.1"` | - |
+| **TCP** | host | `"localhost"` | - |
 | **TCP** | port | `502` | - |
 | **TCP** | timeout | `3000` | ms |
 | **TCP Server** | maxconn | `10` | connections |
@@ -1064,12 +1069,12 @@ All port classes provide static `Defaults` classes:
 ```cpp
 // TCP defaults
 const Modbus::NetDefaults &tcpDef = Modbus::NetDefaults::instance();
-const char *host = tcpDef.host;       // "127.0.0.1"
+const char *host = tcpDef.host;       // "localhost"
 uint16_t port = tcpDef.port;          // 502
 uint32_t timeout = tcpDef.timeout;    // 3000
 
 // Serial defaults
-const ModbusSerialPort::Defaults &serDef = ModbusSerialPort::Defaults::instance();
+const Modbus::SerialDefaults &serDef = Modbus::SerialDefaults::instance();
 const char *portName = serDef.portName;         // "COM1"
 int32_t baudRate = serDef.baudRate;             // 9600
 int8_t dataBits = serDef.dataBits;              // 8
@@ -1106,7 +1111,7 @@ bool broadcast = qtDef.isBroadcastEnabled;    // true
 
 int main() {
     // Create TCP client (blocking mode)
-    Modbus::TcpSettings settings;
+    Modbus::NetSettings settings;
     settings.host    = "192.168.1.50";
     settings.port    = 502;
     settings.timeout = 5000;
@@ -1166,7 +1171,7 @@ int main() {
 #include <ModbusClientPort.h>
 
 int main() {
-    Modbus::TcpSettings settings;
+    Modbus::NetSettings settings;
     settings.host    = "192.168.1.50";
     settings.port    = 502;
     settings.timeout = 5000;
@@ -1224,12 +1229,12 @@ private:
 int main() {
     MyDevice device;
     
-    Modbus::TcpSettings settings;
+    Modbus::NetSettings settings;
     settings.port    = 502;
     settings.timeout = 5000;
     settings.maxconn = 20; // Support 20 clients
     
-    ModbusTcpServer server(&device);
+    ModbusTcpServer server(Modbus::TCP, &device);
     server.setPort(settings.port);
     server.setTimeout(settings.timeout);
     server.setMaxConnections(settings.maxconn);
@@ -1306,30 +1311,21 @@ int main(int argc, char *argv[]) {
     const Modbus::Strings &s = Modbus::Strings::instance();
     
     settings[s.unit]    = 1;
-    settings[s.type]    = s.TCP;
+    settings[s.type]    = Modbus::enumKey<Modbus::ProtocolType>(Modbus::TCP);
     settings[s.host]    = QString("192.168.1.100");
     settings[s.port]    = 502;
     settings[s.timeout] = 5000;
     settings[s.tries]   = 3;
-    
-    ModbusClient client;
-    client.setSettings(settings);
-    
-    // Connect signals
-    QObject::connect(&client, &ModbusClient::signalOpened, [](const QString &source) {
-        qDebug() << "Opened:" << source;
-    });
-    
-    QObject::connect(&client, &ModbusClient::signalTx, [](const QString &source, 
-                                                           const QByteArray &data) {
-        qDebug() << "Tx:" << data.toHex();
-    });
+
+    ModbusClientPort *clientPort = Modbus::createClientPort(settings, false);
+    ModbusClient client(Modbus::getSettingUnit(settings), clientPort);
     
     // Read registers
     uint16_t registers[10];
-    Modbus::StatusCode status = client.readHoldingRegisters(1, 0, 10, registers);
+    Modbus::StatusCode status = client.readHoldingRegisters(0, 10, registers);
+    (void)status;
     
-    client.close();
+    clientPort->close();
     
     return 0;
 }
@@ -1342,12 +1338,13 @@ int main(int argc, char *argv[]) {
 ### 1. Always Check Status Codes {#bp-check-status}
 
 ```cpp
-Modbus::StatusCode status = client->open();
+uint16_t registers[1];
+Modbus::StatusCode status = client->readHoldingRegisters(1, 0, 1, registers);
 if (Modbus::StatusIsGood(status)) {
     // Proceed with operations
 } else if (Modbus::StatusIsBad(status)) {
     // Handle error
-    const char *error = client->lastErrorText();
+    const Modbus::Char *error = client->lastErrorText();
     printf("Error: %s\n", error);
 }
 ```
@@ -1395,7 +1392,7 @@ settings.portName = "/dev/ttyS0";    // Built-in port
 ### 7. Use Defaults Classes {#bp-use-defaults}
 
 ```cpp
-const ModbusSerialPort::Defaults &defaults = ModbusSerialPort::Defaults::instance();
+const Modbus::SerialDefaults &defaults = Modbus::SerialDefaults::instance();
 settings.baudRate = defaults.baudRate; // Use library defaults
 ```
 
@@ -1421,7 +1418,7 @@ server->setBroadcastEnabled(true); // Enable if clients send broadcasts
 ```cpp
 Modbus::StatusCode lastStatus = client->lastStatus();
 uint32_t actualTries = client->lastTries();
-const char *errorText = client->lastErrorText();
+const Modbus::Char *errorText = client->lastErrorText();
 ```
 
 ---

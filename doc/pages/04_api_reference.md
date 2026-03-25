@@ -403,16 +403,29 @@ public:
     // FC 07: Read Exception Status
     virtual StatusCode readExceptionStatus(uint8_t unit, uint8_t *status);
     
-    // FC 08: Diagnostics
-    virtual StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, 
-                                   const void *indata, uint8_t *outsize, void *outdata);
+    // FC 08: Diagnostics (subfunctions)
+    virtual StatusCode diagnosticsReturnQueryData(uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
+    virtual StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog);
+    virtual StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value);
+    virtual StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter);
+    virtual StatusCode diagnosticsForceListenOnlyMode(uint8_t unit);
+    virtual StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit);
+    virtual StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count);
+    virtual StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count);
+    virtual StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count);
+    virtual StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count);
+    virtual StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count);
+    virtual StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count);
+    virtual StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count);
+    virtual StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count);
+    virtual StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit);
     
     // FC 11: Get Comm Event Counter
     virtual StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount);
     
     // FC 12: Get Comm Event Log
     virtual StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, 
-                                       uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+                                       uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize);
     
     // FC 15: Write Multiple Coils
     virtual StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values);
@@ -421,7 +434,11 @@ public:
     virtual StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values);
     
     // FC 17: Report Server ID
-    virtual StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data);
+    virtual StatusCode reportServerID(uint8_t unit, void *data, uint8_t *dataSize);
+
+    // FC 20/21: File Record access
+    virtual StatusCode readFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize = nullptr);
+    virtual StatusCode writeFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize = nullptr);
     
     // FC 22: Mask Write Register
     virtual StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask);
@@ -432,7 +449,15 @@ public:
                                                   uint16_t writeCount, const uint16_t *writeValues);
     
     // FC 24: Read FIFO Queue
-    virtual StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
+    virtual StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count);
+
+    // FC 43/14: Read Device Identification
+    virtual StatusCode readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId,
+                                                void *data, uint8_t *dataSize,
+                                                uint8_t *numberOfObjects = nullptr,
+                                                uint8_t *conformityLevel = nullptr,
+                                                bool *moreFollows = nullptr,
+                                                uint8_t *nextObjectId = nullptr);
 };
 ```
 
@@ -751,15 +776,32 @@ public:
     StatusCode writeSingleCoil(uint8_t unit, uint16_t offset, bool value) override;
     StatusCode writeSingleRegister(uint8_t unit, uint16_t offset, uint16_t value) override;
     StatusCode readExceptionStatus(uint8_t unit, uint8_t *value) override;
-    StatusCode diagnostics(uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata) override;
+    StatusCode diagnosticsReturnQueryData(uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize) override;
+    StatusCode diagnosticsRestartCommunicationsOption(uint8_t unit, bool clearEventLog) override;
+    StatusCode diagnosticsReturnDiagnosticRegister(uint8_t unit, uint16_t *value) override;
+    StatusCode diagnosticsChangeAsciiInputDelimiter(uint8_t unit, char delimiter) override;
+    StatusCode diagnosticsForceListenOnlyMode(uint8_t unit) override;
+    StatusCode diagnosticsClearCountersAndDiagnosticRegister(uint8_t unit) override;
+    StatusCode diagnosticsReturnBusMessageCount(uint8_t unit, uint16_t *count) override;
+    StatusCode diagnosticsReturnBusCommunicationErrorCount(uint8_t unit, uint16_t *count) override;
+    StatusCode diagnosticsReturnBusExceptionErrorCount(uint8_t unit, uint16_t *count) override;
+    StatusCode diagnosticsReturnServerMessageCount(uint8_t unit, uint16_t *count) override;
+    StatusCode diagnosticsReturnServerNoResponseCount(uint8_t unit, uint16_t *count) override;
+    StatusCode diagnosticsReturnServerNAKCount(uint8_t unit, uint16_t *count) override;
+    StatusCode diagnosticsReturnServerBusyCount(uint8_t unit, uint16_t *count) override;
+    StatusCode diagnosticsReturnBusCharacterOverrunCount(uint8_t unit, uint16_t *count) override;
+    StatusCode diagnosticsClearOverrunCounterAndFlag(uint8_t unit) override;
     StatusCode getCommEventCounter(uint8_t unit, uint16_t *status, uint16_t *eventCount) override;
-    StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff) override;
+    StatusCode getCommEventLog(uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize) override;
     StatusCode writeMultipleCoils(uint8_t unit, uint16_t offset, uint16_t count, const void *values) override;
     StatusCode writeMultipleRegisters(uint8_t unit, uint16_t offset, uint16_t count, const uint16_t *values) override;
-    StatusCode reportServerID(uint8_t unit, uint8_t *count, uint8_t *data) override;
+    StatusCode reportServerID(uint8_t unit, void *data, uint8_t *dataSize) override;
+    StatusCode readFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize = nullptr) override;
+    StatusCode writeFileRecord(uint8_t unit, const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize = nullptr) override;
     StatusCode maskWriteRegister(uint8_t unit, uint16_t offset, uint16_t andMask, uint16_t orMask) override;
     StatusCode readWriteMultipleRegisters(uint8_t unit, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues) override;
-    StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values) override;
+    StatusCode readFIFOQueue(uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count) override;
+    StatusCode readDeviceIdentification(uint8_t unit, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr) override;
     
     // Bool array variants
     StatusCode readCoilsAsBoolArray(uint8_t unit, uint16_t offset, uint16_t count, bool *values);
@@ -844,17 +886,32 @@ public:
     StatusCode writeSingleCoil(uint16_t offset, bool value);
     StatusCode writeSingleRegister(uint16_t offset, uint16_t value);
     StatusCode readExceptionStatus(uint8_t *value);
-    StatusCode diagnostics(uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+    StatusCode diagnosticsReturnQueryData(const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
+    StatusCode diagnosticsRestartCommunicationsOption(bool clearEventLog);
+    StatusCode diagnosticsReturnDiagnosticRegister(uint16_t *value);
+    StatusCode diagnosticsChangeAsciiInputDelimiter(char delimiter);
+    StatusCode diagnosticsForceListenOnlyMode();
+    StatusCode diagnosticsClearCountersAndDiagnosticRegister();
+    StatusCode diagnosticsReturnBusMessageCount(uint16_t *count);
+    StatusCode diagnosticsReturnBusCommunicationErrorCount(uint16_t *count);
+    StatusCode diagnosticsReturnBusExceptionErrorCount(uint16_t *count);
+    StatusCode diagnosticsReturnServerMessageCount(uint16_t *count);
+    StatusCode diagnosticsReturnServerNoResponseCount(uint16_t *count);
+    StatusCode diagnosticsReturnServerNAKCount(uint16_t *count);
+    StatusCode diagnosticsReturnServerBusyCount(uint16_t *count);
+    StatusCode diagnosticsReturnBusCharacterOverrunCount(uint16_t *count);
+    StatusCode diagnosticsClearOverrunCounterAndFlag();
     StatusCode getCommEventCounter(uint16_t *status, uint16_t *eventCount);
-### Usage Examples {#api-tcpserver-examples}
-
-    StatusCode getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+    StatusCode getCommEventLog(uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize);
     StatusCode writeMultipleCoils(uint16_t offset, uint16_t count, const void *values);
     StatusCode writeMultipleRegisters(uint16_t offset, uint16_t count, const uint16_t *values);
-    StatusCode reportServerID(uint8_t *count, uint8_t *data);
+    StatusCode reportServerID(void *data, uint8_t *dataSize);
+    StatusCode readFileRecord(const Modbus::FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize = nullptr);
+    StatusCode writeFileRecord(const Modbus::FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize = nullptr);
     StatusCode maskWriteRegister(uint16_t offset, uint16_t andMask, uint16_t orMask);
     StatusCode readWriteMultipleRegisters(uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
-    StatusCode readFIFOQueue(uint16_t fifoadr, uint16_t *count, uint16_t *values);
+    StatusCode readFIFOQueue(uint16_t fifoadr, uint16_t *values, uint16_t *count);
+    StatusCode readDeviceIdentification(uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects = nullptr, uint8_t *conformityLevel = nullptr, bool *moreFollows = nullptr, uint8_t *nextObjectId = nullptr);
     
     // Bool array variants
     StatusCode readCoilsAsBoolArray(uint16_t offset, uint16_t count, bool *values);
