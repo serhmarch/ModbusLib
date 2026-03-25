@@ -14,7 +14,19 @@ class ModbusSocket;
 
 /*! \brief Class `ModbusUdpPortBase` implements UDP transport of Modbus protocol.
 
-    \details 
+    \details `ModbusUdpPortBase` derived from `ModbusNetPort` and provides a common UDP
+    transport layer for Modbus protocol implementations. It encapsulates socket-based networking
+    logic and exposes a unified interface for opening and closing UDP communication, checking
+    communication state, and performing frame transmission and reception.
+
+    This class is intended as a reusable base for protocol-specific UDP ports (for example,
+    ASC over UDP and RTU over UDP). Derived classes are responsible for protocol framing and
+    payload interpretation, while `ModbusUdpPortBase` manages transport-level I/O behavior.
+
+    UDP communication is connectionless and datagram-oriented, so message delivery and ordering
+    are governed by network conditions and higher-level protocol handling. Both blocking and
+    non-blocking socket modes are supported through inherited construction parameters, allowing
+    applications to choose the most suitable I/O strategy.
  */
 
 class MODBUS_EXPORT ModbusUdpPortBase : public ModbusNetPort

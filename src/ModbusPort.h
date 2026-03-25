@@ -23,7 +23,7 @@ class ModbusPortPrivate;
 
     Key characteristics:
     - Abstract base class for all protocol-specific port implementations
-    - Provides unified interface for TCP, RTU, and ASCII protocols
+    - Provides unified interface for TCP, UDP, RTU, ASCII, RTU/ASCII over TCP/UDP protocols
     - Supports both client and server operation modes
     - Supports both blocking (synchronous) and non-blocking (asynchronous) operation
     - Manages connection lifecycle (open/close) and state
@@ -41,8 +41,13 @@ class ModbusPortPrivate;
     
     Derived classes implement protocol-specific behavior:
     - ModbusTcpPort: TCP/IP socket communication with MBAP header handling
+    - ModbusUdpPort: UDP/IP datagram communication with appropriate framing
     - ModbusRtuPort: Serial RTU protocol with binary encoding and CRC-16
     - ModbusAscPort: Serial ASCII protocol with hexadecimal encoding and LRC
+    - ModbusRtuOverTcpPort: RTU framing over TCP with MBAP header
+    - ModbusRtuOverUdpPort: RTU framing over UDP with appropriate datagram handling
+    - ModbusAscOverTcpPort: ASCII over TCP protocol with human-readable encoding
+    - ModbusAscOverUdpPort: ASCII over UDP protocol with human-readable encoding
     
     The class provides two operational patterns:
     

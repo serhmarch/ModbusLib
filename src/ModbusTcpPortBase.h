@@ -14,7 +14,17 @@ class ModbusSocket;
 
 /*! \brief Class `ModbusTcpPortBase` implements TCP transport of Modbus protocol.
 
-    \details 
+    \details `ModbusTcpPortBase` derived from `ModbusNetPort` and provides a common TCP
+    transport layer for Modbus protocol implementations. It encapsulates socket-based networking
+    logic and exposes a unified interface for opening and closing a TCP connection, checking
+    connection state, and performing frame transmission and reception.
+
+    This class is intended as a reusable base for protocol-specific TCP ports (for example,
+    ASC over TCP and RTU over TCP). Derived classes are responsible for protocol framing and
+    payload interpretation, while `ModbusTcpPortBase` manages transport-level I/O behavior.
+
+    Both blocking and non-blocking socket modes are supported through inherited construction
+    parameters, allowing applications to choose the most suitable I/O strategy.
  */
 
 class MODBUS_EXPORT ModbusTcpPortBase : public ModbusNetPort

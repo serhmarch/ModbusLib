@@ -14,8 +14,22 @@ class ModbusSocket;
 
 /*! \brief Implements ASC over TCP version of the Modbus communication protocol.
 
-    \details `ModbusAscPort` derived from `ModbusSerialPort` and implements `writeBuffer` and `readBuffer`
-    for ASC version of Modbus communication protocol.
+    \details `ModbusAscOverTcpPort` derived from `ModbusTcpPortBase` and implements ASCII framing
+    for Modbus communication over TCP. This protocol combines the human-readable ASCII encoding of
+    Modbus with the network transport capabilities of TCP, allowing for easier debugging and
+    monitoring while maintaining network connectivity.
+
+    The ASCII variant of Modbus encodes all data as printable ASCII characters, making it suitable
+    for serial communication lines and network protocols where binary data may be problematic. When
+    combined with TCP, this class enables ASCII-encoded Modbus protocol transmission over TCP/IP
+    networks, facilitating integration with systems that require human-readable protocol frames.
+
+    This implementation supports both client-side and server-side communication modes. When used in
+    server mode, an existing socket connection can be provided during instantiation. The class
+    handles frame delimitation using ASCII-specific markers (colons for start-of-frame and line
+    terminators for end-of-frame), ensuring proper message framing and integrity across TCP streams.
+    Both blocking and non-blocking socket modes are supported to accommodate different application
+    requirements and I/O patterns.
 
  */
 class MODBUS_EXPORT ModbusAscOverTcpPort : public ModbusTcpPortBase

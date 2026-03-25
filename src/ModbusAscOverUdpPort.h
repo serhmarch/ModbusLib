@@ -12,8 +12,21 @@
 
 /*! \brief Implements ASC over UDP version of the Modbus communication protocol.
 
-    \details `ModbusUdpPortBase` derived from `ModbusSerialPort` and implements `writeBuffer` and `readBuffer`
-    for ASC version of Modbus communication protocol.
+    \details `ModbusAscOverUdpPort` derived from `ModbusUdpPortBase` and implements ASCII framing
+    for Modbus communication over UDP. This protocol combines the human-readable ASCII encoding of
+    Modbus with the network transport capabilities of UDP, allowing for easier debugging and
+    monitoring while maintaining network connectivity.
+
+    The ASCII variant of Modbus encodes all data as printable ASCII characters, making it suitable
+    for serial communication lines and network protocols where binary data may be problematic. When
+    combined with UDP, this class enables ASCII-encoded Modbus protocol transmission over UDP/IP
+    networks, facilitating integration with systems that require human-readable protocol frames.
+
+    This implementation supports connectionless communication over UDP datagrams. The class
+    handles frame delimitation using ASCII-specific markers (colons for start-of-frame and line
+    terminators for end-of-frame), ensuring proper message framing and integrity across UDP packets.
+    Both blocking and non-blocking socket modes are supported to accommodate different application
+    requirements and I/O patterns.
 
  */
 class MODBUS_EXPORT ModbusAscOverUdpPort : public ModbusUdpPortBase

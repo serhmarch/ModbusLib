@@ -35,10 +35,10 @@ class ModbusPort;
     - Manages automatic resource sharing between multiple clients
     - Provides retry mechanism for failed requests
     - Supports broadcast mode for unit address 0
-    - Works with any transport protocol (TCP, RTU, ASCII) through polymorphic port
-    
+    - Works with any protocol (TCP, UDP, RTU, ASCII, RTU/ASCII over TCP/UDP) through polymorphic port
+
     This implementation provides:
-    - All standard Modbus functions (01-24) with both ModbusInterface and client-aware variants
+    - All standard Modbus functions (01-24,43/14) with both ModbusInterface and client-aware variants
     - Automatic request queuing and client multiplexing
     - Configurable retry count for failed operations
     - Comprehensive error reporting with status codes and text descriptions
@@ -69,6 +69,12 @@ class ModbusPort;
     the client becomes current and executes its request. If busy (Disable status), the
     request is queued. When the current operation completes, the next client in queue
     automatically becomes current.
+
+    Raw request to the server:
+    The `rawRequest` function allows applications to send a raw Modbus packet directly,
+    bypassing the standard function interfaces. This is useful for advanced users who need
+    to implement custom Modbus functions or to send pre-assembled packets. The function
+    accepts a pointer to the raw packet data and its size, and returns the status of the operation.
 
     \sa `ModbusClient` class
 

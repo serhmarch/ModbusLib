@@ -56,6 +56,7 @@ class ModbusSocket;
     // Create and configure TCP server
     MyDevice device;
     ModbusTcpServer server(&device);
+    server.setIpaddr("0.0.0.0");   // Bind to all available interfaces
     server.setPort(502);           // Standard Modbus TCP port
     server.setTimeout(5000);       // 5 second timeout
     server.setMaxConnections(10);  // Allow up to 10 simultaneous connections

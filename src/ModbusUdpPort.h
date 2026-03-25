@@ -12,7 +12,27 @@
 
 /*! \brief Class `ModbusUdpPort` implements UDP version of Modbus protocol.
 
-    \details `ModbusPort` contains function to work with UDP-port (connection).
+    \details `ModbusUdpPort` provides client-side UDP communication for Modbus protocol over UDP/IP networks.
+    It manages datagram-based communication with a remote Modbus endpoint, handling address resolution,
+    data transmission, and protocol frame management including MBAP (Modbus Application Protocol) headers
+    with automatic transaction ID management.
+
+    The port can operate in blocking or non-blocking mode. In non-blocking mode, `open()` and I/O operations
+    may return `Status_Processing` requiring repeated calls until completion. The class handles UDP socket
+    lifecycle operations, including DNS resolution, socket creation, endpoint configuration, and cleanup.
+
+    Transaction ID management:
+    - Automatically increments transaction ID for each request (can be disabled)
+    - Supports transaction ID repetition for retrying failed requests
+    - Ensures proper request-response matching in concurrent environments
+
+    Key features:
+    - Configurable host (IP address or DNS name) and port number
+    - Supports both blocking and non-blocking I/O modes
+    - Automatic MBAP header construction and parsing
+    - Built-in timeout handling for send and read operations
+    - Buffer access methods for advanced protocol inspection
+    - Connectionless datagram transport over UDP
 
  */
 

@@ -24,13 +24,13 @@ class ModbusClientPort;
     - Delegates actual communication to the underlying ModbusClientPort
     - Provides access to port connection state and error information
     - Thread-safe when used with proper port synchronization
-    - Works with any protocol (TCP, RTU, ASCII) through polymorphic port
+    - Works with any protocol (TCP, UDP, RTU, ASCII, RTU/ASCII over TCP/UDP) through polymorphic port
     
     This implementation provides:
     - Automatic unit address management for all Modbus function calls
     - Simplified API for applications communicating with single devices
     - Pass-through access to port status and error information
-    - Support for all standard Modbus functions (01-24)
+    - Support for all standard Modbus functions (01-24,43/14)
     - Optional bool array variants for coil operations
     - Diagnostic and special functions (where enabled)
     
