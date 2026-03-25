@@ -112,11 +112,16 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
             }
             else
             {
-                if (errno != EWOULDBLOCK)
+                int e = errno;
+#if EWOULDBLOCK == EAGAIN
+                if (e != EWOULDBLOCK)
+#else
+                if (e != EWOULDBLOCK && e != EAGAIN)              
+#endif 
                 {
                     this->state = STATE_OPENED;
                     return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->portName() +
-                                                                 StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
+                                                                 StringLiteral("' serial port. Error code: ") + toModbusString(e) +
                                                                  StringLiteral(". ") + getLastErrorText());
                 }
             }
@@ -156,11 +161,16 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             c = ::read(this->serialPort, this->buff(), this->buffMaxSize());
             if (c < 0)
             {
-                if (errno != EWOULDBLOCK)
+                int e = errno;
+#if EWOULDBLOCK == EAGAIN
+                if (e != EWOULDBLOCK)
+#else
+                if (e != EWOULDBLOCK && e != EAGAIN)              
+#endif 
                 {
                     this->state = STATE_OPENED;
                     return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->portName() +
-                                                                StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
+                                                                StringLiteral("' serial port. Error code: ") + toModbusString(e) +
                                                                 StringLiteral(". ") + getLastErrorText());
                 }
             }

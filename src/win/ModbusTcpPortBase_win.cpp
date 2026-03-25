@@ -66,7 +66,7 @@ Modbus::StatusCode ModbusTcpPortBase::open()
             d->timestamp = GetTickCount();
             d->state = STATE_WAIT_FOR_OPEN;
         }
-        MB_FALLTHROUGH
+            MB_FALLTHROUGH
         case STATE_WAIT_FOR_OPEN:
         {
             if (d->isNonBlocking())
@@ -83,7 +83,7 @@ Modbus::StatusCode ModbusTcpPortBase::open()
                     d->socket->close();
                     d->state = STATE_CLOSED;
                     return d->setError(Status_BadTcpConnect, StringLiteral("TCP. Error while connecting to '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
-                                                                StringLiteral("'. Timeout") );
+                                                             StringLiteral("'. Timeout") );
                 }
             }
             else if (d->isBlocking())
@@ -273,14 +273,13 @@ Modbus::StatusCode ModbusTcpPortBase::read()
             }
             else
             {
-                int err = WSAGetLastError();
-                if (err != WSAEWOULDBLOCK)
-                {
-                    this->close();
-                    return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
-                                                          StringLiteral("'. Error code: ") + toModbusString(err) +
-                                                          StringLiteral(". ") + getLastErrorText());
-                }
+                int e = WSAGetLastError();
+                if (isNonBlocking() && e == WSAEWOULDBLOCK)
+                    return Status_Processing; // No data available for non-blocking socket, try again later
+                this->close();
+                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
+                                                      StringLiteral("'. Error code: ") + toModbusString(e) +
+                                                      StringLiteral(". ") + getLastErrorText());
             }
         }
             break;

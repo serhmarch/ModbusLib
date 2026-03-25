@@ -225,13 +225,17 @@ Modbus::StatusCode ModbusUdpPortBase::read()
             }
             else
             {
-                if (errno != EWOULDBLOCK)
-                {
-                    this->close();
-                    return d->setError(Status_BadUdpRead, StringLiteral("UDP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
-                                                          StringLiteral("'. Error code: ") + toModbusString(errno) +
-                                                          StringLiteral(". ") + getLastErrorText());
-                }
+                int e = errno;
+#if EWOULDBLOCK == EAGAIN
+                if (d->isNonBlocking() && e == EWOULDBLOCK)
+#else
+                if (d->isNonBlocking() && (e == EWOULDBLOCK || e == EAGAIN))              
+#endif 
+                    return Status_Processing; // No data available for non-blocking socket, try again later
+                this->close();
+                return d->setError(Status_BadUdpRead, StringLiteral("UDP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
+                                                      StringLiteral("'. Error code: ") + toModbusString(e) +
+                                                      StringLiteral(". ") + getLastErrorText());
             }
         }
             break;
