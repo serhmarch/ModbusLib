@@ -578,6 +578,13 @@ StatusCode ModbusServerResource::processInputData(const uint8_t *buff, uint16_t 
             records[d->recordsCount].recordNumber  = recBuff[4] | (recBuff[3]<<8);
             records[d->recordsCount].recordLength  = recBuff[6] | (recBuff[5]<<8);
             auto len = records[d->recordsCount].recordLength;
+            if (dataPtr+len*2 > szDataBuff) // input data size is too large - prevent overflow and don't respond
+            {
+                const size_t len = 100;
+                Char errbuff[len];
+                snprintf(errbuff, len, StringLiteral("FC%02hhu. Input buffer overflow in record %hhu"), d->func, d->recordsCount);
+                return d->setError(Status_BadNotCorrectRequest, errbuff);
+            }
             for (uint16_t j = 0; j < len; ++j)
             {
                 dataBuff[dataPtr+j*2  ] = recBuff[8+j*2];
