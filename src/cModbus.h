@@ -85,8 +85,80 @@ typedef StatusCode (*pfReadExceptionStatus)(cModbusDevice dev, uint8_t unit, uin
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-/// \details Pointer to C function for diagnostics. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnostics`
-typedef StatusCode (*pfDiagnostics)(cModbusDevice dev, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+/// \details Pointer to C function for diagnostics return query data. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnQueryData`
+typedef StatusCode (*pfDiagnosticsReturnQueryData)(cModbusDevice dev, uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+/// \details Pointer to C function for diagnostics restart communications option. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsRestartCommunicationsOption`
+typedef StatusCode (*pfDiagnosticsRestartCommunicationsOption)(cModbusDevice dev, uint8_t unit, bool clearEventLog);
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+/// \details Pointer to C function for diagnostics return diagnostic register. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnDiagnosticRegister`
+typedef StatusCode (*pfDiagnosticsReturnDiagnosticRegister)(cModbusDevice dev, uint8_t unit, uint16_t *value);
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+/// \details Pointer to C function for diagnostics change ASCII input delimiter. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsChangeAsciiInputDelimiter`
+typedef StatusCode (*pfDiagnosticsChangeAsciiInputDelimiter)(cModbusDevice dev, uint8_t unit, char delimiter);
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+/// \details Pointer to C function for diagnostics force listen only mode. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsForceListenOnlyMode`
+typedef StatusCode (*pfDiagnosticsForceListenOnlyMode)(cModbusDevice dev, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+/// \details Pointer to C function for diagnostics clear counters and diagnostic register. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsClearCountersAndDiagnosticRegister`
+typedef StatusCode (*pfDiagnosticsClearCountersAndDiagnosticRegister)(cModbusDevice dev, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+/// \details Pointer to C function for diagnostics return bus message count. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnBusMessageCount`
+typedef StatusCode (*pfDiagnosticsReturnBusMessageCount)(cModbusDevice dev, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+/// \details Pointer to C function for diagnostics return bus communication error count. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnBusCommunicationErrorCount`
+typedef StatusCode (*pfDiagnosticsReturnBusCommunicationErrorCount)(cModbusDevice dev, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+/// \details Pointer to C function for diagnostics return bus exception error count. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnBusExceptionErrorCount`
+typedef StatusCode (*pfDiagnosticsReturnBusExceptionErrorCount)(cModbusDevice dev, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+/// \details Pointer to C function for diagnostics return server message count. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnServerMessageCount`
+typedef StatusCode (*pfDiagnosticsReturnServerMessageCount)(cModbusDevice dev, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+/// \details Pointer to C function for diagnostics return server no response count. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnServerNoResponseCount`
+typedef StatusCode (*pfDiagnosticsReturnServerNoResponseCount)(cModbusDevice dev, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+/// \details Pointer to C function for diagnostics return server NAK count. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnServerNAKCount`
+typedef StatusCode (*pfDiagnosticsReturnServerNAKCount)(cModbusDevice dev, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+/// \details Pointer to C function for diagnostics return server busy count. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnServerBusyCount`
+typedef StatusCode (*pfDiagnosticsReturnServerBusyCount)(cModbusDevice dev, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+/// \details Pointer to C function for diagnostics return bus character overrun count. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsReturnBusCharacterOverrunCount`
+typedef StatusCode (*pfDiagnosticsReturnBusCharacterOverrunCount)(cModbusDevice dev, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+/// \details Pointer to C function for diagnostics clear overrun counter and flag. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::diagnosticsClearOverrunCounterAndFlag`
+typedef StatusCode (*pfDiagnosticsClearOverrunCounterAndFlag)(cModbusDevice dev, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
@@ -96,7 +168,7 @@ typedef StatusCode (*pfGetCommEventCounter)(cModbusDevice dev, uint8_t unit, uin
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
 /// \details Pointer to C function for get communication event logs. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::getCommEventLog`
-typedef StatusCode (*pfGetCommEventLog)(cModbusDevice dev, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+typedef StatusCode (*pfGetCommEventLog)(cModbusDevice dev, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize);
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
@@ -111,8 +183,18 @@ typedef StatusCode (*pfWriteMultipleRegisters)(cModbusDevice dev, uint8_t unit, 
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
 /// \details Pointer to C function for report server id. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::reportServerID`
-typedef StatusCode (*pfReportServerID)(cModbusDevice dev, uint8_t unit, uint8_t *count, uint8_t *data);
+typedef StatusCode (*pfReportServerID)(cModbusDevice dev, uint8_t unit, void *data, uint8_t *dataSize);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+/// \details Pointer to C function for read file record. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readFileRecord`
+typedef StatusCode (*pfReadFileRecord)(cModbusDevice dev, uint8_t unit, const FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize);
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+/// \details Pointer to C function for write file record. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::writeFileRecord`
+typedef StatusCode (*pfWriteFileRecord)(cModbusDevice dev, uint8_t unit, const FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize);
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 /// \details Pointer to C function for mask write registers (4x). `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::maskWriteRegister`
@@ -126,8 +208,15 @@ typedef StatusCode (*pfReadWriteMultipleRegisters)(cModbusDevice dev, uint8_t un
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
 /// \details Pointer to C function for read FIFO queue. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readFIFOQueue`
-typedef StatusCode (*pfReadFIFOQueue)(cModbusDevice dev, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
+typedef StatusCode (*pfReadFIFOQueue)(cModbusDevice dev, uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
+
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+/// \details Pointer to C function for read device identification. `dev` - pointer to any struct that can hold memory data. \sa `ModbusInterface::readDeviceIdentification`
+typedef StatusCode (*pfReadDeviceIdentification)(cModbusDevice dev, uint8_t unit, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId);
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 /// \details Pointer to C callback function. `dev` - pointer to any struct that can hold memory data. \sa `ModbusClientPort::signalOpened` and `ModbusServerPort::signalOpened`
 typedef void (*pfSlotOpened)(const Char *source);
@@ -150,76 +239,117 @@ typedef void (*pfSlotNewConnection)(const Char *source);
 /// \details Pointer to C callback function. `dev` - pointer to any struct that can hold memory data. \sa `ModbusTcpServer::signalCloseConnection`
 typedef void (*pfSlotCloseConnection)(const Char *source);
 
-/// \details Function create `ModbusInterface` object and returns pointer to it for server.
-/// `dev` - pointer to any struct that can hold memory data.
-/// readCoils,
-/// readDiscreteInputs,
-/// readHoldingRegisters,
-/// readInputRegisters,
-/// writeSingleCoil,
-/// writeSingleRegister,
-/// readExceptionStatus,
-/// diagnostics,
-/// getCommEventCounter,
-/// getCommEventLog,
-/// writeMultipleCoils
-/// writeMultipleRegisters 
-/// reportServerID,
-/// maskWriteRegister,
-/// readWriteMultipleRegisters,
-/// readFIFOQueue - pointers to corresponding Modbus functions to process data.
-/// Any pointer can have `NULL` value. In this case server will return `Status_BadIllegalFunction`.
-MODBUS_EXPORT cModbusInterface cCreateModbusDevice(cModbusDevice                device                
+typedef struct _cModbusFunctions
+{
 #ifndef MBF_READ_COILS_DISABLE
-                                                 , pfReadCoils                  readCoils             
-#endif // MBF_READ_COILS_DISABLE
+    pfReadCoils readCoils;
+#endif
 #ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
-                                                 , pfReadDiscreteInputs         readDiscreteInputs    
-#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
+    pfReadDiscreteInputs readDiscreteInputs;
+#endif
 #ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
-                                                 , pfReadHoldingRegisters       readHoldingRegisters  
-#endif // MBF_READ_HOLDING_REGISTERS_DISABLE
+    pfReadHoldingRegisters readHoldingRegisters;
+#endif
 #ifndef MBF_READ_INPUT_REGISTERS_DISABLE
-                                                 , pfReadInputRegisters         readInputRegisters    
-#endif // MBF_READ_INPUT_REGISTERS_DISABLE
+    pfReadInputRegisters readInputRegisters;
+#endif
 #ifndef MBF_WRITE_SINGLE_COIL_DISABLE
-                                                 , pfWriteSingleCoil            writeSingleCoil       
-#endif // MBF_WRITE_SINGLE_COIL_DISABLE
+    pfWriteSingleCoil writeSingleCoil;
+#endif
 #ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
-                                                 , pfWriteSingleRegister        writeSingleRegister   
-#endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
+    pfWriteSingleRegister writeSingleRegister;
+#endif
 #ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
-                                                 , pfReadExceptionStatus        readExceptionStatus   
-#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
+    pfReadExceptionStatus readExceptionStatus;
+#endif
 #ifndef MBF_DIAGNOSTICS_DISABLE
-                                                 , pfDiagnostics                diagnostics    
-#endif // MBF_DIAGNOSTICS_DISABLE
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+    pfDiagnosticsReturnQueryData diagnosticsReturnQueryData;
+#endif
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+    pfDiagnosticsRestartCommunicationsOption diagnosticsRestartCommunicationsOption;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+    pfDiagnosticsReturnDiagnosticRegister diagnosticsReturnDiagnosticRegister;
+#endif
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+    pfDiagnosticsChangeAsciiInputDelimiter diagnosticsChangeAsciiInputDelimiter;
+#endif
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+    pfDiagnosticsForceListenOnlyMode diagnosticsForceListenOnlyMode;
+#endif
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+    pfDiagnosticsClearCountersAndDiagnosticRegister diagnosticsClearCountersAndDiagnosticRegister;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+    pfDiagnosticsReturnBusMessageCount diagnosticsReturnBusMessageCount;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+    pfDiagnosticsReturnBusCommunicationErrorCount diagnosticsReturnBusCommunicationErrorCount;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+    pfDiagnosticsReturnBusExceptionErrorCount diagnosticsReturnBusExceptionErrorCount;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+    pfDiagnosticsReturnServerMessageCount diagnosticsReturnServerMessageCount;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+    pfDiagnosticsReturnServerNoResponseCount diagnosticsReturnServerNoResponseCount;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+    pfDiagnosticsReturnServerNAKCount diagnosticsReturnServerNAKCount;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+    pfDiagnosticsReturnServerBusyCount diagnosticsReturnServerBusyCount;
+#endif
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+    pfDiagnosticsReturnBusCharacterOverrunCount diagnosticsReturnBusCharacterOverrunCount;
+#endif
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+    pfDiagnosticsClearOverrunCounterAndFlag diagnosticsClearOverrunCounterAndFlag;
+#endif
+#endif
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
-                                                 , pfGetCommEventCounter        getCommEventCounter
-#endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
+    pfGetCommEventCounter getCommEventCounter;
+#endif
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
-                                                 , pfGetCommEventLog            getCommEventLog     
-#endif // MBF_GET_COMM_EVENT_LOG_DISABLE
+    pfGetCommEventLog getCommEventLog;
+#endif
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
-                                                 , pfWriteMultipleCoils         writeMultipleCoils
-#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
+    pfWriteMultipleCoils writeMultipleCoils;
+#endif
 #ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
-                                                 , pfWriteMultipleRegisters     writeMultipleRegisters
-#endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
+    pfWriteMultipleRegisters writeMultipleRegisters;
+#endif
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
-                                                 , pfReportServerID             reportServerID
-#endif // MBF_REPORT_SERVER_ID_DISABLE
+    pfReportServerID reportServerID;
+#endif
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+    pfReadFileRecord readFileRecord;
+#endif
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+    pfWriteFileRecord writeFileRecord;
+#endif
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
-                                                 , pfMaskWriteRegister          maskWriteRegister
-#endif // MBF_MASK_WRITE_REGISTER_DISABLE
+    pfMaskWriteRegister maskWriteRegister;
+#endif
 #ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
-                                                 , pfReadWriteMultipleRegisters readWriteMultipleRegisters
-#endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
+    pfReadWriteMultipleRegisters readWriteMultipleRegisters;
+#endif
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
-                                                 , pfReadFIFOQueue              readFIFOQueue
-#endif // MBF_READ_FIFO_QUEUE_DISABLE
-                                                 );
+    pfReadFIFOQueue readFIFOQueue;
+#endif
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+    pfReadDeviceIdentification readDeviceIdentification;
+#endif
+#endif
+} cModbusFunctions;
 
+/// \details Function create `ModbusInterface` object and returns pointer to it for server.
+/// \param[in]  device      - pointer to any struct that can hold memory data.
+/// \param[in]  functions   - pointer to a `cModbusFunctions` struct containing function pointers.
+MODBUS_EXPORT cModbusInterface cCreateModbusDevice(cModbusDevice device, cModbusFunctions *functions);                
 
 /// \details Deletes previously created `ModbusInterface` object represented by `dev` handle
 MODBUS_EXPORT void cDeleteModbusDevice(cModbusInterface dev);
@@ -300,14 +430,86 @@ MODBUS_EXPORT StatusCode cCpoWriteSingleCoil(cModbusClientPort clientPort, uint8
 MODBUS_EXPORT StatusCode cCpoWriteSingleRegister(cModbusClientPort clientPort, uint8_t unit, uint16_t offset, uint16_t value);
 #endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
-#ifndef MBF_DIAGNOSTICS_DISABLE
+#ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readExceptionStatus`
 MODBUS_EXPORT StatusCode cCpoReadExceptionStatus(cModbusClientPort clientPort, uint8_t unit, uint8_t *value);
-#endif // MBF_DIAGNOSTICS_DISABLE
+#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
 
 #ifndef MBF_DIAGNOSTICS_DISABLE
-/// \details Wrapper for `ModbusClientPort::diagnostics`
-MODBUS_EXPORT StatusCode cCpoDiagnostics(cModbusClientPort clientPort, uint8_t unit, uint16_t subfunc, uint8_t insize, const void *indata, uint8_t *outsize, void *outdata);
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnQueryData`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnQueryData(cModbusClientPort clientPort, uint8_t unit, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsRestartCommunicationsOption`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsRestartCommunicationsOption(cModbusClientPort clientPort, uint8_t unit, bool clearEventLog);
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnDiagnosticRegister`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnDiagnosticRegister(cModbusClientPort clientPort, uint8_t unit, uint16_t *value);
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsChangeAsciiInputDelimiter`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsChangeAsciiInputDelimiter(cModbusClientPort clientPort, uint8_t unit, char delimiter);
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsForceListenOnlyMode`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsForceListenOnlyMode(cModbusClientPort clientPort, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsClearCountersAndDiagnosticRegister`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsClearCountersAndDiagnosticRegister(cModbusClientPort clientPort, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnBusMessageCount`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnBusMessageCount(cModbusClientPort clientPort, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnBusCommunicationErrorCount`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnBusCommunicationErrorCount(cModbusClientPort clientPort, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnBusExceptionErrorCount`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnBusExceptionErrorCount(cModbusClientPort clientPort, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnServerMessageCount`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnServerMessageCount(cModbusClientPort clientPort, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnServerNoResponseCount`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnServerNoResponseCount(cModbusClientPort clientPort, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnServerNAKCount`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnServerNAKCount(cModbusClientPort clientPort, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnServerBusyCount`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnServerBusyCount(cModbusClientPort clientPort, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsReturnBusCharacterOverrunCount`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsReturnBusCharacterOverrunCount(cModbusClientPort clientPort, uint8_t unit, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+/// \details Wrapper for `ModbusClientPort::diagnosticsClearOverrunCounterAndFlag`
+MODBUS_EXPORT StatusCode cCpoDiagnosticsClearOverrunCounterAndFlag(cModbusClientPort clientPort, uint8_t unit);
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
 #endif // MBF_DIAGNOSTICS_DISABLE
 
 #ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
@@ -317,7 +519,7 @@ MODBUS_EXPORT StatusCode cCpoGetCommEventCounter(cModbusClientPort clientPort, u
 
 #ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
 /// \details Wrapper for `ModbusClientPort::getCommEventLog`
-MODBUS_EXPORT StatusCode cCpoGetCommEventLog(cModbusClientPort clientPort, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, uint8_t *eventBuffSize, uint8_t *eventBuff);
+MODBUS_EXPORT StatusCode cCpoGetCommEventLog(cModbusClientPort clientPort, uint8_t unit, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize);
 #endif // MBF_GET_COMM_EVENT_LOG_DISABLE
 
 #ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
@@ -332,8 +534,18 @@ MODBUS_EXPORT StatusCode cCpoWriteMultipleRegisters(cModbusClientPort clientPort
 
 #ifndef MBF_REPORT_SERVER_ID_DISABLE
 /// \details Wrapper for `ModbusClientPort::reportServerID`
-MODBUS_EXPORT StatusCode cCpoReportServerID(cModbusClientPort clientPort, uint8_t unit, uint8_t *count, uint8_t *data);
+MODBUS_EXPORT StatusCode cCpoReportServerID(cModbusClientPort clientPort, uint8_t unit, void *data, uint8_t *dataSize);
 #endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+/// \details Wrapper for `ModbusClientPort::readFileRecord`
+MODBUS_EXPORT StatusCode cCpoReadFileRecord(cModbusClientPort clientPort, uint8_t unit, const FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize);
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+/// \details Wrapper for `ModbusClientPort::writeFileRecord`
+MODBUS_EXPORT StatusCode cCpoWriteFileRecord(cModbusClientPort clientPort, uint8_t unit, const FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize);
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
 
 #ifndef MBF_MASK_WRITE_REGISTER_DISABLE
 /// \details Wrapper for `ModbusClientPort::maskWriteRegister`
@@ -347,8 +559,15 @@ MODBUS_EXPORT StatusCode cCpoReadWriteMultipleRegisters(cModbusClientPort client
 
 #ifndef MBF_READ_FIFO_QUEUE_DISABLE
 /// \details Wrapper for `ModbusClientPort::readFIFOQueue`
-MODBUS_EXPORT StatusCode cCpoReadFIFOQueue(cModbusClientPort clientPort, uint8_t unit, uint16_t fifoadr, uint16_t *count, uint16_t *values);
+MODBUS_EXPORT StatusCode cCpoReadFIFOQueue(cModbusClientPort clientPort, uint8_t unit, uint16_t fifoadr, uint16_t *values, uint16_t *count);
 #endif // MBF_READ_FIFO_QUEUE_DISABLE
+
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+/// \details Wrapper for `ModbusClientPort::readDeviceIdentification`
+MODBUS_EXPORT StatusCode cCpoReadDeviceIdentification(cModbusClientPort clientPort, uint8_t unit, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId);
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 #ifndef MBF_READ_COILS_DISABLE
 /// \details Wrapper for `ModbusClientPort::readCoilsAsBoolArray`
@@ -448,17 +667,131 @@ MODBUS_EXPORT StatusCode cWriteSingleRegister(cModbusClient client, uint16_t off
 /// \details Wrapper for `ModbusClient::readExceptionStatus`
 MODBUS_EXPORT StatusCode cReadExceptionStatus(cModbusClient client, uint8_t *value);
 
+#ifndef MBF_DIAGNOSTICS_DISABLE
+#ifndef MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnQueryData`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnQueryData(cModbusClient client, const void *indata, uint8_t insize, void *outdata, uint8_t *outsize);
+#endif // MBF_DIAGNOSTICS_RETURN_QUERY_DATA_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsRestartCommunicationsOption`
+MODBUS_EXPORT StatusCode cDiagnosticsRestartCommunicationsOption(cModbusClient client, bool clearEventLog);
+#endif // MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnDiagnosticRegister`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnDiagnosticRegister(cModbusClient client, uint16_t *value);
+#endif // MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsChangeAsciiInputDelimiter`
+MODBUS_EXPORT StatusCode cDiagnosticsChangeAsciiInputDelimiter(cModbusClient client, char delimiter);
+#endif // MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsForceListenOnlyMode`
+MODBUS_EXPORT StatusCode cDiagnosticsForceListenOnlyMode(cModbusClient client);
+#endif // MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsClearCountersAndDiagnosticRegister`
+MODBUS_EXPORT StatusCode cDiagnosticsClearCountersAndDiagnosticRegister(cModbusClient client);
+#endif // MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnBusMessageCount`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnBusMessageCount(cModbusClient client, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnBusCommunicationErrorCount`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnBusCommunicationErrorCount(cModbusClient client, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnBusExceptionErrorCount`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnBusExceptionErrorCount(cModbusClient client, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnServerMessageCount`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnServerMessageCount(cModbusClient client, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnServerNoResponseCount`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnServerNoResponseCount(cModbusClient client, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnServerNAKCount`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnServerNAKCount(cModbusClient client, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnServerBusyCount`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnServerBusyCount(cModbusClient client, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsReturnBusCharacterOverrunCount`
+MODBUS_EXPORT StatusCode cDiagnosticsReturnBusCharacterOverrunCount(cModbusClient client, uint16_t *count);
+#endif // MBF_DIAGNOSTICS_RETURN_SERVER_CHARACTER_OVERRUN_COUNT_DISABLE
+
+#ifndef MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+/// \details Wrapper for `ModbusClient::diagnosticsClearOverrunCounterAndFlag`
+MODBUS_EXPORT StatusCode cDiagnosticsClearOverrunCounterAndFlag(cModbusClient client);
+#endif // MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG_DISABLE
+#endif // MBF_DIAGNOSTICS_DISABLE
+
+#ifndef MBF_GET_COMM_EVENT_COUNTER_DISABLE
+/// \details Wrapper for `ModbusClient::getCommEventCounter`
+MODBUS_EXPORT StatusCode cGetCommEventCounter(cModbusClient client, uint16_t *status, uint16_t *eventCount);
+#endif // MBF_GET_COMM_EVENT_COUNTER_DISABLE
+
+#ifndef MBF_GET_COMM_EVENT_LOG_DISABLE
+/// \details Wrapper for `ModbusClient::getCommEventLog`
+MODBUS_EXPORT StatusCode cGetCommEventLog(cModbusClient client, uint16_t *status, uint16_t *eventCount, uint16_t *messageCount, void *eventBuff, uint8_t *eventBuffSize);
+#endif // MBF_GET_COMM_EVENT_LOG_DISABLE
+
 /// \details Wrapper for `ModbusClient::writeMultipleCoils`
 MODBUS_EXPORT StatusCode cWriteMultipleCoils(cModbusClient client, uint16_t offset, uint16_t count, const void *values);
 
 /// \details Wrapper for `ModbusClient::writeMultipleRegisters`
 MODBUS_EXPORT StatusCode cWriteMultipleRegisters(cModbusClient client, uint16_t offset, uint16_t count, const uint16_t *values);
 
+#ifndef MBF_REPORT_SERVER_ID_DISABLE
+/// \details Wrapper for `ModbusClient::reportServerID`
+MODBUS_EXPORT StatusCode cReportServerID(cModbusClient client, void *data, uint8_t *dataSize);
+#endif // MBF_REPORT_SERVER_ID_DISABLE
+
+#ifndef MBF_READ_FILE_RECORD_DISABLE
+/// \details Wrapper for `ModbusClient::readFileRecord`
+MODBUS_EXPORT StatusCode cReadFileRecord(cModbusClient client, const FileRecord *records, uint8_t recordsCount, void *outData, uint8_t *outSize);
+#endif // MBF_READ_FILE_RECORD_DISABLE
+
+#ifndef MBF_WRITE_FILE_RECORD_DISABLE
+/// \details Wrapper for `ModbusClient::writeFileRecord`
+MODBUS_EXPORT StatusCode cWriteFileRecord(cModbusClient client, const FileRecord *records, uint8_t recordsCount, const void *inData, uint8_t *inSize);
+#endif // MBF_WRITE_FILE_RECORD_DISABLE
+
 /// \details Wrapper for `ModbusClient::maskWriteRegister`
 MODBUS_EXPORT StatusCode cMaskWriteRegister(cModbusClient client, uint16_t offset, uint16_t andMask, uint16_t orMask);
 
 /// \details Wrapper for `ModbusClient::readWriteMultipleRegisters`
 MODBUS_EXPORT StatusCode cReadWriteMultipleRegisters(cModbusClient client, uint16_t readOffset, uint16_t readCount, uint16_t *readValues, uint16_t writeOffset, uint16_t writeCount, const uint16_t *writeValues);
+
+#ifndef MBF_READ_FIFO_QUEUE_DISABLE
+/// \details Wrapper for `ModbusClient::readFIFOQueue`
+MODBUS_EXPORT StatusCode cReadFIFOQueue(cModbusClient client, uint16_t fifoadr, uint16_t *values, uint16_t *count);
+#endif // MBF_READ_FIFO_QUEUE_DISABLE
+
+#ifndef MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
+#ifndef MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+/// \details Wrapper for `ModbusClient::readDeviceIdentification`
+MODBUS_EXPORT StatusCode cReadDeviceIdentification(cModbusClient client, uint8_t readDeviceId, uint8_t objectId, void *data, uint8_t *dataSize, uint8_t *numberOfObjects, uint8_t *conformityLevel, bool *moreFollows, uint8_t *nextObjectId);
+#endif // MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE
+#endif // MBF_ENCAPSULATED_INTERFACE_TRANSPORT_DISABLE
 
 /// \details Wrapper for `ModbusClient::readCoilsAsBoolArray`
 MODBUS_EXPORT StatusCode cReadCoilsAsBoolArray(cModbusClient client, uint16_t offset, uint16_t count, bool *values);

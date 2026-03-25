@@ -242,6 +242,12 @@ void main()
 
 To use the library with pure C language user needs to include only one header: `cModbus.h`.
 This header includes functions that wraps Modbus interface classes and its methods.
+
+> Note for C API users (stable interface alignment):
+> - FC08 diagnostics is represented by dedicated functions per subfunction (`cDiagnosticsReturnQueryData`, `cDiagnosticsRestartCommunicationsOption`, etc.) instead of one generic diagnostics call.
+> - Signatures follow `ModbusInterface` order: `cGetCommEventLog(..., eventBuff, eventBuffSize)`, `cReportServerID(..., data, dataSize)`, `cReadFIFOQueue(..., values, count)`.
+> - `cCreateModbusDevice(...)` now includes callback slots for all enabled diagnostics subfunctions and also `readFileRecord`, `writeFileRecord`, `readDeviceIdentification`.
+
 ```c
 #include <cModbus.h>
 //...

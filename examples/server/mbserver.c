@@ -8,37 +8,38 @@ const char* help_options =
 "Usage: mbserverc [options]\n"
 "\n"
 "Options:\n"
-"  -help (-?)        - show this help.\n"
-"  -unit (-u) <unit> - modbus device address/unit (default is 1)\n"
-"  -type (-t) <type> - protocol type. Can be TCP, RTU or ASC (default is TCP)\n"
-"  -port (-p) <port> - remote TCP port (502 is default)\n"
-"  -tm <timeout>     - timeout for TCP (millisec, default is 3000)\n"
-"  -maxconn <count>  - max active TCP connections (default is 10)\n"
-"  -serial (-sl)     - serial port name for RTU and ASC\n"
-"  -baud (-b)        - baud rate (for RTU and ASC, default is 9600)\n"
-"  -data (-d)        - data bits (5-8, for RTU and ASC, default is 8)\n"
-"  -parity           - parity: E (even), O (odd), N (none) (default is none)\n"
-"  -stop (-s)        - stop bits: 1, 1.5, 2 (default is 1)\n"
-"  -tfb <timeout>    - timeout first byte for RTU or ASC (millisec, default is 3000)\n"
-"  -tib <timeout>    - timeout inter byte for RTU or ASC (millisec, default is 5)\n"
-"  -c0 <count>       - modbus 0x-data count (default is 256)\n"
-"  -c1 <count>       - modbus 1x-data count (default is 256)\n"
-"  -c3 <count>       - modbus 3x-data count (default is 256)\n"
-"  -c4 <count>       - modbus 4x-data count (default is 256)\n"
+"  -help (-?)           - show this help.\n"
+"  -unit (-u) <unit>    - modbus device address/unit (default is 1)\n"
+"  -type (-t) <type>    - protocol type. Can be TCP, UDP, RTU, ASC, RTUvTCP, RTUvUDP, ASCvTCP, ASCvUDP (default is TCP)\n"
+"  -addr (-host) <addr> - ip address for TCP (default is 0.0.0.0)\n"
+"  -port (-p) <port>    - remote TCP port (502 is default)\n"
+"  -tm <timeout>        - timeout for TCP (millisec, default is 3000)\n"
+"  -maxconn <count>     - max active TCP connections (default is 10)\n"
+"  -serial (-sl)        - serial port name for RTU and ASC\n"
+"  -baud (-b)           - baud rate (for RTU and ASC, default is 9600)\n"
+"  -data (-d)           - data bits (5-8, for RTU and ASC, default is 8)\n"
+"  -parity              - parity: E (even), O (odd), N (none) (default is none)\n"
+"  -stop (-s)           - stop bits: 1, 1.5, 2 (default is 1)\n"
+"  -tfb <timeout>       - timeout first byte for RTU or ASC (millisec, default is 3000)\n"
+"  -tib <timeout>       - timeout inter byte for RTU or ASC (millisec, default is 5)\n"
+"  -c0 <count>          - modbus 0x-data count (default is 256)\n"
+"  -c1 <count>          - modbus 1x-data count (default is 256)\n"
+"  -c3 <count>          - modbus 3x-data count (default is 256)\n"
+"  -c4 <count>          - modbus 4x-data count (default is 256)\n"
 "\n"
 "Note: ReadExceptionStatus data is located in 0x (coils) memory starting with offset 0 (000001)\n"
 ;
 
 typedef struct _Options
 {
-    ProtocolType        type;
-    uint8_t             unit;
-    SerialSettings  ser ;
-    NetSettings         tcp ;
-    uint32_t            c0  ;
-    uint32_t            c1  ;
-    uint32_t            c3  ;
-    uint32_t            c4  ;
+    ProtocolType   type;
+    uint8_t        unit;
+    SerialSettings ser ;
+    NetSettings    tcp ;
+    uint32_t       c0  ;
+    uint32_t       c1  ;
+    uint32_t       c3  ;
+    uint32_t       c4  ;
 } Options;
 
 Options options;
@@ -47,7 +48,7 @@ void initOptions()
 {
     options.unit                 = 1;
     options.type                 = TCP;
-    options.tcp.host             = StringLiteral("localhost");
+    options.tcp.ipaddr           = StringLiteral("0.0.0.0");
     options.tcp.port             = STANDARD_TCP_PORT;
     options.tcp.timeout          = 3000;
     options.tcp.maxconn          = 10;
@@ -102,6 +103,11 @@ void parseOptions(int argc, char **argv)
                     options.type = TCP;
                     continue;
                 }
+                else if (!strcmp(sOptValue, "UDP"))
+                {
+                    options.type = UDP;
+                    continue;
+                }
                 else if (!strcmp(sOptValue, "RTU"))
                 {
                     options.type = RTU;
@@ -112,18 +118,38 @@ void parseOptions(int argc, char **argv)
                     options.type = ASC;
                     continue;
                 }
+                else if (!strcmp(sOptValue, "RTUvTCP"))
+                {
+                    options.type = RTUvTCP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "RTUvUDP"))
+                {
+                    options.type = RTUvUDP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "ASCvTCP"))
+                {
+                    options.type = ASCvTCP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "ASCvUDP"))
+                {
+                    options.type = ASCvUDP;
+                    continue;
+                }
             }
-            printf("'-type' option must have a value: TCP, RTU or ASC\n");
+            printf("'-type' option must have a value: TCP, UDP, RTU, ASC, RTUvTCP, RTUvUDP, ASCvTCP, ASCvUDP\n");
             exit(1);
         }
-        if (!strcmp(opt, "host") || !strcmp(opt, "h"))
+        if (!strcmp(opt, "addr") || !strcmp(opt, "host"))
         {
             if (++i < argc)
             {
-                options.tcp.host = argv[i];
+                options.tcp.ipaddr = argv[i];
                 continue;
             }
-            printf("'-host' option must have a value\n");
+            printf("'-addr' option must have a value\n");
             exit(1);
         }
         if (!strcmp(opt, "port") || !strcmp(opt, "p"))
@@ -567,44 +593,68 @@ int main(int argc, char **argv)
         fReadWriteMultipleRegisters = device_readWriteMultipleRegisters;
     }
 
-    cModbusInterface cdev = cCreateModbusDevice(&dev,
-                                                fReadCoils                 ,
-                                                fReadDiscreteInputs        ,
-                                                fReadHoldingRegisters      ,
-                                                fReadInputRegisters        ,
-                                                fWriteSingleCoil           ,
-                                                fWriteSingleRegister       ,
-                                                fReadExceptionStatus       ,
-                                                NULL                       ,   
-                                                NULL                       ,   
-                                                NULL                       ,   
-                                                fWriteMultipleCoils        ,
-                                                fWriteMultipleRegisters    ,
-                                                NULL                       ,   
-                                                fMaskWriteRegister         ,     
-                                                fReadWriteMultipleRegisters,
-                                                NULL                       );   
+    cModbusFunctions functions = {0};
+
+#ifndef MBF_READ_COILS_DISABLE
+    functions.readCoils = fReadCoils;
+#endif // MBF_READ_COILS_DISABLE
+#ifndef MBF_READ_DISCRETE_INPUTS_DISABLE
+    functions.readDiscreteInputs = fReadDiscreteInputs;
+#endif // MBF_READ_DISCRETE_INPUTS_DISABLE
+#ifndef MBF_READ_HOLDING_REGISTERS_DISABLE
+    functions.readHoldingRegisters = fReadHoldingRegisters;
+#endif // MBF_READ_HOLDING_REGISTERS_DISABLE
+#ifndef MBF_READ_INPUT_REGISTERS_DISABLE
+    functions.readInputRegisters = fReadInputRegisters;
+#endif // MBF_READ_INPUT_REGISTERS_DISABLE
+#ifndef MBF_WRITE_SINGLE_COIL_DISABLE
+    functions.writeSingleCoil = fWriteSingleCoil;
+#endif // MBF_WRITE_SINGLE_COIL_DISABLE
+#ifndef MBF_WRITE_SINGLE_REGISTER_DISABLE
+    functions.writeSingleRegister = fWriteSingleRegister;
+#endif // MBF_WRITE_SINGLE_REGISTER_DISABLE
+#ifndef MBF_READ_EXCEPTION_STATUS_DISABLE
+    functions.readExceptionStatus = fReadExceptionStatus;
+#endif // MBF_READ_EXCEPTION_STATUS_DISABLE
+#ifndef MBF_WRITE_MULTIPLE_COILS_DISABLE
+    functions.writeMultipleCoils = fWriteMultipleCoils;
+#endif // MBF_WRITE_MULTIPLE_COILS_DISABLE
+#ifndef MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
+    functions.writeMultipleRegisters = fWriteMultipleRegisters;
+#endif // MBF_WRITE_MULTIPLE_REGISTERS_DISABLE
+#ifndef MBF_MASK_WRITE_REGISTER_DISABLE
+    functions.maskWriteRegister = fMaskWriteRegister;
+#endif // MBF_MASK_WRITE_REGISTER_DISABLE
+#ifndef MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
+    functions.readWriteMultipleRegisters = fReadWriteMultipleRegisters;
+#endif // MBF_READ_WRITE_MULTIPLE_REGISTERS_DISABLE
+
+    cModbusInterface cdev = cCreateModbusDevice(&dev, &functions);
 
     const bool blocking = false; // use async/non blocking mode
     cModbusServerPort serv;
     switch (options.type)
     {
     case RTU:
-        serv = cSpoCreate(cdev, options.type, &options.ser, blocking);
-        cSpoConnectTx(serv, printTx);
-        cSpoConnectRx(serv, printRx);
-        break;
     case ASC:
         serv = cSpoCreate(cdev, options.type, &options.ser, blocking);
+        break;
+    default:
+        serv = cSpoCreate(cdev, options.type, &options.tcp, blocking);
+        break;
+    }
+
+    switch (options.type)
+    {
+    case ASC:
+    case ASCvTCP:
+    case ASCvUDP:
         cSpoConnectTx(serv, printTxAsc);
         cSpoConnectRx(serv, printRxAsc);
         break;
     default:
-        serv = cSpoCreate(cdev, TCP, &options.tcp, blocking);
         cSpoConnectTx(serv, printTx);
         cSpoConnectRx(serv, printRx);
-        cSpoConnectNewConnection(serv, printNewConnection);
-        cSpoConnectCloseConnection(serv, printCloseConnection);
         break;
     }
 
@@ -617,5 +667,6 @@ int main(int argc, char **argv)
     cSpoDelete(serv);
     cDeleteModbusDevice(cdev);
     device_del(&dev);
+    puts("mbserver stopped");
     return 0;
 }

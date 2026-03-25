@@ -13,7 +13,8 @@ const char* help_options =
 "\n"
 "Options:\n"
 "  -help (-?)          - show this help.\n"
-"  -type (-t) <type>   - protocol type. Can be TCP, RTU or ASC (default is TCP)\n"
+"  -type (-t) <type>   - protocol type. Can be TCP, UDP, RTU, ASC, RTUvTCP, RTUvUDP, ASCvTCP, ASCvUDP (default is TCP)\n"
+"  -addr (-host) <addr>- ip address for TCP (default is 0.0.0.0)\n"
 "  -port (-p) <port>   - remote TCP port (502 is default)\n"
 "  -tm <timeout>       - timeout for TCP (millisec, default is 3000)\n"
 "  -maxconn <count>    - max active TCP connections (default is 10)\n"
@@ -178,6 +179,7 @@ struct Options
 
         type                 = Modbus::TCP               ;
         unit                 = 1                         ;
+        tcp.ipaddr           = StringLiteral("0.0.0.0")  ;
         tcp.port             = dTcp.port                 ;
         tcp.timeout          = dTcp.timeout              ;
         tcp.maxconn          = dTcp.maxconn              ;
@@ -221,6 +223,11 @@ void parseOptions(int argc, char **argv)
                     options.type = Modbus::TCP;
                     continue;
                 }
+                else if (!strcmp(sOptValue, "UDP"))
+                {
+                    options.type = Modbus::UDP;
+                    continue;
+                }
                 else if (!strcmp(sOptValue, "RTU"))
                 {
                     options.type = Modbus::RTU;
@@ -231,8 +238,28 @@ void parseOptions(int argc, char **argv)
                     options.type = Modbus::ASC;
                     continue;
                 }
+                else if (!strcmp(sOptValue, "RTUvTCP"))
+                {
+                    options.type = Modbus::RTUvTCP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "RTUvUDP"))
+                {
+                    options.type = Modbus::RTUvUDP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "ASCvTCP"))
+                {
+                    options.type = Modbus::ASCvTCP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "ASCvUDP"))
+                {
+                    options.type = Modbus::ASCvUDP;
+                    continue;
+                }
             }
-            printf("'-type' option must have a value: TCP, RTU or ASC\n");
+            printf("'-type' option must have a value: TCP, UDP, RTU, ASC, RTUvTCP, RTUvUDP, ASCvTCP, ASCvUDP\n");
             exit(1);
         }
         if (!strcmp(opt, "unit") || !strcmp(opt, "u"))
@@ -245,14 +272,14 @@ void parseOptions(int argc, char **argv)
             printf("'-unit' option must have a value: 0-255\n");
             exit(1);
         }
-        if (!strcmp(opt, "host") || !strcmp(opt, "h"))
+        if (!strcmp(opt, "addr") || !strcmp(opt, "host"))
         {
             if (++i < argc)
             {
-                options.tcp.host = argv[i];
+                options.tcp.ipaddr = argv[i];
                 continue;
             }
-            printf("'-host' option must have a value\n");
+            printf("'-addr' option must have a value\n");
             exit(1);
         }
         if (!strcmp(opt, "port") || !strcmp(opt, "p"))
@@ -411,21 +438,27 @@ int main(int argc, char **argv)
     switch (options.type)
     {
     case Modbus::RTU:
-        serv = Modbus::createServerPort(&dev, Modbus::RTU, &options.ser, blocking);
-        serv->connect(&ModbusServerPort::signalTx, printTx);
-        serv->connect(&ModbusServerPort::signalRx, printRx);
-        break;
     case Modbus::ASC:
-        serv = Modbus::createServerPort(&dev, Modbus::ASC, &options.ser, blocking);
+        serv = Modbus::createServerPort(&dev, options.type, &options.ser, blocking);
+        break;
+    default:
+        serv = Modbus::createServerPort(&dev, options.type, &options.tcp, blocking);
+        serv->connect(&ModbusTcpServer::signalNewConnection, printNewConnection);
+        serv->connect(&ModbusTcpServer::signalCloseConnection, printCloseConnection);
+        break;
+    }
+
+    switch (options.type)
+    {
+    case Modbus::ASC:
+    case Modbus::ASCvTCP:
+    case Modbus::ASCvUDP:
         serv->connect(&ModbusServerPort::signalTx, printTxAsc);
         serv->connect(&ModbusServerPort::signalRx, printRxAsc);
         break;
     default:
-        serv = Modbus::createServerPort(&dev, Modbus::TCP, &options.tcp, blocking);
         serv->connect(&ModbusServerPort::signalTx, printTx);
         serv->connect(&ModbusServerPort::signalRx, printRx);
-        serv->connect(&ModbusTcpServer::signalNewConnection, printNewConnection);
-        serv->connect(&ModbusTcpServer::signalCloseConnection, printCloseConnection);
         break;
     }
 
@@ -443,4 +476,6 @@ int main(int argc, char **argv)
         }
         Modbus::msleep(1);
     }
+    puts("demoserver stopped");
+    return 0;
 }

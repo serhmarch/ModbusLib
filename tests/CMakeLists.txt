@@ -10,6 +10,7 @@ set(MB_TESTS_HEADERS
 
 set(MB_TESTS_SOURCES 
     Modbus_test.cpp
+    cModbus_test.cpp
     ModbusAddress_test.cpp
     ModbusClient_test.cpp
     ModbusClientPort_test.cpp

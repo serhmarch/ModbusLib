@@ -12,8 +12,8 @@ const char* help_options =
 "Options:\n"
 "  -help (-?)               - show this help.\n"
 "  -unit (-u) <unit>        - modbus device remote address/unit (default is 1)\n"
-"  -type (-t) <type>        - protocol type. Can be TCP, RTU or ASC (default is TCP)\n"
-"  -host (-h) <host>        - dns name or ip address for TCP (default is localhost)\n"
+"  -type (-t) <type>        - protocol type. Can be TCP, UDP, RTU, ASC, RTUvTCP, RTUvUDP, ASCvTCP, ASCvUDP (default is TCP)\n"
+"  -host (-h) <host>        - ip address for TCP (default is localhost)\n"
 "  -port (-p) <port>        - remote TCP port (502 is default)\n"
 "  -tm <timeout>            - timeout for TCP (millisec, default is 3000)\n"
 "  -serial (-sl)            - serial port name for RTU and ASC\n"
@@ -63,12 +63,12 @@ void printRxAsc(const Modbus::Char *source, const uint8_t* buff, uint16_t size)
 
 struct Options
 {
-    Modbus::ProtocolType        type  ;
-    uint8_t                     unit  ;
-    Modbus::SerialSettings      ser   ;
-    Modbus::NetSettings     tcp   ; 
-    uint16_t                    offset;
-    uint16_t                    count ;
+    Modbus::ProtocolType   type  ;
+    uint8_t                unit  ;
+    Modbus::SerialSettings ser   ;
+    Modbus::NetSettings    tcp   ; 
+    uint16_t               offset;
+    uint16_t               count ;
 
     Options()
     {
@@ -121,6 +121,11 @@ void parseOptions(int argc, char **argv)
                     options.type = Modbus::TCP;
                     continue;
                 }
+                else if (!strcmp(sOptValue, "UDP"))
+                {
+                    options.type = Modbus::UDP;
+                    continue;
+                }
                 else if (!strcmp(sOptValue, "RTU"))
                 {
                     options.type = Modbus::RTU;
@@ -131,8 +136,28 @@ void parseOptions(int argc, char **argv)
                     options.type = Modbus::ASC;
                     continue;
                 }
+                else if (!strcmp(sOptValue, "RTUvTCP"))
+                {
+                    options.type = Modbus::RTUvTCP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "RTUvUDP"))
+                {
+                    options.type = Modbus::RTUvUDP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "ASCvTCP"))
+                {
+                    options.type = Modbus::ASCvTCP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "ASCvUDP"))
+                {
+                    options.type = Modbus::ASCvUDP;
+                    continue;
+                }
             }
-            printf("'-type' option must have a value: TCP, RTU or ASC\n");
+            printf("'-type' option must have a value: TCP, UDP, RTU, ASC, RTUvTCP, RTUvUDP, ASCvTCP, ASCvUDP\n");
             exit(1);
         }
         if (!strcmp(opt, "unit") || !strcmp(opt, "u"))
@@ -309,17 +334,23 @@ int main(int argc, char **argv)
     switch (options.type)
     {
     case Modbus::RTU:
-        clientPort = Modbus::createClientPort(Modbus::RTU, &options.ser, blocking);
-        clientPort->connect(&ModbusClientPort::signalTx, printTx);
-        clientPort->connect(&ModbusClientPort::signalRx, printRx);
-        break;
     case Modbus::ASC:
-        clientPort = Modbus::createClientPort(Modbus::ASC, &options.ser, blocking);
+        clientPort = Modbus::createClientPort(options.type, &options.ser, blocking);
+        break;
+    default:
+        clientPort = Modbus::createClientPort(options.type, &options.tcp, blocking);
+        break;
+    }
+
+    switch (options.type)
+    {
+    case Modbus::ASC:
+    case Modbus::ASCvTCP:
+    case Modbus::ASCvUDP:
         clientPort->connect(&ModbusClientPort::signalTx, printTxAsc);
         clientPort->connect(&ModbusClientPort::signalRx, printRxAsc);
         break;
     default:
-        clientPort = Modbus::createClientPort(Modbus::TCP, &options.tcp, blocking);
         clientPort->connect(&ModbusClientPort::signalTx, printTx);
         clientPort->connect(&ModbusClientPort::signalRx, printRx);
         break;

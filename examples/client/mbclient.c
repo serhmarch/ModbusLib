@@ -7,25 +7,25 @@ const char* help_options =
 "Usage: mbclient [options]\n"
 "\n"
 "Options:\n"
-"  -help (-?)               - show this help.\n"
-"  -unit (-u) <unit>        - modbus device remote address/unit (default is 1)\n"
-"  -type (-t) <type>        - protocol type. Can be TCP, RTU or ASC (default is TCP)\n"
-"  -host (-h) <host>        - dns name or ip address for TCP (default is localhost)\n"
-"  -port (-p) <port>        - remote TCP port (502 is default)\n"
-"  -tm <timeout>            - timeout for TCP (millisec, default is 3000)\n"
-"  -serial (-sl)            - serial port name for RTU and ASC\n"
-"  -baud (-b)               - baud rate (for RTU and ASC)\n"
-"  -data (-d)               - data bits (5-8, for RTU and ASC)\n"
-"  -parity                  - parity: E (even), O (odd), N (none) (default is none)\n"
-"  -stop (-s)               - stop bits: 1, 1.5, 2\n"
-"  -tfb <timeout>           - timeout first byte for RTU or ASC (millisec, default is 3000)\n"
-"  -tib <timeout>           - timeout inter byte for RTU or ASC (millisec, default is 5)\n"
-"  -func (-f) <func>        - number of modbus function (default is 3, READ_HOLDING_REGISTERS)\n"
-"  -offset (-o) <offset>    - modbus function data start offset (default is 0)\n"
-"  -count (-c) <count>      - modbus function data count (default is 16)\n"
-"  -value (-v) <value>      - modbus function data value (default is 0)\n"
-"  -n <count>               - modbus request count: >0 - count, <0 (inf) - infinite (default is 4)\n"
-"  -period <period>         - request period (millisec, default is 1000)\n"
+"  -help (-?)            - show this help.\n"
+"  -unit (-u) <unit>     - modbus device remote address/unit (default is 1)\n"
+"  -type (-t) <type>     - protocol type. Can be TCP, UDP, RTU, ASC, RTUvTCP, RTUvUDP, ASCvTCP, ASCvUDP (default is TCP)\n"
+"  -host (-h) <host>     - dns name or ip address for TCP (default is localhost)\n"
+"  -port (-p) <port>     - remote TCP port (502 is default)\n"
+"  -tm <timeout>         - timeout for TCP (millisec, default is 3000)\n"
+"  -serial (-sl)         - serial port name for RTU and ASC\n"
+"  -baud (-b)            - baud rate (for RTU and ASC)\n"
+"  -data (-d)            - data bits (5-8, for RTU and ASC)\n"
+"  -parity               - parity: E (even), O (odd), N (none) (default is none)\n"
+"  -stop (-s)            - stop bits: 1, 1.5, 2\n"
+"  -tfb <timeout>        - timeout first byte for RTU or ASC (millisec, default is 3000)\n"
+"  -tib <timeout>        - timeout inter byte for RTU or ASC (millisec, default is 5)\n"
+"  -func (-f) <func>     - number of modbus function (default is 3, READ_HOLDING_REGISTERS)\n"
+"  -offset (-o) <offset> - modbus function data start offset (default is 0)\n"
+"  -count (-c) <count>   - modbus function data count (default is 16)\n"
+"  -value (-v) <value>   - modbus function data value (default is 0)\n"
+"  -n <count>            - modbus request count: >0 - count, <0 (inf) - infinite (default is 4)\n"
+"  -period <period>      - request period (millisec, default is 1000)\n"
 ;
 
 typedef struct _Options
@@ -104,6 +104,11 @@ void parseOptions(int argc, char **argv)
                     options.type = TCP;
                     continue;
                 }
+                else if (!strcmp(sOptValue, "UDP"))
+                {
+                    options.type = UDP;
+                    continue;
+                }
                 else if (!strcmp(sOptValue, "RTU"))
                 {
                     options.type = RTU;
@@ -114,8 +119,28 @@ void parseOptions(int argc, char **argv)
                     options.type = ASC;
                     continue;
                 }
+                else if (!strcmp(sOptValue, "RTUvTCP"))
+                {
+                    options.type = RTUvTCP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "RTUvUDP"))
+                {
+                    options.type = RTUvUDP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "ASCvTCP"))
+                {
+                    options.type = ASCvTCP;
+                    continue;
+                }
+                else if (!strcmp(sOptValue, "ASCvUDP"))
+                {
+                    options.type = ASCvUDP;
+                    continue;
+                }
             }
-            printf("'-type' option must have a value: TCP, RTU or ASC\n");
+            printf("'-type' option must have a value: TCP, UDP, RTU, ASC, RTUvTCP, RTUvUDP, ASCvTCP, ASCvUDP\n");
             exit(1);
         }
         if (!strcmp(opt, "host") || !strcmp(opt, "h"))
@@ -432,6 +457,8 @@ int main(int argc, char **argv)
     switch (clientPortType)
     {
     case ASC:
+    case ASCvTCP:
+    case ASCvUDP:
         cCpoConnectTx(clientPort, printTxAsc);
         cCpoConnectRx(clientPort, printRxAsc);
         break;

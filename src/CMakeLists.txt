@@ -187,11 +187,11 @@ if (MB_C_SUPPORT_DISABLE)
 else()
     message(STATUS "MB: C support is enabled!")
     set(MB_PUBLIC_HEADERS ${MB_PUBLIC_HEADERS}
-        #cModbus.h
+        cModbus.h
         ) 
 
     set(MB_SOURCES ${MB_SOURCES}
-        #cModbus.cpp
+        cModbus.cpp
         )
 endif()
 
