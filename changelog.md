@@ -141,3 +141,9 @@
     * `ASCII` over `TCP`
     * `RTU` over `UDP`
     * `ASCII` over `UDP`
+* Added support for `FC08`, `FC20`, `FC21`, `FC43/14`
+* Added separate `ModbusInterface` diagnostics subfunctions
+* Changed interface of some functions of `ModbusInterface` base class
+* Added `ModbusClientPort::rawRequest()` method
+* Improve unit tests
+* Update docs
