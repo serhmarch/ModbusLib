@@ -145,5 +145,6 @@
 * Added separate `ModbusInterface` diagnostics subfunctions
 * Changed interface of some functions of `ModbusInterface` base class
 * Added `ModbusClientPort::rawRequest()` method
+* Move `context`/`setContext` methods from `ModbusServerPort` to `ModbusObject`
 * Improve unit tests
 * Update docs
