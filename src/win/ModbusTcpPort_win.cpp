@@ -289,14 +289,13 @@ StatusCode ModbusTcpPort::read()
             }
             else
             {
-                int err = WSAGetLastError();
-                if (err != WSAEWOULDBLOCK)
-                {
-                    close();
-                    return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
-                                                          StringLiteral("'. Error code: ") + toModbusString(err) +
-                                                          StringLiteral(". ") + getLastErrorText());
-                }
+                int e = WSAGetLastError();
+                if (isNonBlocking() && e == WSAEWOULDBLOCK)
+                    return Status_Processing; // No data available for non-blocking socket, try again later
+                this->close();
+                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                                                      StringLiteral("'. Error code: ") + toModbusString(e) +
+                                                      StringLiteral(". ") + getLastErrorText());
             }
         }
             break;

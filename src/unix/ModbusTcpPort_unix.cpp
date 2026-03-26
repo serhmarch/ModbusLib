@@ -289,12 +289,16 @@ StatusCode ModbusTcpPort::read()
             else
             {
                 int e = errno;
-                if (e != EWOULDBLOCK)
-                {
-                    close();
-                    return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
-                                                          StringLiteral("'. Error code: ") + toModbusString(errno) +
-                                                          StringLiteral(". ") + getLastErrorText());
+#if EWOULDBLOCK == EAGAIN
+                if (d->isNonBlocking() && e == EWOULDBLOCK)
+#else
+                if (d->isNonBlocking() && (e == EWOULDBLOCK || e == EAGAIN))              
+#endif 
+                    return Status_Processing; // No data available for non-blocking socket, try again later
+                this->close();
+                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
+                                                      StringLiteral("'. Error code: ") + toModbusString(e) +
+                                                      StringLiteral(". ") + getLastErrorText());
                 }
             }
         }
