@@ -285,7 +285,7 @@
 /// \brief Maximum buff length for `Read/Write FileRecord` functions
 #define MB_FILE_RECORD_BUFF_SZ 251
 
-/// \brief Maximum events for `GetCommEventLog` function
+/// \brief Maximum count of registers for FIFO queue in `Read FIFO Queue` function
 #define MB_READ_FIFO_QUEUE_MAX 31
 
 #ifdef __cplusplus
