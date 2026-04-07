@@ -22,34 +22,34 @@ bool ModbusPort::isChanged() const
 
 bool ModbusPort::isServerMode() const
 {
-    return d_ptr->modeServer;
+    return d_ptr->isServerMode();
 }
 
 void ModbusPort::setServerMode(bool mode)
 {
-    d_ptr->modeServer = mode;
+    d_ptr->setServerMode(mode);
 }
 
 bool ModbusPort::isBlocking() const
 {
-    return d_ptr->modeBlocking;
+    return d_ptr->isBlocking();
 }
 
 bool ModbusPort::isNonBlocking() const
 {
-    return !d_ptr->modeBlocking;
+    return d_ptr->isNonBlocking();
 }
 
 uint32_t ModbusPort::timeout() const
 {
-    return d_ptr->settingsBase.timeout;
+    return d_ptr->timeout();
 }
 
 void ModbusPort::setTimeout(uint32_t timeout)
 {
-    if (d_ptr->settingsBase.timeout != timeout)
+    if (d_ptr->timeout() != timeout)
     {
-        d_ptr->settingsBase.timeout = timeout;
+        d_ptr->setTimeout(timeout);
         d_ptr->setChanged(true);
     }
 }

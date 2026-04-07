@@ -61,7 +61,7 @@ StatusCode ModbusSerialPortPrivateUnix::blockingWrite()
     c = ::write(this->serialPort, this->buff, this->sz);
     if (c < 0)
     {
-        return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->settings.portName +
+        return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->portName() +
                                                      StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                      StringLiteral(". ") + getLastErrorText());
     }
@@ -75,7 +75,7 @@ StatusCode ModbusSerialPortPrivateUnix::blockingRead()
     c = ::read(this->serialPort, this->buff, this->c_buffSz);
     if (c < 0)
     {
-        return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->settings.portName +
+        return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->portName() +
                                                     StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                     StringLiteral(". ") + getLastErrorText());
     }
@@ -112,7 +112,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
                 if (errno != EWOULDBLOCK)
                 {
                     this->state = STATE_OPENED;
-                    return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->settings.portName +
+                    return this->setError(Status_BadSerialWrite, StringLiteral("Error while writing '") + this->portName() +
                                                                  StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                                  StringLiteral(". ") + getLastErrorText());
                 }
@@ -156,7 +156,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
                 if (errno != EWOULDBLOCK)
                 {
                     this->state = STATE_OPENED;
-                    return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->settings.portName +
+                    return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->portName() +
                                                                 StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                                 StringLiteral(". ") + getLastErrorText());
                 }
@@ -164,7 +164,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             if (c > 0)
             {
                 this->sz += static_cast<uint16_t>(c);
-                if ((this->settings.timeoutInterByte == 0) || // timeoutInterByte = 0 means no need to wait next bytes
+                if ((this->timeoutInterByte() == 0) || // timeoutInterByte = 0 means no need to wait next bytes
                     (this->sz == this->c_buffSz))             // input buffer is full. Try to handle it
                 {
                     this->state = STATE_OPENED;
@@ -173,14 +173,14 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
                 if (this->sz > this->c_buffSz)
                 {
                     this->state = STATE_OPENED;
-                    return this->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading '") + this->settings.portName +
+                    return this->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading '") + this->portName() +
                                                                         StringLiteral("' serial port. Read buffer overflow"));
                 }
             }
-            else if (timer() - this->timestamp >= this->settingsBase.timeout) // waiting timeout read first byte elapsed
+            else if (timer() - this->timestamp >= this->timeoutFirstByte()) // waiting timeout read first byte elapsed
             {
                 this->state = STATE_OPENED;
-                return this->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading '") + this->settings.portName +
+                return this->setError(Status_BadSerialReadTimeout, StringLiteral("Error while reading '") + this->portName() +
                                                                    StringLiteral("' serial port. Timeout"));
             }
             else
@@ -198,7 +198,7 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
                 if (errno != EWOULDBLOCK)
                 {
                     this->state = STATE_OPENED;
-                    return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->settings.portName +
+                    return this->setError(Status_BadSerialRead, StringLiteral("Error while reading '") + this->portName() +
                                                                 StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                                 StringLiteral(". ") + getLastErrorText());
                 }
@@ -213,11 +213,11 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
                     return Status_Good;
                 }
                 if (this->sz > this->c_buffSz)
-                    return this->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading '") + this->settings.portName +
+                    return this->setError(Status_BadReadBufferOverflow, StringLiteral("Error while reading '") + this->portName() +
                                                                         StringLiteral("' serial port. Read buffer overflow"));
                 this->timestampRefresh();
             }
-            else if (timer() - this->timestamp >= this->settings.timeoutInterByte) // waiting timeout read next byte elapsed
+            else if (timer() - this->timestamp >= this->timeoutInterByte()) // waiting timeout read next byte elapsed
             {
                 this->state = STATE_OPENED;
                 return Status_Good;

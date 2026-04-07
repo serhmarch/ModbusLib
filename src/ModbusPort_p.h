@@ -45,8 +45,15 @@ public:
     {
     }
 
+public: //settings
+    inline auto timeout() const { return settingsBase.timeout; }
+    inline void setTimeout(uint32_t timeout) { settingsBase.timeout = timeout; }
+    
 public:
+    inline bool isServerMode() const { return this->modeServer; }
+    inline void setServerMode(bool server) { this->modeServer = server; }
     inline bool isBlocking() const { return modeBlocking; }
+    inline bool isNonBlocking() const { return !modeBlocking; }
     inline bool isStateClosed() const { return state == STATE_CLOSED; }
     inline bool isChanged() const { return changed; }
     inline void setChanged(bool changed) { this->changed = changed; }

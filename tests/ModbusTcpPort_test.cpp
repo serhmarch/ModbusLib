@@ -138,6 +138,12 @@ TEST_F(ModbusTcpPortTest, HostConfiguration)
     port->setHost("192.168.1.100");
     EXPECT_EQ(std::string(port->host()), std::string("192.168.1.100"));
     EXPECT_TRUE(port->isChanged());
+    
+    port->setHost("192.168.1.101");
+    EXPECT_EQ(std::string(port->host()), std::string("192.168.1.101"));
+    
+    port->setHost("somehostname.local");
+    EXPECT_EQ(std::string(port->host()), std::string("somehostname.local"));
 }
 
 TEST_F(ModbusTcpPortTest, PortConfiguration)
@@ -147,6 +153,9 @@ TEST_F(ModbusTcpPortTest, PortConfiguration)
     port->setPort(1502);
     EXPECT_EQ(port->port(), 1502);
     EXPECT_TRUE(port->isChanged());
+    
+    port->setPort(5020);
+    EXPECT_EQ(port->port(), 5020);
 }
 
 TEST_F(ModbusTcpPortTest, TimeoutConfiguration)
@@ -155,6 +164,9 @@ TEST_F(ModbusTcpPortTest, TimeoutConfiguration)
     
     port->setTimeout(5000);
     EXPECT_EQ(port->timeout(), 5000);
+    
+    port->setTimeout(30000);
+    EXPECT_EQ(port->timeout(), 30000);
 }
 
 TEST_F(ModbusTcpPortTest, ServerModeConfiguration)

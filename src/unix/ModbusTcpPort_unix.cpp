@@ -62,9 +62,9 @@ Modbus::StatusCode ModbusTcpPort::open()
             d->freeAddr();
 
             struct addrinfo* addr = nullptr;
-            int status = getaddrinfo(d->settings.host.data(), nullptr, &hints, &addr);
+            int status = getaddrinfo(d->host().data(), nullptr, &hints, &addr);
             if (status != 0)
-                return d->setError(Status_BadTcpCreate, StringLiteral("TCP. Error while getting address info for '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                return d->setError(Status_BadTcpCreate, StringLiteral("TCP. Error while getting address info for '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
                                                         StringLiteral(". ") + getLastErrorText());
             d->addr = addr;
@@ -72,14 +72,14 @@ Modbus::StatusCode ModbusTcpPort::open()
             if (d->socket->isInvalid())
             {
                 d->freeAddr();
-                return d->setError(Status_BadTcpCreate, StringLiteral("TCP. Error while creating socket for '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                return d->setError(Status_BadTcpCreate, StringLiteral("TCP. Error while creating socket for '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                         StringLiteral("'. Error code: ") + toModbusString(errno) +
                                                         StringLiteral(". ") + getLastErrorText());
             }
             d->socket->setBlocking(false); // Note: in case of block-socket it will be set after connect
             if (isBlocking())
                 d->socket->setTimeout(this->timeout());
-            reinterpret_cast<sockaddr_in*>(d->addr->ai_addr)->sin_port = htons(d->settings.port);
+            reinterpret_cast<sockaddr_in*>(d->addr->ai_addr)->sin_port = htons(d->port());
             d->timestamp = timer();
             d->state = STATE_WAIT_FOR_OPEN;
         }
@@ -98,7 +98,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                 {
                     d->socket->close();
                     d->state = STATE_CLOSED;
-                    return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                    return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                             StringLiteral("'. Timeout") );
                 }
             }
@@ -111,7 +111,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                     {
                         d->socket->close();
                         d->state = STATE_CLOSED;
-                        return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                        return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                                 StringLiteral("'. Error code: ") + toModbusString(errno) +
                                                                 StringLiteral(". ") + getLastErrorText());
                     }
@@ -133,10 +133,10 @@ Modbus::StatusCode ModbusTcpPort::open()
                         d->socket->close();
                         d->state = STATE_CLOSED;
                         if (r == 0)
-                            return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                            return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                                     StringLiteral("'. Timeout") );
                         else
-                            return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                            return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                                     StringLiteral("'. Error code: ") + toModbusString(errno) +
                                                                     StringLiteral(". ") + getLastErrorText());
                     }
@@ -149,7 +149,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                     {
                         d->socket->close();
                         d->state = STATE_CLOSED;
-                        return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                        return d->setError(Status_BadTcpConnect,StringLiteral("TCP. Error while connecting to '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                                 StringLiteral("'. Error code: ") + toModbusString(sockErr) +
                                                                 StringLiteral(". ") + getLastErrorText());
                     }
@@ -224,7 +224,7 @@ StatusCode ModbusTcpPort::write()
             else
             {
                 close();
-                return d->setError(Status_BadTcpWrite, StringLiteral("TCP. Error while writing to '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                return d->setError(Status_BadTcpWrite, StringLiteral("TCP. Error while writing to '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                        StringLiteral("'. Error code: ") + toModbusString(errno) +
                                                        StringLiteral(". ") + getLastErrorText());
             }
@@ -274,16 +274,16 @@ StatusCode ModbusTcpPort::read()
             {
                 close();
                 // Note: When connection is remotely closed is not error for server side
-                if (d->modeServer)
+                if (d->isServerMode())
                     return Status_Uncertain;
                 else
-                    return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                    return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                           StringLiteral("'. Remote connection closed") );
             }
-            else if (isNonBlocking() && (timer() - d->timestamp >= d->settingsBase.timeout)) // waiting timeout read first byte elapsed
+            else if (isNonBlocking() && (timer() - d->timestamp >= d->timeout())) // waiting timeout read first byte elapsed
             {
                 close();
-                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->settings.host + StringLiteral(":") + toModbusString(d->settings.port) +
+                return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                       StringLiteral("'. Timeout") );
             }
             else
@@ -299,7 +299,6 @@ StatusCode ModbusTcpPort::read()
                 return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                       StringLiteral("'. Error code: ") + toModbusString(e) +
                                                       StringLiteral(". ") + getLastErrorText());
-                }
             }
         }
             break;

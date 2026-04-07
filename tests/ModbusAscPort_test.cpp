@@ -678,23 +678,62 @@ TEST_F(ModbusAscPortTest, SerialPortConfiguration)
     port->setPortName("COM3");
     EXPECT_EQ(std::string(port->portName()), std::string("COM3"));
     
+    port->setPortName("/dev/ttyS0");
+    EXPECT_EQ(std::string(port->portName()), std::string("/dev/ttyS0"));
+    
     // Test baud rate
     port->setBaudRate(9600);
     EXPECT_EQ(port->baudRate(), 9600);
     
+    port->setBaudRate(19200);
+    EXPECT_EQ(port->baudRate(), 19200);
+    
+    port->setBaudRate(38400);
+    EXPECT_EQ(port->baudRate(), 38400);
+    
+    port->setBaudRate(115200);
+    EXPECT_EQ(port->baudRate(), 115200);
+    
     // Test data bits
-    port->setDataBits(7); // ASCII typically uses 7 data bits
+    port->setDataBits(5); 
+    EXPECT_EQ(port->dataBits(), 5);
+
+    port->setDataBits(6); 
+    EXPECT_EQ(port->dataBits(), 6);
+
+    port->setDataBits(7);
     EXPECT_EQ(port->dataBits(), 7);
     
+    port->setDataBits(8); 
+    EXPECT_EQ(port->dataBits(), 8);
+
     // Test parity
     port->setParity(Modbus::EvenParity);
     EXPECT_EQ(port->parity(), Modbus::EvenParity);
     
+    port->setParity(Modbus::OddParity);
+    EXPECT_EQ(port->parity(), Modbus::OddParity);
+    
+    port->setParity(Modbus::NoParity);
+    EXPECT_EQ(port->parity(), Modbus::NoParity);
+    
     // Test stop bits
+    port->setStopBits(Modbus::TwoStop);
+    EXPECT_EQ(port->stopBits(), Modbus::TwoStop);
+
+    port->setStopBits(Modbus::OneAndHalfStop);
+    EXPECT_EQ(port->stopBits(), Modbus::OneAndHalfStop);
+    
     port->setStopBits(Modbus::OneStop);
     EXPECT_EQ(port->stopBits(), Modbus::OneStop);
-    
+
     // Test flow control
+    port->setFlowControl(Modbus::HardwareControl);
+    EXPECT_EQ(port->flowControl(), Modbus::HardwareControl);
+
+    port->setFlowControl(Modbus::SoftwareControl);
+    EXPECT_EQ(port->flowControl(), Modbus::SoftwareControl);
+
     port->setFlowControl(Modbus::NoFlowControl);
     EXPECT_EQ(port->flowControl(), Modbus::NoFlowControl);
 }

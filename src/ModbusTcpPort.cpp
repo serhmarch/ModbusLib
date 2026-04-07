@@ -24,9 +24,9 @@ const Char *ModbusTcpPort::host() const
 void ModbusTcpPort::setHost(const Char *host)
 {
     ModbusTcpPortPrivate *d = d_cast(d_ptr);
-    if (d->settings.host != host)
+    if (d->host() != host)
     {
-        d->settings.host = host;
+        d->setHost(host);
         d->setChanged(true);
     }
 }
@@ -39,9 +39,9 @@ uint16_t ModbusTcpPort::port() const
 void ModbusTcpPort::setPort(uint16_t port)
 {
     ModbusTcpPortPrivate *d = d_cast(d_ptr);
-    if (d->settings.port != port)
+    if (d->port() != port)
     {
-        d->settings.port = port;
+        d->setPort(port);
         d->setChanged(true);
     }
 }
@@ -84,11 +84,11 @@ uint16_t ModbusTcpPort::writeBufferSize() const
 StatusCode ModbusTcpPort::writeBuffer(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff)
 {
     ModbusTcpPortPrivate *d = d_cast(d_ptr);
-    if (!d->modeServer)
+    if (!d->isServerMode())
     {
         d->transaction += d->autoIncrement;
         d->autoIncrement = true;
-    } // if (!d->modeServer)
+    } // if (!d->isServerMode())
     // 8 = 6(TCP prefix size in bytes) + 2(unit and function bytes)
     if (szInBuff > MBCLIENTTCP_BUFF_SZ - 8)
         return d->setError(Status_BadWriteBufferOverflow, StringLiteral("TCP. Write-buffer overflow"));
@@ -123,7 +123,7 @@ StatusCode ModbusTcpPort::readBuffer(uint8_t &unit, uint8_t &func, uint8_t *buff
     if (cBytes != (d->sz-6))
         return d->setError(Status_BadNotCorrectResponse, StringLiteral("TCP. Not correct read-buffer's TCP-prefix. Size defined in TCP-prefix is not equal to actual response-size"));
     
-    if (d->modeServer)
+    if (d->isServerMode())
     {
         d->transaction = transaction;
     }

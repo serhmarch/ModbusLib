@@ -67,11 +67,11 @@ StatusCode ModbusSerialPort::open()
             {
                 flags |= O_NONBLOCK;
             }
-            d->serialPort = ::open(d->settings.portName.c_str(),  flags);
+            d->serialPort = ::open(d->portName().c_str(),  flags);
 
             if (d->serialPortIsInvalid())
             {
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
             }
@@ -82,10 +82,10 @@ StatusCode ModbusSerialPort::open()
             int r;
             r = tcgetattr(d->serialPort, &options);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get attributes for '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get attributes for '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
-            switch(d->settings.baudRate)
+            switch(d->baudRate())
             {
             case 1200:  sp = B1200;  break;
             case 2400:  sp = B2400;  break;
@@ -100,12 +100,12 @@ StatusCode ModbusSerialPort::open()
 
             r = cfsetispeed(&options, sp);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set input baud rate for '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set input baud rate for '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
             r = cfsetospeed(&options, sp);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set output baud rate for '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set output baud rate for '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
 
@@ -113,7 +113,7 @@ StatusCode ModbusSerialPort::open()
 
             // data bits
             options.c_cflag &= ~CSIZE;
-            switch (d->settings.dataBits)
+            switch (d->dataBits())
             {
             case 5: options.c_cflag |= CS5; break;
             case 6: options.c_cflag |= CS6; break;
@@ -124,7 +124,7 @@ StatusCode ModbusSerialPort::open()
             // parity
             options.c_cflag &= ~PARENB;
             options.c_cflag &= ~PARODD;
-            switch (d->settings.parity)
+            switch (d->parity())
             {
             case EvenParity: options.c_cflag |= PARENB; break;
             case OddParity:  options.c_cflag |= PARENB; options.c_cflag |= PARODD; break;
@@ -132,7 +132,7 @@ StatusCode ModbusSerialPort::open()
             }
 
             // stop bits
-            switch (d->settings.stopBits)
+            switch (d->stopBits())
             {
             case OneStop:
                 options.c_cflag &= ~CSTOPB;  // Clear CSTOPB flag for 1 stop bit
@@ -167,7 +167,7 @@ StatusCode ModbusSerialPort::open()
             if (isBlocking())
             {
                 options.c_cc[VMIN]  = 0;
-                options.c_cc[VTIME] = d->settingsBase.timeout / 100;
+                options.c_cc[VTIME] = d->timeout() / 100;
             }
             else
             {
@@ -177,7 +177,7 @@ StatusCode ModbusSerialPort::open()
 
             r = tcsetattr(d->serialPort, TCSANOW, &options);
             if (r < 0)
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set attributes for '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set attributes for '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(errno) +
                                                          StringLiteral(". ") + getLastErrorText());
 

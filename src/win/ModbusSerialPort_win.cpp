@@ -108,7 +108,7 @@ StatusCode ModbusSerialPort::open()
 
 
             char swincom[MAX_PATH];
-            snprintf(swincom, MAX_PATH-1, "\\\\.\\%s", d->settings.portName.c_str());
+            snprintf(swincom, MAX_PATH-1, "\\\\.\\%s", d->portName().c_str());
             d->serialPort = CreateFileA(
                 swincom,                      // Port name
                 GENERIC_READ | GENERIC_WRITE, // Read and write access
@@ -122,7 +122,7 @@ StatusCode ModbusSerialPort::open()
             if (d->serialPortIsInvalid())
             {
                 DWORD err = GetLastError();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to open '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(err) +
                                                          StringLiteral(". ") + getLastErrorText());
             }
@@ -134,7 +134,7 @@ StatusCode ModbusSerialPort::open()
             {
                 d->serialPortClose();
                 DWORD err = GetLastError();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get state of '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to get state of '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(err) +
                                                          StringLiteral(". ") + getLastErrorText());
             }
@@ -150,17 +150,17 @@ StatusCode ModbusSerialPort::open()
             if (dcb.fRtsControl != RTS_CONTROL_HANDSHAKE)
                 dcb.fRtsControl = RTS_CONTROL_DISABLE;
 
-            dcb.BaudRate = static_cast<DWORD>(d->settings.baudRate);
-            dcb.ByteSize = static_cast<DWORD>(d->settings.dataBits);
-            dcb.StopBits = winStopBits(d->settings.stopBits);
-            dcb.Parity   = winParity(d->settings.parity);
-            winFillDCBFlowControl(&dcb,d->settings.flowControl);
+            dcb.BaudRate = static_cast<DWORD>(d->baudRate());
+            dcb.ByteSize = static_cast<DWORD>(d->dataBits());
+            dcb.StopBits = winStopBits(d->stopBits());
+            dcb.Parity   = winParity(d->parity());
+            winFillDCBFlowControl(&dcb,d->flowControl());
 
             if (!SetCommState(d->serialPort, &dcb))
             {
                 d->serialPortClose();
                 DWORD err = GetLastError();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set state of '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set state of '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(err) +
                                                          StringLiteral(". ") + getLastErrorText());
             }
@@ -170,7 +170,7 @@ StatusCode ModbusSerialPort::open()
             if (isBlocking())
             {
                 timeouts.ReadTotalTimeoutConstant = static_cast<DWORD>(this->timeoutFirstByte());  // Total timeout for first byte (in milliseconds)
-                timeouts.ReadIntervalTimeout = static_cast<DWORD>(d->settings.timeoutInterByte);  // Timeout for inter-byte (in milliseconds)
+                timeouts.ReadIntervalTimeout = static_cast<DWORD>(d->timeoutInterByte());  // Timeout for inter-byte (in milliseconds)
                 timeouts.WriteTotalTimeoutConstant = static_cast<DWORD>(this->timeoutFirstByte());
                 timeouts.WriteTotalTimeoutMultiplier = 0;
             }
@@ -183,7 +183,7 @@ StatusCode ModbusSerialPort::open()
             {
                 d->serialPortClose();
                 DWORD err = GetLastError();
-                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set timeouts of '") + d->settings.portName +
+                return d->setError(Status_BadSerialOpen, StringLiteral("Failed to set timeouts of '") + d->portName() +
                                                          StringLiteral("' serial port. Error code: ") + toModbusString(err));
             }
             //PurgeComm(d->serialPort, PURGE_TXCLEAR|PURGE_RXCLEAR);

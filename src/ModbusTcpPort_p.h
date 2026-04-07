@@ -23,11 +23,20 @@ public:
         sz = 0;
     }
 
+public: // settings
+    inline const String& host() const { return settings.host; }
+    inline void setHost(const String& host) { settings.host = host; }
+    inline void setHost(String &&host) { settings.host = std::move(host); }
+    inline void setHost(const Char *host) { settings.host = host; }
+
+    inline uint16_t port() const { return settings.port; }
+    inline void setPort(uint16_t port) { settings.port = port; }
+
 public:
     struct
     {
-        String   host   ;
-        uint16_t port   ;
+        String   host;
+        uint16_t port;
     } settings;
 
     bool autoIncrement;
