@@ -1016,13 +1016,13 @@ StatusCode ModbusServerResource::processOutputData(uint8_t *buff, uint16_t &sz)
         case MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE:
         case MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER:
         case MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG:
-            buff[0] = d->valueBuff[0]; 
-            buff[1] = d->valueBuff[1]; 
+            buff[2] = d->valueBuff[0]; 
+            buff[3] = d->valueBuff[1]; 
             sz = 4;
             break;
         default:
-            buff[0] = d->valueBuff[1]; 
-            buff[1] = d->valueBuff[0]; 
+            buff[2] = d->valueBuff[1]; 
+            buff[3] = d->valueBuff[0]; 
             sz = 4;
             break;
         }
