@@ -102,8 +102,12 @@ public:
     };
 
 public:
-    ///  \details Constructor of the class. `device` param is object which might process incoming requests for read/write memory.
+    ///  \details Constructor of the class. `device` param is object which might process incoming requests for read/write data.
     ModbusTcpServer(Modbus::ProtocolType type, ModbusInterface *device);
+
+    ///  \details Constructor of the class. `device` param is object which might process incoming requests for read/write data.
+    ///  `type` param is ignored and set to `Modbus::TCP` internally. It is added for compatibility with previous versions.
+    ModbusTcpServer(ModbusInterface *device) : ModbusTcpServer(Modbus::TCP, device) {}
 
     ///  \details Destructor of the class. Clear all unclosed connections.
     ~ModbusTcpServer();
@@ -121,10 +125,10 @@ public:
     ///  \details Sets the settings for the TCP port number of the server.
     void setPort(uint16_t port);
 
-    ///  \details Returns the setting for the read timeout of every single conncetion.
+    ///  \details Returns the setting for the read timeout of every single connection.
     uint32_t timeout() const override;
 
-    ///  \details Sets the setting for the read timeout of every single conncetion.
+    ///  \details Sets the setting for the read timeout of every single connection.
     void setTimeout(uint32_t timeout) override;
 
     ///  \details Returns setting for the maximum number of simultaneous connections to the server.

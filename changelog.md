@@ -148,3 +148,7 @@
 * Move `context`/`setContext` methods from `ModbusServerPort` to `ModbusObject`
 * Improve unit tests
 * Update docs
+
+# 0.5.1
+
+* Added constructor `ModbusTcpServer(ModbusInterface *device)` for compatibilty with prev versions
