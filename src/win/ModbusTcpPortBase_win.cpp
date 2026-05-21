@@ -15,10 +15,8 @@ Modbus::Handle ModbusTcpPortBase::handle() const
 Modbus::StatusCode ModbusTcpPortBase::open()
 {
     ModbusTcpPortBasePrivateWin *d = d_win(d_ptr);
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (d->state)
         {
         case STATE_UNKNOWN:
@@ -153,11 +151,11 @@ Modbus::StatusCode ModbusTcpPortBase::open()
                 return Status_Good;
             }
             d->state = STATE_CLOSED;
-            fRepeatAgain = true;
-            break;
+            continue;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }
 
@@ -189,10 +187,8 @@ bool ModbusTcpPortBase::isOpen() const
 Modbus::StatusCode ModbusTcpPortBase::write()
 {
     ModbusTcpPortBasePrivateWin *d = d_win(d_ptr);
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (d->state)
         {
         case STATE_OPENED:
@@ -220,24 +216,22 @@ Modbus::StatusCode ModbusTcpPortBase::write()
             if (this->isOpen())
             {
                 d->state = STATE_OPENED;
-                fRepeatAgain = true;
+                continue;
             }
             else
                 return d->setError(Status_BadTcpWrite, StringLiteral("Internal state error"));
-            break;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }
 
 Modbus::StatusCode ModbusTcpPortBase::read()
 {
     ModbusTcpPortBasePrivateWin *d = d_win(d_ptr);
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (d->state)
         {
         case STATE_OPENED:
@@ -287,13 +281,13 @@ Modbus::StatusCode ModbusTcpPortBase::read()
             if (this->isOpen())
             {
                 d->state = STATE_OPENED;
-                fRepeatAgain = true;
+                continue;
             }
             else
                 return d->setError(Status_BadTcpRead, StringLiteral("Internal state error"));
-            break;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }

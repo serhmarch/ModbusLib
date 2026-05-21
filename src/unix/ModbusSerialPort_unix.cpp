@@ -16,10 +16,8 @@ Handle ModbusSerialPort::handle() const
 StatusCode ModbusSerialPort::open()
 {
     ModbusSerialPortPrivateUnix *d = d_unix(d_ptr);
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (d->state)
         {
         case STATE_UNKNOWN:
@@ -171,11 +169,11 @@ StatusCode ModbusSerialPort::open()
                 return Status_Good;
             }
             d->state = STATE_CLOSED;
-            fRepeatAgain = true;
-            break;
+            continue;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }
 

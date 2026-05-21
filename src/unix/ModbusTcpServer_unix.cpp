@@ -33,10 +33,8 @@ StatusCode ModbusTcpServer::open()
 {
     ModbusTcpServerPrivateUnix *d = d_unix(d_ptr);
     d->cmdClose = false;
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (d->state)
         {
         case STATE_CLOSED:
@@ -95,13 +93,13 @@ StatusCode ModbusTcpServer::open()
             if (!isOpen())
             {
                 d->state = STATE_CLOSED;
-                fRepeatAgain = true;
-                break;
+                continue;
             }
             return Status_Good;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }
 

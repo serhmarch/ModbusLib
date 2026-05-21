@@ -78,10 +78,8 @@ StatusCode ModbusServerResource::process()
     StatusCode r = Status_Good;
     uint8_t buff[szBuff], func;
     uint16_t outBytes, outCount = 0;
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (d->state)
         {
         case STATE_CLOSED:
@@ -97,8 +95,7 @@ StatusCode ModbusServerResource::process()
             if (d->cmdClose)
             {
                 d->state = STATE_WAIT_FOR_CLOSE;
-                fRepeatAgain = true;
-                break;
+                continue;
             }
             r = d->port->open();
             if (StatusIsProcessing(r))
@@ -111,8 +108,7 @@ StatusCode ModbusServerResource::process()
             }
             signalOpened(this->objectName());
             d->state = STATE_OPENED;
-            fRepeatAgain = true;
-            break;
+            continue;
         case STATE_WAIT_FOR_CLOSE:
             r = d->port->close();
             if (StatusIsProcessing(r))
@@ -133,8 +129,7 @@ StatusCode ModbusServerResource::process()
             if (d->cmdClose)
             {
                 d->state = STATE_WAIT_FOR_CLOSE;
-                fRepeatAgain = true;
-                break;
+                continue;
             }
             r = d->port->read();
             if (StatusIsProcessing(r))
@@ -170,8 +165,7 @@ StatusCode ModbusServerResource::process()
                 if (StatusIsStandardError(r)) // return standard error to device
                 {
                     d->state = STATE_BEGIN_WRITE;
-                    fRepeatAgain = true;
-                    break;
+                    continue;
                 }
                 else
                 {
@@ -234,8 +228,7 @@ StatusCode ModbusServerResource::process()
             if (timer() - d->timestamp < d->port->timeout())
                 return Status_Processing;
             d->state = STATE_UNKNOWN;
-            fRepeatAgain = true;
-            break;
+            continue;
         default:
             if (d->port->isOpen())
             {
@@ -246,11 +239,11 @@ StatusCode ModbusServerResource::process()
             }
             else
                 d->state = STATE_CLOSED;
-            fRepeatAgain = true;
-            break;
+            continue;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }
 

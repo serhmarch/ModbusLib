@@ -2289,18 +2289,15 @@ StatusCode ModbusClientPort::process()
 {
     ModbusClientPortPrivate *d = d_cast(d_ptr);
     StatusCode r;
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (d->state)
         {
         case STATE_UNKNOWN:
             if (d->port->isOpen())
             {
                 d->state = STATE_OPENED;
-                fRepeatAgain = true;
-                break;
+                continue;
             }
             d->state = STATE_CLOSED;
             MB_FALLTHROUGH
@@ -2323,8 +2320,7 @@ StatusCode ModbusClientPort::process()
             }
             d->state = STATE_OPENED;
             signalOpened(this->objectName());
-            fRepeatAgain = true;
-            break;
+            continue;
         case STATE_WAIT_FOR_CLOSE:
             r = close();
             if (StatusIsProcessing(r))
@@ -2342,8 +2338,7 @@ StatusCode ModbusClientPort::process()
             if (d->port->isChanged())
             {
                 d->state = STATE_WAIT_FOR_CLOSE;
-                fRepeatAgain = true;
-                break;
+                continue;
             }
             // send data to server
             d->state = STATE_BEGIN_WRITE;
@@ -2416,19 +2411,18 @@ StatusCode ModbusClientPort::process()
                     return Status_Processing;
             }
             d->state = STATE_UNKNOWN;
-            fRepeatAgain = true;
         }
-            break;
+            continue;
         default:
             if (d->port->isOpen())
                 d->state = STATE_OPENED;
             else
                 d->state = STATE_CLOSED;
-            fRepeatAgain = true;
-            break;
+            continue;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }
 

@@ -141,10 +141,8 @@ StatusCode ModbusTcpServer::process()
 {
     ModbusTcpServerPrivate *d = d_cast(d_ptr);
     StatusCode r;
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (d->state)
         {
         case STATE_CLOSED:
@@ -160,8 +158,7 @@ StatusCode ModbusTcpServer::process()
             if (d->cmdClose)
             {
                 d->state = STATE_WAIT_FOR_CLOSE;
-                fRepeatAgain = true;
-                break;
+                continue;
             }
             r = open();
             if (StatusIsProcessing(r))
@@ -174,8 +171,7 @@ StatusCode ModbusTcpServer::process()
             }
             d->state = STATE_OPENED;
             signalOpened(d->getName());
-            fRepeatAgain = true;
-            break;
+            continue;
         case STATE_WAIT_FOR_CLOSE:
             r = close();
             if (StatusIsProcessing(r))
@@ -198,8 +194,7 @@ StatusCode ModbusTcpServer::process()
             if (d->cmdClose)
             {
                 d->state = STATE_WAIT_FOR_CLOSE;
-                fRepeatAgain = true;
-                break;
+                continue;
             }
             // check up new connection
             if (ModbusSocket *s = this->nextPendingConnection())
@@ -242,8 +237,7 @@ StatusCode ModbusTcpServer::process()
             if (timer() - d->timestamp < timeout())
                 return Status_Processing;
             d->state = STATE_CLOSED;
-            fRepeatAgain = true;
-            break;
+            continue;
         default:
             if (d->cmdClose && isOpen())
                 d->state = STATE_WAIT_FOR_CLOSE;
@@ -251,11 +245,11 @@ StatusCode ModbusTcpServer::process()
                 d->state = STATE_OPENED;
             else
                 d->state = STATE_CLOSED;
-            fRepeatAgain = true;
-            break;
+            continue;
         }
+        break;
     }
-    while(fRepeatAgain);
+    while(1);
     return Status_Processing;
 }
 

@@ -89,10 +89,8 @@ StatusCode ModbusSerialPortPrivateUnix::blockingRead()
 StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
 {
     int c;
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch (this->state)
         {
         case STATE_OPENED:
@@ -130,24 +128,23 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingWrite()
             if (this->serialPortIsOpen())
             {
                 this->state = STATE_OPENED;
-                fRepeatAgain = true;
+                continue;
             }
             else
                 return this->setError(Status_BadSerialWrite, StringLiteral("Internal state error"));
             break;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }
 
 StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
 {
     int c;
-    bool fRepeatAgain;
     do
     {
-        fRepeatAgain = false;
         switch(this->state)
         {
         case STATE_OPENED:
@@ -240,14 +237,15 @@ StatusCode ModbusSerialPortPrivateUnix::nonBlockingRead()
             if (this->serialPortIsOpen())
             {
                 this->state = STATE_OPENED;
-                fRepeatAgain = true;
+                continue;
             }
             else
                 return this->setError(Status_BadSerialRead, StringLiteral("Internal state error"));
             break;
         }
+        break;
     }
-    while (fRepeatAgain);
+    while (1);
     return Status_Processing;
 }
 
