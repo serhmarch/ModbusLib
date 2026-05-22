@@ -56,6 +56,10 @@ option(MBF_MEI_READ_DEVICE_IDENTIFICATION_DISABLE, OFF)
 
 option(MB_ADDRESS_CLASS_DISABLE "Disable Modbus::Address class" OFF)
 
+# Client Port options
+option(MB_CLIENT_PORT_RAW_REQUEST_DISABLE "Disable rawRequest function in ModbusClientPort" OFF)
+option(MB_CLIENT_PORT_FRAME_REQUEST_DISABLE "Disable frameRequest function in ModbusClientPort" OFF)
+
 set(MB_DYNAMIC_LINKING OFF)
 
 if (BUILD_SHARED_LIBS)

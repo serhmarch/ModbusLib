@@ -2172,6 +2172,7 @@ void ModbusClientPort::signalCompleted(const Modbus::Char *source, Modbus::Statu
     emitSignal(__func__, &ModbusClientPort::signalCompleted, source, status);
 }
 
+#ifndef MB_CLIENT_PORT_RAW_REQUEST_DISABLE
 StatusCode ModbusClientPort::rawRequest(const void *inBuff, uint16_t szInBuff, void *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {
     RequestStatus rs = getRequestStatus(this);
@@ -2219,6 +2220,22 @@ StatusCode ModbusClientPort::rawRequest(const void *inBuff, uint16_t szInBuff, v
         RAISE_COMPLETED(r);
     }
 }
+#endif // MB_CLIENT_PORT_RAW_REQUEST_DISABLE
+
+#ifndef MB_CLIENT_PORT_FRAME_REQUEST_DISABLE
+Modbus::StatusCode ModbusClientPort::frameRequest(uint8_t unit, uint8_t func, const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(this);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+    case ModbusClientPort::Process:
+        return request(unit, func, inBuff, szInBuff, outBuff, maxSzBuff, szOutBuff);
+    }
+    return Status_Processing;
+}
+#endif // MB_CLIENT_PORT_FRAME_REQUEST_DISABLE
 
 StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
 {

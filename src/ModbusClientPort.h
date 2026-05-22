@@ -461,6 +461,7 @@ public:
     /// \details Cancels the previous request specified by the `*rp` pointer for the client.
     void cancelRequest(ModbusObject *client);
 
+#ifndef MB_CLIENT_PORT_RAW_REQUEST_DISABLE
     /// \details Make raw request to the server.
     /// \param[in]  inBuff    Pointer to the input buffer to write.
     /// \param[in]  szInBuff  Size of input buffer.
@@ -468,6 +469,23 @@ public:
     /// \param[in]  maxSzBuff Maximum size of the output buffer.
     /// \param[out] szOutBuff Pointer to the size of read data.
     Modbus::StatusCode rawRequest(const void *inBuff, uint16_t szInBuff, void *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+#endif // MB_CLIENT_PORT_RAW_REQUEST_DISABLE
+
+#ifndef MB_CLIENT_PORT_FRAME_REQUEST_DISABLE
+    /// \details Function makes request to remote server within current configured frame (TCP, RTU or ASCII).
+    /// Request includes bytes after function code (raw function parameters) provided in `inBuff` with size `szInBuff` and
+    /// does not include unit address and function code, 6 bytes TCP prefix, CRC/LRC checksum for RTU/ASCII, respectively.
+    /// The response from the server is stored in `outBuff` with maximum size `maxSzBuff`, and the actual size of the response is returned in `szOutBuff`.
+    /// The response does not include unit, function, TCP prefix, CRC/LRC checksum for RTU/ASCII as well.
+    /// \param[in]  unit        Modbus unit (slave) address of the remote server.
+    /// \param[in]  func        Modbus function code.
+    /// \param[in]  inBuff      Pointer to the input buffer (raw function params) to write.
+    /// \param[in]  szInBuff    Size of input buffer.
+    /// \param[in]  outBuff     Pointer to the output buffer where read data is stored.
+    /// \param[in]  maxSzBuff   Maximum size of the output buffer.
+    /// \param[out] szOutBuff   Pointer to the size of read data.
+    Modbus::StatusCode frameRequest(uint8_t unit, uint8_t func, const uint8_t *inBuff, uint16_t szInBuff, uint8_t *outBuff, uint16_t maxSzBuff, uint16_t *szOutBuff);
+#endif // MB_CLIENT_PORT_FRAME_REQUEST_DISABLE
 
 public: // SIGNALS
     /// \details Calls each callback of the port when the port is opened. `source` - current port's name
