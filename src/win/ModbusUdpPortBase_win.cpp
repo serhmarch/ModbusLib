@@ -44,7 +44,8 @@ Modbus::StatusCode ModbusUdpPortBase::open()
                                                             StringLiteral(". ") + getLastErrorText());
                 }
                 d->sockadr.sin_family = AF_INET;
-                d->sockadr.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any available interface
+                if (inet_pton(d->sockadr.sin_family, d->ipaddr().data(), &d->sockadr.sin_addr) != 1) // error or invalid address
+                    d->sockadr.sin_addr.s_addr = htonl(INADDR_ANY); // Bind to any available interface
                 d->sockadr.sin_port = htons(d->port()); // Port number
 
                 if (d->socket->bind(d->p_sockaddr(), sizeof(sockaddr_in)) == SOCKET_ERROR)

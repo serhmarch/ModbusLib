@@ -594,6 +594,8 @@ ModbusServerPort *createServerPort(ModbusInterface *device, ProtocolType type, c
     case RTU:
     case ASC:
     case UDP:
+    case RTUvUDP:
+    case ASCvUDP:
     {
         ModbusPort *port = createPort(type, settings, blocking);
         serv = new ModbusServerResource(port, device);

@@ -22,6 +22,7 @@ public:
 
 public: // settings
     inline const String& host() const { return settings.host; }
+    inline const String& ipaddr() const { return settings.host; }
     inline uint16_t port() const { return settings.port; }
 
 public:
