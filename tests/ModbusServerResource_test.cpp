@@ -1045,8 +1045,8 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsRestartCommunicationsOptionRe
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    responseData[0] = 0xFF;
-    responseData[1] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION & 0xFF);
     responseData[2] = 0xFF;
     responseData[3] = 0x00;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
@@ -1119,10 +1119,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnDiagnosticRegisterReque
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1190,8 +1190,8 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsChangeAsciiInputDelimiterRequ
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    responseData[0] = static_cast<uint8_t>(':');
-    responseData[1] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER & 0xFF);
     responseData[2] = static_cast<uint8_t>(':');
     responseData[3] = 0x00;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
@@ -1261,8 +1261,8 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsForceListenOnlyModeRequest)
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    responseData[0] = 0x00;
-    responseData[1] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE & 0xFF);
     responseData[2] = 0x00;
     responseData[3] = 0x00;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
@@ -1332,8 +1332,8 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsClearCountersAndDiagnosticReg
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    responseData[0] = 0x00;
-    responseData[1] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER & 0xFF);
     responseData[2] = 0x00;
     responseData[3] = 0x00;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
@@ -1406,10 +1406,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnBusMessageCountRequest)
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1480,10 +1480,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnBusCommunicationErrorCo
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1554,10 +1554,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnBusExceptionErrorCountR
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1628,10 +1628,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnServerMessageCountReque
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1702,10 +1702,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnServerNoResponseCountRe
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1776,10 +1776,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnServerNAKCountRequest)
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_NAK_COUNT & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1850,10 +1850,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnServerBusyCountRequest)
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1924,10 +1924,10 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsReturnBusCharacterOverrunCoun
             return Status_Good;
         }));
 
-    responseData[0] = 0x12;
-    responseData[1] = 0x34;
-    responseData[2] = 0x00;
-    responseData[3] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT & 0xFF);
+    responseData[2] = 0x12;
+    responseData[3] = 0x34;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
         .With(Args<2, 3>(ElementsAreArray(responseData, 4)))
         .Times(1);
@@ -1995,8 +1995,8 @@ TEST_F(ModbusServerResourceTest, ProcessDiagnosticsClearOverrunCounterAndFlagReq
         .Times(1)
         .WillOnce(Return(Status_Good));
 
-    responseData[0] = 0x00;
-    responseData[1] = 0x00;
+    responseData[0] = static_cast<uint8_t>(MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG >> 8);
+    responseData[1] = static_cast<uint8_t>(MBF_DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG & 0xFF);
     responseData[2] = 0x00;
     responseData[3] = 0x00;
     EXPECT_CALL(*mockPort, writeBuffer(unit, MBF_DIAGNOSTICS, _, 4))
