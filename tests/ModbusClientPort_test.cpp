@@ -3278,3 +3278,155 @@ TEST(ModbusClientPort, testMultipleClients)
 
     EXPECT_EQ(clientPort.currentClient(), nullptr); // Current client should be nullptr because all clients have completed their operations
 }
+
+// ============================================================================
+// FrameRequest Tests
+// ============================================================================
+
+TEST_F(ModbusClientPortTest, FrameRequestSuccess)
+{
+    const uint8_t unit = 1;
+    const uint8_t func = 0x41; // Custom function code
+
+    uint8_t inBuff[2]       = {0xAB, 0xCD};
+    uint8_t responseData[3] = {0x01, 0x02, 0x03};
+
+    setupSuccessfulTransaction(unit, func, inBuff, sizeof(inBuff), responseData, sizeof(responseData));
+
+    uint8_t  outBuff[16] = {};
+    uint16_t szOutBuff   = 0;
+
+    EXPECT_EQ(signalCounter.txCount, 0);
+    EXPECT_EQ(signalCounter.rxCount,   0);
+
+    StatusCode result = clientPort->frameRequest(unit, func, inBuff, sizeof(inBuff), outBuff, sizeof(outBuff), &szOutBuff);
+
+    EXPECT_EQ(result,     Status_Good);
+    EXPECT_EQ(szOutBuff,  3u);
+    EXPECT_EQ(outBuff[0], 0x01);
+    EXPECT_EQ(outBuff[1], 0x02);
+    EXPECT_EQ(outBuff[2], 0x03);
+
+    EXPECT_EQ(signalCounter.txCount,       1); // signalTx emitted by process() after write() succeeds
+    EXPECT_EQ(signalCounter.rxCount,       1); // signalRx emitted by process() after read() succeeds
+    EXPECT_EQ(signalCounter.completeCount, 0); // signalCompleted is NOT emitted by frameRequest
+}
+
+TEST_F(ModbusClientPortTest, FrameRequestNonBlocking)
+{
+    const uint8_t unit = 1;
+    const uint8_t func = 0x41; // Custom function code
+
+    uint8_t inBuff[2]       = {0xAB, 0xCD};
+    uint8_t responseData[3] = {0x01, 0x02, 0x03};
+
+    setupSuccessfulNonBlockTransaction(unit, func, inBuff, sizeof(inBuff), responseData, sizeof(responseData));
+
+    uint8_t  outBuff[16] = {};
+    uint16_t szOutBuff   = 0;
+
+    EXPECT_EQ(signalCounterNonBlock.txCount, 0);
+    EXPECT_EQ(signalCounterNonBlock.rxCount,   0);
+
+    // First call: write() returns Processing
+    StatusCode result = clientPortNonBlock->frameRequest(unit, func, inBuff, sizeof(inBuff), outBuff, sizeof(outBuff), &szOutBuff);
+    EXPECT_EQ(result, Status_Processing);
+    EXPECT_EQ(signalCounterNonBlock.txCount, 0);
+    EXPECT_EQ(signalCounterNonBlock.rxCount, 0);
+
+    // Second call: write() returns Good, read() returns Processing
+    result = clientPortNonBlock->frameRequest(unit, func, inBuff, sizeof(inBuff), outBuff, sizeof(outBuff), &szOutBuff);
+    EXPECT_EQ(result, Status_Processing);
+    EXPECT_EQ(signalCounterNonBlock.txCount, 1); // signalTx emitted after write() succeeds
+    EXPECT_EQ(signalCounterNonBlock.rxCount, 0);
+
+    // Third call: read() returns Good, operation completes
+    result = clientPortNonBlock->frameRequest(unit, func, inBuff, sizeof(inBuff), outBuff, sizeof(outBuff), &szOutBuff);
+    EXPECT_EQ(result,     Status_Good);
+    EXPECT_EQ(szOutBuff,  3u);
+    EXPECT_EQ(outBuff[0], 0x01);
+    EXPECT_EQ(outBuff[1], 0x02);
+    EXPECT_EQ(outBuff[2], 0x03);
+
+    EXPECT_EQ(signalCounterNonBlock.txCount,       1); // signalTx emitted by process() after write() succeeds
+    EXPECT_EQ(signalCounterNonBlock.rxCount,       1); // signalRx emitted by process() after read() succeeds
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // signalCompleted is NOT emitted by frameRequest
+}
+
+TEST_F(ModbusClientPortTest, FrameRequestPortBusyWithOtherClient)
+{
+    // Lock the port to a different client object so frameRequest (which uses
+    // 'this' as the client) sees a Disable status and returns Status_Processing.
+    ModbusClient otherClient(1, clientPort);
+    ModbusClientPort::RequestStatus rs = clientPort->getRequestStatus(&otherClient);
+    ASSERT_EQ(rs, ModbusClientPort::Enable); // Port was free, now locked to otherClient
+
+    uint8_t  inBuff[2]  = {0x00, 0x01};
+    uint8_t  outBuff[16] = {};
+    uint16_t szOutBuff   = 0;
+
+    StatusCode result = clientPort->frameRequest(1, 0x41, inBuff, sizeof(inBuff), outBuff, sizeof(outBuff), &szOutBuff);
+
+    EXPECT_EQ(result, Status_Processing);
+}
+
+TEST_F(ModbusClientPortTest, FrameRequestWriteError)
+{
+    const uint8_t unit = 1;
+    const uint8_t func = 0x41;
+
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+
+    EXPECT_CALL(*mockPort, writeBuffer(unit, func, _, _))
+        .WillOnce(Return(Status_Good));
+
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(2));
+
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+
+    EXPECT_CALL(*mockPort, write())
+        .WillOnce(Return(Status_BadSerialWriteTimeout));
+
+    uint8_t  inBuff[2]   = {0xAB, 0xCD};
+    uint8_t  outBuff[16] = {};
+    uint16_t szOutBuff   = 0;
+
+    StatusCode result = clientPort->frameRequest(unit, func, inBuff, sizeof(inBuff), outBuff, sizeof(outBuff), &szOutBuff);
+
+    EXPECT_TRUE(StatusIsBad(result));
+}
+
+TEST_F(ModbusClientPortTest, FrameRequestReadError)
+{
+    const uint8_t unit = 1;
+    const uint8_t func = 0x41;
+
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+
+    EXPECT_CALL(*mockPort, writeBuffer(unit, func, _, _))
+        .WillOnce(Return(Status_Good));
+
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(2));
+
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+
+    EXPECT_CALL(*mockPort, write())
+        .WillOnce(Return(Status_Good));
+
+    EXPECT_CALL(*mockPort, read())
+        .WillOnce(Return(Status_BadSerialReadTimeout));
+
+    uint8_t  inBuff[2]   = {0xAB, 0xCD};
+    uint8_t  outBuff[16] = {};
+    uint16_t szOutBuff   = 0;
+
+    StatusCode result = clientPort->frameRequest(unit, func, inBuff, sizeof(inBuff), outBuff, sizeof(outBuff), &szOutBuff);
+
+    EXPECT_TRUE(StatusIsBad(result));
+}
