@@ -153,4 +153,5 @@
 
 * Added constructor `ModbusTcpServer(ModbusInterface *device)` for compatibilty with prev versions
 * Added `ModbusClientPort::frameRequest` function which makes raw request within current frame
-  excluding unit, function, TCP-prefix, CRC/LRC checksums.
+  excluding unit, function, TCP-prefix, CRC/LRC checksums
+* Added `ModbusClientPort::signalStarted` signal

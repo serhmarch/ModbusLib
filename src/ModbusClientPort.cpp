@@ -2167,6 +2167,11 @@ void ModbusClientPort::signalError(const Modbus::Char *source, Modbus::StatusCod
     emitSignal(__func__, &ModbusClientPort::signalError, source, status, text);
 }
 
+void ModbusClientPort::signalStarted(const Modbus::Char *source)
+{
+    emitSignal(__func__, &ModbusClientPort::signalStarted, source);
+}
+
 void ModbusClientPort::signalCompleted(const Modbus::Char *source, Modbus::StatusCode status)
 {
     emitSignal(__func__, &ModbusClientPort::signalCompleted, source, status);
@@ -2183,6 +2188,7 @@ StatusCode ModbusClientPort::rawRequest(const void *inBuff, uint16_t szInBuff, v
     {
         if (!d->isWriteBufferBlocked())
         {
+            signalStarted(d->getName());
             // TODO: set `d->unit = 0` and find reason of the crash
             d->unit = 1; // Note: prevent broadcast false recognition
             d->func = 0;
@@ -2231,7 +2237,12 @@ Modbus::StatusCode ModbusClientPort::frameRequest(uint8_t unit, uint8_t func, co
     {
     case ModbusClientPort::Enable:
     case ModbusClientPort::Process:
-        return request(unit, func, inBuff, szInBuff, outBuff, maxSzBuff, szOutBuff);
+    {
+        Modbus::StatusCode r = request(unit, func, inBuff, szInBuff, outBuff, maxSzBuff, szOutBuff);
+        if (StatusIsProcessing(r))
+            return r;
+        RAISE_COMPLETED(r);
+    }
     }
     return Status_Processing;
 }
@@ -2244,6 +2255,7 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, const uint8_t *
     {
         if (!d->isWriteBufferBlocked())
         {
+            signalStarted(d->getName());
             d->unit = unit;
             d->func = func;
             d->lastTries = 0;

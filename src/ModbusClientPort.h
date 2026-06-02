@@ -503,6 +503,9 @@ public: // SIGNALS
     /// \details Calls each callback of the port when error is occured with error's status and text.
     void signalError(const Modbus::Char *source, Modbus::StatusCode status, const Modbus::Char *text);
 
+    /// \details Calls each callback of the port when operation is started.
+    void signalStarted(const Modbus::Char *source);
+    
     /// \details Calls each callback of the port when operation is completed.
     void signalCompleted(const Modbus::Char *source, Modbus::StatusCode status);
 
