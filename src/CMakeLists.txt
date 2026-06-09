@@ -280,6 +280,13 @@ add_library(${MB_LIBRARY_NAME} ${MB_LIBRARY_TYPE}
                                ${MB_SOURCES}
                                ${RESOURCES})
 
+target_include_directories(${MB_LIBRARY_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<INSTALL_INTERFACE:include/${MB_LIBRARY_NAME}>
+    )
+
 add_library(${MB_LIBRARY_NAME}::${MB_LIBRARY_NAME} ALIAS ${MB_LIBRARY_NAME})
 
 if (MB_BUILD_SHARED)
