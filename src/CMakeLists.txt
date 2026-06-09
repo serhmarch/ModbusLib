@@ -280,6 +280,8 @@ add_library(${MB_LIBRARY_NAME} ${MB_LIBRARY_TYPE}
                                ${MB_SOURCES}
                                ${RESOURCES})
 
+add_library(${MB_LIBRARY_NAME}::${MB_LIBRARY_NAME} ALIAS ${MB_LIBRARY_NAME})
+
 if (MB_BUILD_SHARED)
     target_compile_definitions(${MB_LIBRARY_NAME} PRIVATE MODBUS_EXPORTS)
 endif()
