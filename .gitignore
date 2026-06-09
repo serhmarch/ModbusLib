@@ -48,6 +48,9 @@ bin/**/*.pch
 bin/**/*.mod
 bin/**/*.smod
 
+# CMake-generated config header (now emitted into the build tree)
+src/Modbus_config.h
+
 #ignore external
 external/
 

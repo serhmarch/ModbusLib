@@ -74,10 +74,10 @@ else()
     message(STATUS "MB: compile static '${MB_LIBRARY_NAME}' library")
 endif()
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/Modbus_config.h)
 
 set(MB_PUBLIC_HEADERS 
-    Modbus_config.h         
+    ${CMAKE_CURRENT_BINARY_DIR}/Modbus_config.h
     ModbusPlatform.h        
     ModbusGlobal.h          
     Modbus.h                
