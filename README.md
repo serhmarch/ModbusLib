@@ -284,6 +284,11 @@ It has wrapper functions for Qt library to use it together with Qt core objects:
     ```console
     >cmake -DMB_QT_ENABLED=ON -DCMAKE_PREFIX_PATH:PATH=C:/Qt/5.15.2/msvc2019_64 -S <path\to\src\ModbusLib> -B .
     ```
+    ModbusLib is built as a shared library (dll/so) by default. To build it as a
+    static library instead, configure with `MB_BUILD_SHARED=OFF`:
+    ```console
+    $ cmake -DMB_BUILD_SHARED=OFF -S ~/src/ModbusLib -B .
+    ```
 5.  Make binaries (+ debug|release config):
     ```console
     $ cmake --build .
@@ -313,3 +318,13 @@ After installation, you can use `find_package` in your own CMake project to loca
 find_package(modbus REQUIRED)
 ```
 
+### Consuming ModbusLib from another CMake project
+
+To use ModbusLib from your own CMake build, add its source tree directly
+and link the `modbus::modbus` target.
+
+```cmake
+add_subdirectory(path/to/ModbusLib)
+
+target_link_libraries(your_target PRIVATE modbus::modbus)
+```
