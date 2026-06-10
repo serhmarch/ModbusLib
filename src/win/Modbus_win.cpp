@@ -2,10 +2,15 @@
 
 #include <vector>
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
+#include <timeapi.h>
 #include <initguid.h>
 #include <devguid.h>
 #include <ntddmodm.h>
+#include <ntddser.h>
 #include <setupapi.h>
 
 #define NANOSEC100_IN_MILLISEC      10000
