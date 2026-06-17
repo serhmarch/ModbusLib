@@ -3309,7 +3309,7 @@ TEST_F(ModbusClientPortTest, FrameRequestSuccess)
 
     EXPECT_EQ(signalCounter.txCount,       1); // signalTx emitted by process() after write() succeeds
     EXPECT_EQ(signalCounter.rxCount,       1); // signalRx emitted by process() after read() succeeds
-    EXPECT_EQ(signalCounter.completeCount, 0); // signalCompleted is NOT emitted by frameRequest
+    EXPECT_EQ(signalCounter.completeCount, 1); // signalCompleted must be emitted
 }
 
 TEST_F(ModbusClientPortTest, FrameRequestNonBlocking)
@@ -3350,7 +3350,7 @@ TEST_F(ModbusClientPortTest, FrameRequestNonBlocking)
 
     EXPECT_EQ(signalCounterNonBlock.txCount,       1); // signalTx emitted by process() after write() succeeds
     EXPECT_EQ(signalCounterNonBlock.rxCount,       1); // signalRx emitted by process() after read() succeeds
-    EXPECT_EQ(signalCounterNonBlock.completeCount, 0); // signalCompleted is NOT emitted by frameRequest
+    EXPECT_EQ(signalCounterNonBlock.completeCount, 1); // signalCompleted must be emitted
 }
 
 TEST_F(ModbusClientPortTest, FrameRequestPortBusyWithOtherClient)
