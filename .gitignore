@@ -60,6 +60,9 @@ external/
 #ignore vscode
 .vscode/
 
+#ignore QtCreator files
+.qtcreator/ 
+
 # Ignore Qt-Project user files
 *.user
 

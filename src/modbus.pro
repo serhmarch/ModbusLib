@@ -1,6 +1,7 @@
 TEMPLATE = lib
 
 include(version.pri)
+include(configure_file.pri)
 
 #CONFIG += c++17
 CONFIG += qt
@@ -10,6 +11,8 @@ DEFINES += MODBUS_EXPORTS
 DESTDIR = ../../bin
 
 unix:QMAKE_RPATHDIR += .
+
+configure_file(Modbus_config.h.in, $${OUT_PWD}/Modbus_config.h)
 
 HEADERS +=                          \
     $$PWD/Modbus_config.h           \
