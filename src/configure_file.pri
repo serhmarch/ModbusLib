@@ -3,101 +3,128 @@
 
 _NEWLINE = $$escape_expand("\\n")
 
+# A function that mimics the logic of @VAR@ cmake macro
 defineReplace(replaceAtSignVars) {
     line = $$1
-    message("replaceAtSignVars line: $$line")
-    # 2. Розбиваємо рядок у список за символом '@'
-    # Текст розділиться на парні та непарні елементи.
-    # Елементи, які були МІЖ '@', стануть кожним другим елементом списку.
+    #message("replaceAtSignVars line: $$line")
+    # 1. Split a string into a list based on the ‘@’ character
+    # The text will be split into even and odd elements.
+    # Elements that were BETWEEN ‘@’ characters will become every other element in the list.
     parts = $$split(line, "@")
 
-    # Тимчасова змінна для збирання фінального рядка
+    # A temporary variable for constructing the final string
     result_line = ""
     is_variable = false
 
-    # 3. Проходимо циклом по всіх частинах рядка
+    # 2. We iterate through all parts of the string
     for(part, parts) {
-        message("replaceAtSignVars part: $$part")
-        # Оскільки перший елемент завжди йде ДО першого '@',
-        # прапорець is_variable спочатку false, а потім чергується.
+        #message("replaceAtSignVars part: $$part")
+        # Since the first element always comes BEFORE the first ‘@’,
+        # the is_variable flag is initially false and then alternates.
 
         equals(is_variable, true) {
-            # Перевіряємо, чи існує qmake-змінна з таким іменем
+            # Check if there is a qmake variable with that name
             defined($$part, var) {
-                # Отримуємо значення змінної через $$eval()
+                # Retrieve the value of a variable using $$eval()
                 actual_value = $$eval($$part)
                 result_line = "$$result_line$$actual_value"
             } else {
-                # Якщо змінна не знайдена в qmake, повертаємо її як текст назад з @
-                # (Або можете видалити/залишити порожньою за логікою CMake)
+                # If the variable is not found in qmake, return it as text with @
+                # (Or you can remove it or leave it empty, following CMake's logic)
                 result_line = "$$result_line@$$part@"
             }
             is_variable = false
         } else {
-            # Це звичайний текст (поза символами @)
+            # This is a simple text (behind @-symbol)
             result_line = "$$result_line$$part"
             is_variable = true
         }
     }
-    message("result_line: $$result_line")
+    #message("result_line: $$result_line")
     return($$result_line)
+}
+
+# A function that mimics the logic of #cmakedefine for a single line
+defineReplace(process_cmakedefine) {
+    line = $$1
+
+    # 1. Check whether a string contains the “#cmakedefine” macro
+    # The regular expression searches for the word #cmakedefine followed by a variable name
+    # The pattern “^.*?#cmakedefine\\s+([^\\s]+).*$” matches the variable name    contains(line, ".*$${LITERAL_HASH}cmakedefine.*") {
+    contains(line, ".*$${LITERAL_HASH}cmakedefine.*") {
+        # Extract the variable name (everything that comes immediately after #cmakedefine)
+        VAR_NAME = $$replace(line, "^.*cmakedefine\\s+([^\\s;\\n\r]+).*$", "\\1")
+        #message("$${LITERAL_HASH}cmakedefine spotted. Varname: $$VAR_NAME")
+
+        # Check whether this variable is defined in qmake and whether it is non-empty
+        # (In qmake, an invalid value is an empty variable, for example: MY_VAR = )
+        defined($$VAR_NAME, var) {
+            #message("$$VAR_NAME defined")
+            VAR_VALUE = $$eval($$VAR_NAME)
+
+            # If a variable is defined but explicitly set to “OFF” or “FALSE” (CMake style)
+            # then we consider it to be disabled
+            equals(VAR_VALUE, "OFF")|equals(VAR_VALUE, "FALSE")|equals(VAR_VALUE, "0") {
+                IS_ENABLED = false
+            } else {
+                IS_ENABLED = true
+            }
+        } else {
+            #message("$$VAR_NAME undefined")
+            IS_ENABLED = false
+        }
+
+        # 2. Construct the output string based on the variable's status
+        equals(IS_ENABLED, true) {
+            # If the variable has a value, we substitute it (as in CMake)
+            !isEmpty(VAR_VALUE)|equals(VAR_VALUE, "ON")|equals(VAR_VALUE, "TRUE") {
+                # If the value is simply a flag like ON/TRUE, CMake usually writes #define VAR
+                # If there is specific text or a number, it writes #define VAR value
+                equals(VAR_VALUE, "ON")|equals(VAR_VALUE, "TRUE") {
+                    NEW_line = "$${LITERAL_HASH}define $$VAR_NAME"
+                } else {
+                    NEW_line = "$${LITERAL_HASH}define $$VAR_NAME $$VAR_VALUE"
+                }
+            } else {
+                NEW_line = "$${LITERAL_HASH}define $$VAR_NAME"
+            }
+        } else {
+            # If a variable is disabled or does not exist, comment it out according to the CMake standard
+            NEW_line = "/* $${LITERAL_HASH}undef $$VAR_NAME */"
+        }
+        #message("Returned new value: $$NEW_line")
+        return($$NEW_line)
+    }
+
+    # If the string does not contain #cmakedefine, we return it unchanged
+    return($$line)
 }
 
 defineTest(configure_file) {
     input_file = $$1
     output_file = $$2
 
-    message("configure_file(input=$$input_file, output=$$output_file")
-    message("VERSION: $$VERSION")
-    message("PROJECT_VERSION_MAJOR: $$PROJECT_VERSION_MAJOR")
-    message("PROJECT_VERSION_MINOR: $$PROJECT_VERSION_MINOR")
-    message("PROJECT_VERSION_PATCH: $$PROJECT_VERSION_PATCH")
+    #message("configure_file(input=$$input_file, output=$$output_file")
 
     # Read the input file
-    win32 {
-        #contents = $$system(type "$$input_file")
-        lines = $$cat($$input_file, lines)
-    } else {
-        #contents = $$system(cat "$$input_file")
-    }
+    lines = $$cat($$input_file, lines)
 
     #message("Contents of $$input_file:$$_NEWLINE$$contents")
 
-    # Split into lines
-    #lines = $$split(contents, $${_NEWLINE})
-    processed_lines = ""
-    system(echo "// Generated by qmake" > "$$output_file")
+    # Start to write output file
+    header = "// Generated by qmake. Do not edit!!!"
+    win32{
+        system(echo $$header > $$output_file)
+    } else {
+        system(echo \"$$header\" > \"$$output_file\")
+    }
     for(line, lines) {
-        message("line: $$line")
-        pline = $$replaceAtSignVars($$line)
-        processed_lines += $$pline
-        win32 {
-            system((echo $$pline) >> "$$output_file")
-        } else {
-            system((printf '%s' $$pline) > "$$output_file")
-        }
+        #message("line: $$line")
 
         # Process @VAR@ variables
-        #start_index = $$section(line, "@", 0)
-        #message("@-index: $$start_index")
+        pline = $$replaceAtSignVars($$line)
 
-        #while(true) {
-        #    start_index = $$index($$line, "@")
-        #    message("@-index: $$start_index")
-        #    if(start_index < 0) {
-        #        break
-        #    }
-        #    end_index = $$index($$line, "@", start_index+1)
-        #    if(end_index < 0): break   # no closing @
-        #    var = $$substring($$line, start_index+1, end_index-start_index-1)
-        #    val = $$(var)
-        #    if(isEmpty(val)) {
-        #        warning("Variable $$var not found, replacing with empty string")
-        #    }
-        #    line = $$substring($$line, 0, start_index) + val + $$substring($$line, end_index+1)
-        #}
-
-        ## Process ${VAR} variables
+        # Process ${VAR} variables
         #while(true) {
         #    start_index = $$index($$line, "${")
         #    if(start_index < 0): break
@@ -111,71 +138,17 @@ defineTest(configure_file) {
         #    line = $$substring($$line, 0, start_index) + val + $$substring($$line, end_index+1)
         #}
 
-        ## Process #cmakedefine
-        #trimmed = $$line
-        ## Remove leading spaces and tabs
-        #while(!isEmpty(trimmed) && ($$equals($$left(trimmed, 1), " ") || $$equals($$left(trimmed, 1), "\\t"))) {
-        #    trimmed = $$substring(trimmed, 1)
-        #}
-        #if($$starts_with(trimmed, "$${LITERAL_HASH}cmakedefine")) {
-        #    rest = $$substring(trimmed, 12)   # after "#cmakedefine"
-        #    # Remove leading spaces and tabs
-        #    while(!isEmpty(rest) && ($$equals($$left(rest, 1), " ") || $$equals($$left(rest, 1), "\\t"))) {
-        #        rest = $$substring(rest, 1)
-        #    }
-        #    # Split into variable and optional value
-        #    parts = $$split(rest, " ")
-        #    var = $$take_first(parts)
-        #    val = $$join(parts, " ")   # value (may be empty)
-
-        #    # Check variable value
-        #    var_val = $$(var)
-        #    if(!isEmpty(var_val) && !$$equals(var_val, "0")) {
-        #        # True: define it
-        #        if(isEmpty(val)) {
-        #            new_line = "#define " + var
-        #        } else {
-        #            new_line = "#define " + var + " " + val
-        #        }
-        #    } else {
-        #        # False: undef
-        #        new_line = "/* #undef " + var + " */"
-        #    }
-        #    # Reconstruct line with original leading whitespace
-        #    line = $$left($$line, $$index($$line, trimmed)) + new_line
-        #}
-        #processed_lines += $$line
+        # Process #cmakedefine
+        pline = $$process_cmakedefine($$pline)
+        #message($$pline)
+        # Append data to the output file
+        win32{
+            system(echo $$pline >> $$output_file)
+        } else {
+            system(echo \"$$pline\" >> \"$$output_file\")
+        }
+        #write_file($$output_file, pline, append)
     }
 
-    # Join lines and write output file
-    #output = $$join(processed_lines, "\\n")
-    #win32 {
-    #    system((echo $$output) > "$$output_file")
-    #} else {
-    #    system((printf '%s' $$output) > "$$output_file")
-    #}
-    #write_file($$output_file, "abc def")
-    # 1. Створюємо список рядків (елементи будуть записані з нового рядка)
-    MY_CONTENT =
-    MY_CONTENT += "Line 1: Hello World"
-    MY_CONTENT += "Line 2: Qmake is alive"
-
-    # 2. Визначаємо шлях
-    OUTPUT_PATH = $$OUT_PWD/output.txt
-
-    # 3. Виклик функції. Вона ЗАВЖДИ повністю перезаписує файл.
-    # Синтаксис: write_file(шлях_до_файлу, назва_змінної)
-    #output = $$join(processed_lines, $${_NEWLINE})
-    #output = "TEST"
-    #message("OUPUT: $$output")
-    #export(output)
-    #write_file("$$output_file", output);
-    #write_file($$OUT_PWD/defines.txt, DEFINES)
-    #win32 {
-    #    system((echo $$output) > "$$output_file")
-    #    #system("cmd /c \"echo \"$$output\" > \"$$output_file\"\"")
-    #} else {
-    #    system((printf '%s' $$output) > "$$output_file")
-    #}
     return(true)
 }

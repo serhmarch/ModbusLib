@@ -12,10 +12,14 @@ DESTDIR = ../../bin
 
 unix:QMAKE_RPATHDIR += .
 
+# list of #cmakedefine vars
+MB_DYNAMIC_LINKING=ON
+
 configure_file(Modbus_config.h.in, $${OUT_PWD}/Modbus_config.h)
 
+INCLUDEPATH += $${OUT_PWD}
+
 HEADERS +=                          \
-    $$PWD/Modbus_config.h           \
     $$PWD/ModbusPlatform.h          \
     $$PWD/ModbusGlobal.h            \
     $$PWD/Modbus.h                  \
