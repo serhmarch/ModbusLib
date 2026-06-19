@@ -155,3 +155,7 @@
 * Added `ModbusClientPort::frameRequest` function which makes raw request within current frame
   excluding unit, function, TCP-prefix, CRC/LRC checksums
 * Added `ModbusClientPort::signalStarted` signal
+* `Modbus_config.h` is not generated into the source tree anymore (by ros-dorian) 
+* Added `MB_BUILD_SHARED` cmake variable (by ros-dorian)
+* Added a `target_include_directories` for the modbus target with the relevant paths  (by ros-dorian)
+* Added `configure_file` function for qmake
