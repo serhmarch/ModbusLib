@@ -3,10 +3,20 @@ cmake_minimum_required(VERSION 3.13) # 2.2 - case insensitive syntax
 
 project(ModbusLib VERSION 0.4.10 LANGUAGES C CXX)
 
+message(STATUS "MB: ModbusLib version: ${PROJECT_VERSION}")
+message(STATUS "MB: Binary dir: ${CMAKE_CURRENT_BINARY_DIR}")
+
 set(MB_LIBRARY_NAME modbus CACHE INTERNAL "Name of the modbus library")
 set(MB_LIBRARY_VERSION ${PROJECT_VERSION} CACHE INTERNAL "Version of the modbus library")
 
-option(BUILD_SHARED_LIBS "Enable building of shared libraries (dll/so)" ON)
+if (DEFINED BUILD_SHARED_LIBS)
+    set(_mb_default_shared ${BUILD_SHARED_LIBS})
+else()
+    set(_mb_default_shared ON)
+endif()
+option(MB_BUILD_SHARED "Enable building of shared libraries (dll/so)" ${_mb_default_shared})
+unset(_mb_default_shared)
+
 option(MB_NO_INSTALL "Disable installation target" OFF)
 
 option(MB_CLIENT_DISABLE "Disable client part of ModbusLib" OFF)
@@ -35,19 +45,24 @@ option(MBF_READ_FIFO_QUEUE_DISABLE              , OFF)
 
 option(MB_ADDRESS_CLASS_DISABLE "Disable Modbus::Address class" OFF)
 
+# Client Port options
+option(MB_CLIENT_PORT_FRAME_REQUEST_DISABLE "Disable frameRequest function in ModbusClientPort" OFF)
+
 set(MB_DYNAMIC_LINKING OFF)
 
-if (BUILD_SHARED_LIBS)
+if (MB_BUILD_SHARED)
+    set(MB_LIBRARY_TYPE SHARED)
     set(MB_DYNAMIC_LINKING ON)
     message(STATUS "MB: compile dynamic '${MB_LIBRARY_NAME}' library")
 else()
+    set(MB_LIBRARY_TYPE STATIC)
     message(STATUS "MB: compile static '${MB_LIBRARY_NAME}' library")
 endif()
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/Modbus_config.h)
 
 set(MB_PUBLIC_HEADERS 
-    Modbus_config.h         
+    #Modbus_config.h         
     ModbusPlatform.h        
     ModbusGlobal.h          
     Modbus.h                
@@ -202,32 +217,44 @@ else()
     endif()
 endif()
 
-set(RESOURCES              
+set(MB_RESOURCES              
     )     
 
 if (WIN32)
     set(MODBUSLIB_WIN_RESOURCE_FILE win_resource.rc)
-    message(STATUS "MB: ${PROJECT_NAME} resource file for Windows: '${MODBUSLIB_WIN_RESOURCE_FILE}'")
+    set(MODBUSLIB_WIN_RESOURCE_FILE_TEMPL ${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE}.in)
+    set(MODBUSLIB_WIN_RESOURCE_FILE_PATH ${CMAKE_CURRENT_BINARY_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE})
+
+    message(STATUS "MB: ${PROJECT_NAME} resource file for Windows: '${MODBUSLIB_WIN_RESOURCE_FILE_PATH}'")
 
     set(MODBUSLIB_WIN_FILE "${MB_LIBRARY_NAME}")
     set(MODBUSLIB_WIN_OUTFILE "${MODBUSLIB_WIN_FILE}.dll")
-    configure_file(${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE}.in 
-                   ${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE})
+    configure_file(${MODBUSLIB_WIN_RESOURCE_FILE_TEMPL} 
+                   ${MODBUSLIB_WIN_RESOURCE_FILE_PATH})
 
-    set(RESOURCES ${RESOURCES}
-        ${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE}           
+    set(MB_RESOURCES ${MB_RESOURCES}
+        ${MODBUSLIB_WIN_RESOURCE_FILE_PATH}           
     )     
 endif()
 
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-# Rely type of library into BUILD_SHARED_LIBS option
-add_library(${MB_LIBRARY_NAME} ${MB_PUBLIC_HEADERS}
+add_library(${MB_LIBRARY_NAME} ${MB_LIBRARY_TYPE}
+                               ${MB_PUBLIC_HEADERS}
                                ${MB_PRIVATE_HEADERS}
                                ${MB_SOURCES}
-                               ${RESOURCES})
+                               ${MB_RESOURCES})
 
-if (BUILD_SHARED_LIBS)
+target_include_directories(${MB_LIBRARY_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<INSTALL_INTERFACE:include/${MB_LIBRARY_NAME}>
+    )
+
+add_library(${MB_LIBRARY_NAME}::${MB_LIBRARY_NAME} ALIAS ${MB_LIBRARY_NAME})
+
+if (MB_BUILD_SHARED)
     target_compile_definitions(${MB_LIBRARY_NAME} PRIVATE MODBUS_EXPORTS)
 endif()
 

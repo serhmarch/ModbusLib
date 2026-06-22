@@ -390,6 +390,12 @@ To make Qt-compatibility (switch off by default for cmake build) you can use nex
 >cmake -DMB_QT_ENABLED=ON -DCMAKE_PREFIX_PATH:PATH=C:/Qt/5.15.2/msvc2019_64 -S <path\to\src\ModbusLib> -B .
 ```
 
+ModbusLib is built as a shared library (dll/so) by default. To build it as a static
+library instead, configure with `MB_BUILD_SHARED=OFF`:
+```
+>cmake -DMB_BUILD_SHARED=OFF -S <path\to\src\ModbusLib> -B .
+```
+
 5.  Make binaries (+ debug|release config):
 ```console
 $ cmake --build .

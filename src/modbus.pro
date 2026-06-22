@@ -1,6 +1,7 @@
 TEMPLATE = lib
 
 include(version.pri)
+include(configure_file.pri)
 
 #CONFIG += c++17
 CONFIG += qt
@@ -11,8 +12,15 @@ DESTDIR = ../../bin
 
 unix:QMAKE_RPATHDIR += .
 
+INCLUDEPATH += $${OUT_PWD}
+message("INCLUDEPATH: $${INCLUDEPATH}")
+
+# list of #cmakedefine vars
+MB_DYNAMIC_LINKING=ON
+
+configure_file(Modbus_config.h.in, $${OUT_PWD}/Modbus_config.h)
+
 HEADERS +=                          \
-    $$PWD/Modbus_config.h           \
     $$PWD/ModbusPlatform.h          \
     $$PWD/ModbusGlobal.h            \
     $$PWD/Modbus.h                  \

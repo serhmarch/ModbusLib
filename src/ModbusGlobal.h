@@ -17,7 +17,8 @@
 #endif
 
 #include "ModbusPlatform.h"
-#include "Modbus_config.h"
+
+#include <Modbus_config.h>
 
 /// \brief ModbusLib version value that defines as MODBUSLIB_VERSION = (major << 16) + (minor << 8) + patch.
 #define MODBUSLIB_VERSION ((MODBUSLIB_VERSION_MAJOR<<16)|(MODBUSLIB_VERSION_MINOR<<8)|(MODBUSLIB_VERSION_PATCH))
