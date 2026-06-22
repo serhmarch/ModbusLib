@@ -1122,6 +1122,26 @@ void ModbusClientPort::cancelRequest(ModbusObject *client)
         d->currentClient = nullptr;
 }
 
+#ifndef MB_CLIENT_PORT_FRAME_REQUEST_DISABLE
+Modbus::StatusCode ModbusClientPort::frameRequest(uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff, uint16_t maxSzBuff, uint16_t *szOutBuff)
+{
+    ModbusClientPortPrivate *d = d_cast(d_ptr);
+    ModbusClientPort::RequestStatus status = this->getRequestStatus(this);
+    switch (status)
+    {
+    case ModbusClientPort::Enable:
+    case ModbusClientPort::Process:
+    {
+        Modbus::StatusCode r = request(unit, func, buff, szInBuff, maxSzBuff, szOutBuff);
+        if (StatusIsProcessing(r))
+            return r;
+        RAISE_COMPLETED(r);
+    }
+    }
+    return Status_Processing;
+}
+#endif // MB_CLIENT_PORT_FRAME_REQUEST_DISABLE
+
 void ModbusClientPort::signalOpened(const Modbus::Char *source)
 {
     emitSignal(__func__, &ModbusClientPort::signalOpened, source);
