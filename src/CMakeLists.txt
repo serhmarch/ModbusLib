@@ -48,6 +48,9 @@ option(MB_ADDRESS_CLASS_DISABLE "Disable Modbus::Address class" OFF)
 # Client Port options
 option(MB_CLIENT_PORT_FRAME_REQUEST_DISABLE "Disable frameRequest function in ModbusClientPort" OFF)
 
+# Client options
+option(MB_CLIENT_REPEAT_DISABLE "Disable repeat requests in ModbusClient" OFF)
+
 set(MB_DYNAMIC_LINKING OFF)
 
 if (MB_BUILD_SHARED)
@@ -62,7 +65,7 @@ endif()
 configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/Modbus_config.h)
 
 set(MB_PUBLIC_HEADERS 
-    #Modbus_config.h         
+    ${CMAKE_CURRENT_BINARY_DIR}/Modbus_config.h         
     ModbusPlatform.h        
     ModbusGlobal.h          
     Modbus.h                

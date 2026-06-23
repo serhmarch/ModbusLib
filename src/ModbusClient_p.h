@@ -15,6 +15,13 @@ class ModbusClientPrivate : public ModbusObjectPrivate
 public:
     uint8_t unit;
     ModbusClientPort *port;
+#ifndef MB_CLIENT_REPEAT_DISABLE
+    uint32_t innerTries;
+    struct
+    {
+        uint32_t tries;
+    } settings;
+#endif // MB_CLIENT_REPEAT_DISABLE
 };
 
 #endif // MODBUSCLIENT_P_H

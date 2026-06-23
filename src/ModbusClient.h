@@ -85,6 +85,20 @@ public:
     /// \details Returns a pointer to the port object to which this client object belongs.
     ModbusClientPort *port() const;
 
+#ifndef MB_CLIENT_REPEAT_DISABLE
+    /// \details Returns the setting of the number of tries of the Modbus request if it fails.
+    uint32_t tries() const;
+
+    /// \details Sets the number of tries a Modbus request is repeated if it fails.
+    void setTries(uint32_t v);
+
+    /// \details Same as `tries()`.
+    inline uint32_t repeatCount() const { return tries(); }
+
+    /// \details Same as `setTries()`.
+    inline void setRepeatCount(uint32_t v) { setTries(v); }
+#endif // MB_CLIENT_REPEAT_DISABLE
+
 public:
 
 #ifndef MBF_READ_COILS_DISABLE
