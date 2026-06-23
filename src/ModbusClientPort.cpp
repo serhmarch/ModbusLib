@@ -1167,6 +1167,11 @@ void ModbusClientPort::signalError(const Modbus::Char *source, Modbus::StatusCod
     emitSignal(__func__, &ModbusClientPort::signalError, source, status, text);
 }
 
+void ModbusClientPort::signalStarted(const Modbus::Char *source)
+{
+    emitSignal(__func__, &ModbusClientPort::signalStarted, source);
+}
+
 void ModbusClientPort::signalCompleted(const Modbus::Char *source, Modbus::StatusCode status)
 {
     emitSignal(__func__, &ModbusClientPort::signalCompleted, source, status);
@@ -1179,6 +1184,7 @@ StatusCode ModbusClientPort::request(uint8_t unit, uint8_t func, uint8_t *buff, 
     {
         if (!d->isWriteBufferBlocked())
         {
+            signalStarted(d->getName());
             d->unit = unit;
             d->func = func;
             d->lastTries = 0;
