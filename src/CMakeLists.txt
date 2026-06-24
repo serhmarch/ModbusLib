@@ -62,10 +62,16 @@ else()
     message(STATUS "MB: compile static '${MB_LIBRARY_NAME}' library")
 endif()
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/Modbus_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/Modbus_config.h)
+# Configuration generation
+set(MB_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(MB_CONFIG_FILE_NAME "Modbus_config.h")
+set(MB_CONFIG_FILE_PATH "${MB_CONFIG_DIR}/${MB_CONFIG_FILE_NAME}")
+
+message(STATUS "MB: ${PROJECT_NAME} configuration file '${MB_CONFIG_FILE_PATH}'")
+configure_file("${CMAKE_CURRENT_LIST_DIR}/${MB_CONFIG_FILE_NAME}.in" "${MB_CONFIG_FILE_PATH}")
 
 set(MB_PUBLIC_HEADERS 
-    ${CMAKE_CURRENT_BINARY_DIR}/Modbus_config.h         
+    ${MB_CONFIG_FILE_PATH}         
     ModbusPlatform.h        
     ModbusGlobal.h          
     Modbus.h                
@@ -226,7 +232,7 @@ set(MB_RESOURCES
 if (WIN32)
     set(MODBUSLIB_WIN_RESOURCE_FILE win_resource.rc)
     set(MODBUSLIB_WIN_RESOURCE_FILE_TEMPL ${CMAKE_CURRENT_LIST_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE}.in)
-    set(MODBUSLIB_WIN_RESOURCE_FILE_PATH ${CMAKE_CURRENT_BINARY_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE})
+    set(MODBUSLIB_WIN_RESOURCE_FILE_PATH ${MB_CONFIG_DIR}/${MODBUSLIB_WIN_RESOURCE_FILE})
 
     message(STATUS "MB: ${PROJECT_NAME} resource file for Windows: '${MODBUSLIB_WIN_RESOURCE_FILE_PATH}'")
 
@@ -294,7 +300,7 @@ else()
     set_target_properties(${MB_LIBRARY_NAME} PROPERTIES PUBLIC_HEADER "${MB_PUBLIC_HEADERS}")
     
     # Specify where header and built files should be copied
-    install(TARGETS ${MB_LIBRARY_NAME}
+    install(TARGETS "${MB_LIBRARY_NAME}"
         EXPORT ${MB_LIBRARY_NAME}-targets
         DESTINATION ./lib/cmake/${MB_LIBRARY_NAME}
         ARCHIVE DESTINATION ./lib
