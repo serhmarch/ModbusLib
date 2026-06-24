@@ -121,20 +121,6 @@ void ModbusSerialPort::setFlowControl(FlowControl flowControl)
     }
 }
 
-uint32_t ModbusSerialPort::timeoutInterByte() const
-{    return d_cast(d_ptr)->timeoutInterByte();
-}
-
-void ModbusSerialPort::setTimeoutInterByte(uint32_t timeout)
-{
-    ModbusSerialPortPrivate *d = d_cast(d_ptr);
-    if (d->timeoutInterByte() != timeout)
-    {
-        d->setTimeoutInterByte(timeout);
-        d->setChanged(true);
-    }
-}
-
 const uint8_t *ModbusSerialPort::readBufferData() const
 {
     return d_cast(d_ptr)->buff;

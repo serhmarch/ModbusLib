@@ -78,7 +78,7 @@ Modbus::StatusCode ModbusTcpPort::open()
             if (isBlocking())
                 d->socket->setTimeout(this->timeout());
             reinterpret_cast<sockaddr_in*>(reinterpret_cast<ADDRINFO*>(d->addr)->ai_addr)->sin_port = htons(d->port());
-            d->timestamp = GetTickCount();
+            d->timestamp = timer();
             d->state = STATE_WAIT_FOR_OPEN;
         }
         // no need break
@@ -93,7 +93,7 @@ Modbus::StatusCode ModbusTcpPort::open()
                     d->state = STATE_OPENED;
                     return Status_Good;
                 }
-                else if (GetTickCount() - d->timestamp >= this->timeout())
+                else if (timer() - d->timestamp >= this->timeout())
                 {
                     d->socket->close();
                     d->state = STATE_CLOSED;
@@ -250,6 +250,7 @@ StatusCode ModbusTcpPort::read()
 {
     ModbusTcpPortPrivateWin *d = d_win(d_ptr);
     const uint16_t size = MBCLIENTTCP_BUFF_SZ;
+    int c;
     bool fRepeatAgain;
     do
     {
@@ -258,18 +259,20 @@ StatusCode ModbusTcpPort::read()
         {
         case STATE_OPENED:
         case STATE_PREPARE_TO_READ:
-            d->timestamp = GetTickCount();
+            d->timestamp = timer();
             d->state = STATE_WAIT_FOR_READ;
+            //d->sz = 0;
             // no need break
         case STATE_WAIT_FOR_READ:
-        case STATE_WAIT_FOR_READ_ALL:
-        {
-            int c = d->socket->recv(reinterpret_cast<char*>(d->buff), size, 0);
+            c = d->socket->recv(reinterpret_cast<char*>(d->buff), size, 0);
             if (c > 0)
             {
                 d->sz = static_cast<uint16_t>(c);
-                d->state = STATE_OPENED;
-                return Status_Good;
+                if (isBlocking() || (d->timeoutInterByte() == 0))
+                {
+                    d->state = STATE_OPENED;
+                    return Status_Good;
+                }
             }
             else if (c == 0)
             {
@@ -281,7 +284,7 @@ StatusCode ModbusTcpPort::read()
                     return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
                                                           StringLiteral("'. Remote connection closed") );
             }
-            else if (isNonBlocking() && (GetTickCount() - d->timestamp >= this->timeout())) // waiting timeout read first byte elapsed
+            else if (isNonBlocking() && (timer() - d->timestamp >= this->timeout())) // waiting timeout read first byte elapsed
             {
                 close();
                 return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
@@ -297,8 +300,33 @@ StatusCode ModbusTcpPort::read()
                                                       StringLiteral("'. Error code: ") + toModbusString(e) +
                                                       StringLiteral(". ") + getLastErrorText());
             }
-        }
-            break;
+            d->timestampRefresh();
+            d->state = STATE_WAIT_FOR_READ_ALL;
+            // no need break
+        case STATE_WAIT_FOR_READ_ALL: // Note: state for non-blocking mode
+            c = d->socket->recv(reinterpret_cast<char*>(d->buff+d->sz), size, 0);
+            if (c > 0)
+            {
+                d->sz += static_cast<uint16_t>(c);
+                d->state = STATE_OPENED;
+                return Status_Good;
+            }
+            else if (c == 0)
+            {
+                close();
+                // Note: When connection is remotely closed is not error for server side
+                if (d->isServerMode())
+                    return Status_Uncertain;
+                else
+                    return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
+                                                          StringLiteral("'. Remote connection closed") );
+            }
+            else if (timer() - d->timestamp >= d->timeoutInterByte()) // waiting timeout read next byte elapsed
+            {
+                d->state = STATE_OPENED;
+                return Status_Good;
+            }
+            return Status_Processing;
         default:
             if (this->isOpen())
             {

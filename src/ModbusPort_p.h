@@ -38,7 +38,7 @@ public:
         this->modeServer = false;
         this->modeBlocking = blocking;
         this->errorStatus = Modbus::Status_Uncertain;
-        // this->settingsBase.timeout must be initialized in derived classes
+        // Note: settingsBase.timeout and settingsBase.timeoutInterByte must be initialized in derived classes
     }
 
     virtual ~ModbusPortPrivate()
@@ -48,7 +48,13 @@ public:
 public: //settings
     inline auto timeout() const { return settingsBase.timeout; }
     inline void setTimeout(uint32_t timeout) { settingsBase.timeout = timeout; }
-    
+
+    inline uint32_t timeoutFirstByte() const { return timeout(); }
+    inline void setTimeoutFirstByte(uint32_t timeout) { setTimeout(timeout); }
+
+    inline auto timeoutInterByte() const { return settingsBase.timeoutInterByte; }
+    inline void setTimeoutInterByte(uint32_t timeout) { settingsBase.timeoutInterByte = timeout; }
+
 public:
     inline bool isServerMode() const { return this->modeServer; }
     inline void setServerMode(bool server) { this->modeServer = server; }
@@ -73,6 +79,7 @@ public:
     struct
     {
         uint32_t timeout;
+        uint32_t timeoutInterByte;
     } settingsBase;
 
 };

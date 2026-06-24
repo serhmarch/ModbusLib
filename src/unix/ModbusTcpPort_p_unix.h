@@ -13,7 +13,6 @@ public:
     ModbusTcpPortPrivateUnix(ModbusTcpSocket *socket, bool blocking) :
         ModbusTcpPortPrivate(blocking)
     {
-        this->timestamp = 0;
         this->addr = nullptr;
 
         if (socket)
@@ -52,7 +51,6 @@ public:
 
 public:
     ModbusTcpSocket *socket;
-    Timer timestamp;
     struct addrinfo *addr;
 };
 

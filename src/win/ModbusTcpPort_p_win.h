@@ -14,7 +14,6 @@ public:
         WSADATA data;
         WSAStartup(0x202, &data);
 
-        this->timestamp = 0;
         this->addr = nullptr;
 
         if (socket)
@@ -54,7 +53,6 @@ public:
 
 public:
     ModbusTcpSocket *socket;
-    DWORD timestamp;
     void *addr;
 };
 

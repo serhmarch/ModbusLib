@@ -15,14 +15,14 @@ public:
     {
         const ModbusSerialPort::Defaults &d = ModbusSerialPort::Defaults::instance();
 
-        settings.portName         = d.portName;
-        settings.baudRate         = d.baudRate;
-        settings.dataBits         = d.dataBits;
-        settings.stopBits         = d.stopBits;
-        settings.parity           = d.parity  ;
-        settings.flowControl      = d.flowControl;
-        settingsBase.timeout      = d.timeoutFirstByte;
-        settings.timeoutInterByte = d.timeoutInterByte;
+        settings.portName             = d.portName        ;
+        settings.baudRate             = d.baudRate        ;
+        settings.dataBits             = d.dataBits        ;
+        settings.stopBits             = d.stopBits        ;
+        settings.parity               = d.parity          ;
+        settings.flowControl          = d.flowControl     ;
+        settingsBase.timeout          = d.timeoutFirstByte;
+        settingsBase.timeoutInterByte = d.timeoutInterByte;
     }
 
 public: // settings
@@ -46,12 +46,6 @@ public: // settings
     inline FlowControl flowControl() const { return settings.flowControl; }
     inline void setFlowControl(Modbus::FlowControl flowControl) { settings.flowControl = flowControl; }\
 
-    inline uint32_t timeoutFirstByte() const { return settingsBase.timeout; }
-    inline void setTimeoutFirstByte(uint32_t timeout) { settingsBase.timeout = timeout; }
-
-    inline uint32_t timeoutInterByte() const { return settings.timeoutInterByte; }
-    inline void setTimeoutInterByte(uint32_t timeout) { settings.timeoutInterByte = timeout; }
-    
 public:
     struct
     {
@@ -61,7 +55,6 @@ public:
         Parity parity;
         StopBits stopBits;
         FlowControl flowControl;
-        uint32_t timeoutInterByte;
     } settings;
 
     uint8_t *buff;

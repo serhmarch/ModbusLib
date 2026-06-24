@@ -113,6 +113,18 @@ public:
     ///  \details Sets the setting for the connection timeout of the remote device.
     void setTimeout(uint32_t timeout);
 
+    /// \details Same as `timeout()`.
+    inline uint32_t timeoutFirstByte() const { return timeout(); }
+
+    /// \details Same as `setTimeout()`.
+    inline void setTimeoutFirstByte(uint32_t timeout) { setTimeout(timeout); }
+
+    /// \details Returns current timeout of waiting next byte (inter byte waiting timeout) of incomming packet (in milliseconds).
+    uint32_t timeoutInterByte() const;
+
+    /// \details Set current timeout of waiting next byte (inter byte waiting timeout) of incomming packet (in milliseconds).
+    void setTimeoutInterByte(uint32_t timeout);
+
 public: // errors
     /// \details Returns the status of the last error of the performed operation.
     Modbus::StatusCode lastErrorStatus() const;

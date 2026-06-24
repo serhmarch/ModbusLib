@@ -54,6 +54,20 @@ void ModbusPort::setTimeout(uint32_t timeout)
     }
 }
 
+uint32_t ModbusPort::timeoutInterByte() const
+{    
+    return d_ptr->timeoutInterByte();
+}
+
+void ModbusPort::setTimeoutInterByte(uint32_t timeout)
+{
+    if (d_ptr->timeoutInterByte() != timeout)
+    {
+        d_ptr->setTimeoutInterByte(timeout);
+        d_ptr->setChanged(true);
+    }
+}
+
 StatusCode ModbusPort::lastErrorStatus() const
 {
     return d_ptr->lastErrorStatus();

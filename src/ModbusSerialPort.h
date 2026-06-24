@@ -139,12 +139,6 @@ public: // settings
     /// \details Set current serial port timeout of waiting first byte of incomming packet (in milliseconds).
     inline void setTimeoutFirstByte(uint32_t timeout) { setTimeout(timeout); }
 
-    /// \details Returns current serial port timeout of waiting next byte (inter byte waiting tgimeout) of incomming packet (in milliseconds).
-    uint32_t timeoutInterByte() const;
-
-    /// \details Set current serial port timeout of waiting next byte (inter byte waiting tgimeout) of incomming packet (in milliseconds).
-    void setTimeoutInterByte(uint32_t timeout);
-
 public:
     const uint8_t *readBufferData() const override;
     uint16_t readBufferSize() const override;
