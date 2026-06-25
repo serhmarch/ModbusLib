@@ -267,7 +267,7 @@ StatusCode ModbusTcpPort::read()
             if (c > 0)
             {
                 d->sz = static_cast<uint16_t>(c);
-                if (isBlocking() || (d->timeoutInterByte() == 0))
+                if (isBlocking() || (d->timeoutInterByte() == 0) || (d->sz == size))
                 {
                     d->state = STATE_OPENED;
                     return Status_Good;
@@ -307,12 +307,22 @@ StatusCode ModbusTcpPort::read()
             d->state = STATE_WAIT_FOR_READ_ALL;
             // no need break
         case STATE_WAIT_FOR_READ_ALL: // Note: state for non-blocking mode
-            c = d->socket->recv(reinterpret_cast<char*>(d->buff+d->sz), size, 0);
+            c = d->socket->recv(reinterpret_cast<char*>(d->buff+d->sz), size-d->sz, 0);
             if (c > 0)
             {
                 d->sz += static_cast<uint16_t>(c);
-                d->state = STATE_OPENED;
-                return Status_Good;
+                if (d->sz == size)
+                {
+                    d->state = STATE_OPENED;
+                    return Status_Good;
+                }
+                if (d->sz > size)
+                {
+                    close();
+                    return d->setError(Status_BadTcpRead, StringLiteral("TCP. Error while reading from '") + d->host() + StringLiteral(":") + toModbusString(d->port()) +
+                                                          StringLiteral("'. Read buffer overflow") );
+                }
+                d->timestampRefresh();
             }
             else if (c == 0)
             {
