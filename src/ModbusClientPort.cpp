@@ -51,6 +51,11 @@ void ModbusClientPort::setBroadcastEnabled(bool enable)
     d_cast(d_ptr)->setBroadcastEnabled(enable);
 }
 
+void ModbusClientPort::setNextRequestRepeated(bool v)
+{
+    d_cast(d_ptr)->port->setNextRequestRepeated(v);
+}
+
 #ifndef MBF_READ_COILS_DISABLE
 Modbus::StatusCode ModbusClientPort::readCoils(ModbusObject *client, uint8_t unit, uint16_t offset, uint16_t count, void *values)
 {
