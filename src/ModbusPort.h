@@ -84,6 +84,9 @@ public:
     /// \details Closes the port (breaks the connection) and returns the status the result status.
     virtual Modbus::StatusCode close() = 0;
 
+    /// \details Closes the port (breaks the connection) if the error is critical and returns the result status.
+    virtual Modbus::StatusCode closeOnError(Modbus::StatusCode error);
+
     /// \details Returns `true` if the port is open/communication with the remote device is established, `false` otherwise.
     virtual bool isOpen() const = 0;
 

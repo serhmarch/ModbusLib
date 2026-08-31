@@ -155,13 +155,13 @@ public:
 
 };
 
-#define SET_ERROR(status, text) { d->setError(status, text); signalError(d->getName(), status, text); }
+#define SET_ERROR(status, text) { d->setError(status, text); signalError(d->getName(), status, text); d->port->closeOnError(status); }
 #define RAISE_ERROR(status, text) { SET_ERROR(status, text) return status; }
 #define SET_COMPLETED(status) { d->lastStatus = status; signalCompleted(d->getName(), status); d->currentClient = nullptr; }
 #define RAISE_COMPLETED(status) { SET_COMPLETED(status) return status; }
 #define RAISE_ERROR_COMPLETED(status, text) { SET_ERROR(status, text) SET_COMPLETED(status) return status; }
 
-#define SET_PORT_ERROR(status) { d->setPortError(status); signalError(d->getName(), status, d->port->lastErrorText()); }
+#define SET_PORT_ERROR(status) { d->setPortError(status); signalError(d->getName(), status, d->port->lastErrorText()); d->port->closeOnError(status); }
 #define RAISE_PORT_ERROR(status) { SET_PORT_ERROR(status) return status; }
 #define RAISE_PORT_ERROR_COMPLETED(status) { SET_PORT_ERROR(status) SET_COMPLETED(status) return status; }
 

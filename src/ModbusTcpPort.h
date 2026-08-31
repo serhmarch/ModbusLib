@@ -74,6 +74,7 @@ public:
 
     Modbus::StatusCode open() override;
     Modbus::StatusCode close() override;
+    Modbus::StatusCode closeOnError(Modbus::StatusCode err) override;
     bool isOpen() const override;
 
 public:

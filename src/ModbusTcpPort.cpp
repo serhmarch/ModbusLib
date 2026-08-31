@@ -16,6 +16,13 @@ const ModbusTcpPort::Defaults &ModbusTcpPort::Defaults::instance()
     return d;
 }
 
+Modbus::StatusCode ModbusTcpPort::closeOnError(Modbus::StatusCode err)
+{
+    if (err == Modbus::Status_BadNotCorrectResponse)
+        return close();
+    return Modbus::Status_GoodNoAction;
+}
+
 const Char *ModbusTcpPort::host() const
 {
     return d_cast(d_ptr)->settings.host.data();

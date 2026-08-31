@@ -11,6 +11,11 @@ ModbusPort::~ModbusPort()
     delete d_ptr;
 }
 
+Modbus::StatusCode ModbusPort::closeOnError(Modbus::StatusCode error)
+{
+    return Modbus::Status_GoodNoAction;
+}
+
 void ModbusPort::setNextRequestRepeated(bool /*v*/)
 {
 }

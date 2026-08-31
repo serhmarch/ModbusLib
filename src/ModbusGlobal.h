@@ -266,7 +266,11 @@ typedef enum _StatusCode
     Status_Good                     = 0x00000000, ///< Successful result
     Status_Bad                      = 0x01000000, ///< Error. General
     Status_Uncertain                = 0x02000000, ///< The status is undefined
-                                                          
+    
+    //---- Modbus specific Good status codes ----
+    Status_GoodNoData   = Status_Good | 0x01, ///< The considered operation is successful, but no data was received
+    Status_GoodNoAction = Status_Good | 0x02, ///< The operation is not performed because the requested action is not required
+
     //------ Modbus standart errors begin -------         
     // from 0 to 255                                      
     Status_BadIllegalFunction                    = Status_Bad | 0x01, ///< Standard error. The feature is not supported
