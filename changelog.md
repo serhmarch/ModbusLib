@@ -132,3 +132,14 @@
 * Add signal functions `ModbusClientPort::signalCompleted()` and `ModbusServerPort::signalCompleted()`
 * Improve error text messages
 * Improve unit tests
+
+# 0.4.10
+
+* Fixed `EWOULDBLOCK` for blocking mode
+* Added `ModbusClinetPort::frameRequest()`
+* Added `ModbusClientPort::signalStarted()`
+* Added `tries` setting for ModbusClient class
+* Added `TimeoutInterByte` setting for TCP port
+* Added `ModbusClientPort::setNextRequestRepeated()`-method
+* Added `ModbusPort::closeOnError()`-method
+* Improved unit tests
