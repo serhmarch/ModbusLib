@@ -18,6 +18,7 @@ public:
     MOCK_METHOD(Modbus::Handle, handle, (), (const, override));
     MOCK_METHOD(Modbus::StatusCode, open, (), (override));
     MOCK_METHOD(Modbus::StatusCode, close, (), (override));
+    MOCK_METHOD(Modbus::StatusCode, closeOnError, (Modbus::StatusCode error), (override));
     MOCK_METHOD(bool, isOpen, (), (const, override));
     MOCK_METHOD(void, setServerMode, (bool mode), (override));
     MOCK_METHOD(Modbus::StatusCode, writeBuffer, (uint8_t unit, uint8_t func, uint8_t *buff, uint16_t szInBuff), (override));

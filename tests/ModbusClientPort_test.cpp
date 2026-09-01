@@ -1257,6 +1257,90 @@ TEST_F(ModbusClientPortTest, ExceptionResponse)
     EXPECT_EQ(result, Status_BadIllegalDataAddress);
 }
 
+TEST_F(ModbusClientPortTest, ClosesPortOnBadNotCorrectResponse)
+{
+    const uint8_t unit = 1;
+    const uint8_t wrongUnit = 2; // server echoes back a different unit address than requested
+
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .WillOnce(Return(Status_Good));
+
+    EXPECT_CALL(*mockPort, writeBufferSize())
+        .WillRepeatedly(Return(4));
+
+    EXPECT_CALL(*mockPort, writeBufferData())
+        .WillRepeatedly(Return(nullptr));
+
+    EXPECT_CALL(*mockPort, write())
+        .WillOnce(Return(Status_Good));
+
+    EXPECT_CALL(*mockPort, read())
+        .WillOnce(Return(Status_Good));
+
+    uint8_t responseData[5] = {0x04, 0x00, 0x0A, 0x00, 0x14};
+
+    EXPECT_CALL(*mockPort, readBuffer(_, _, _, _, _))
+        .WillOnce(DoAll(
+            SetArgReferee<0>(wrongUnit), // mismatched unit -> Status_BadNotCorrectResponse
+            SetArgReferee<1>(MBF_READ_HOLDING_REGISTERS),
+            SetArrayArgument<2>(responseData, responseData + 5),
+            SetArgPointee<4>(5),
+            Return(Status_Good)));
+
+    EXPECT_CALL(*mockPort, readBufferSize())
+        .WillRepeatedly(Return(5));
+
+    EXPECT_CALL(*mockPort, readBufferData())
+        .WillRepeatedly(Return(responseData));
+
+    // ModbusClientPort must ask the underlying port to close itself on a bad
+    // response. Real ModbusTcpPort::closeOnError() closes the connection for
+    // exactly this status, so the mock mirrors that by forwarding to close().
+    EXPECT_CALL(*mockPort, closeOnError(Status_BadNotCorrectResponse))
+        .WillOnce(InvokeWithoutArgs(mockPort, &MockModbusPort::close));
+
+    EXPECT_CALL(*mockPort, close())
+        .WillOnce(Return(Status_Good));
+
+    uint16_t values[2];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 2, values);
+
+    EXPECT_EQ(result, Status_BadNotCorrectResponse);
+    EXPECT_EQ(clientPort->lastErrorStatus(), Status_BadNotCorrectResponse);
+}
+
+TEST_F(ModbusClientPortTest, DoesNotClosePortOnOtherErrors)
+{
+    const uint8_t unit = 1;
+
+    EXPECT_CALL(*mockPort, isOpen())
+        .WillRepeatedly(Return(true));
+
+    EXPECT_CALL(*mockPort, writeBuffer(_, _, _, _))
+        .WillOnce(Return(Status_Good));
+
+    EXPECT_CALL(*mockPort, write())
+        .WillOnce(Return(Status_BadTcpWrite));
+
+    // Real ModbusTcpPort::closeOnError() only closes the connection for
+    // Status_BadNotCorrectResponse; every other error is a no-op. The mock
+    // mirrors that selectivity so this test guards against closeOnError()
+    // being (mis)used to close the port on unrelated errors.
+    EXPECT_CALL(*mockPort, closeOnError(Status_BadTcpWrite))
+        .WillOnce(Return(Status_GoodNoAction));
+
+    EXPECT_CALL(*mockPort, close())
+        .Times(0);
+
+    uint16_t values[10];
+    StatusCode result = clientPort->readHoldingRegisters(unit, 0, 10, values);
+
+    EXPECT_EQ(result, Status_BadTcpWrite);
+}
+
 // ============================================================================
 // Retry Mechanism Tests
 // ============================================================================
