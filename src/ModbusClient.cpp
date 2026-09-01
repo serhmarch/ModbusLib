@@ -1,6 +1,8 @@
 #include "ModbusClient.h"
 #include "ModbusClient_p.h"
 
+#include "ModbusPort.h"
+
 inline ModbusClientPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusClientPrivate*>(d_ptr); }
 
 ModbusClient::ModbusClient(uint8_t unit, ModbusClientPort *port) :
@@ -60,15 +62,20 @@ void ModbusClient::setTries(uint32_t v)
 #else
 #define MB_MODBUS_CLIENT_CALL(func, ...) \
     ModbusClientPrivate *d = d_cast(d_ptr); \
-    Modbus::StatusCode s = d->port->func(this, d->unit, __VA_ARGS__); \
-    if (Modbus::StatusIsProcessing(s)) \
-        return s; \
-    if (Modbus::StatusIsBad(s)) \
-    { \
-        ++d->innerTries; \
-        if (d->innerTries < d->settings.tries) \
-            return Modbus::Status_Processing; \
-    } \
+    Modbus::StatusCode s; \
+    do { \
+        s = d->port->func(this, d->unit, __VA_ARGS__); \
+        if (Modbus::StatusIsProcessing(s)) \
+            return s; \
+        if (Modbus::StatusIsBad(s)) { \
+            ++d->innerTries; \
+            if (d->innerTries < d->settings.tries) { \
+                d->port->setNextRequestRepeated(true); \
+                continue; \
+            } \
+        } \
+        break; \
+    } while(1); \
     d->innerTries = 0; \
     return s;
 #endif // MB_CLIENT_REPEAT_DISABLE

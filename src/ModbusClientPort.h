@@ -155,6 +155,9 @@ public:
     /// \sa `isBroadcastEnabled()`
     void setBroadcastEnabled(bool enable);
 
+    ///  \details Repeat next request parameters (for Modbus TCP transaction Id).
+    void setNextRequestRepeated(bool v);
+
 public: // Main interface
 
 #ifndef MBF_READ_COILS_DISABLE
