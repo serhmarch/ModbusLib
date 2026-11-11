@@ -23,7 +23,7 @@
 #include "ModbusServerResource.h"
 #include "ModbusServerResource_p.h"
 
-inline ModbusServerResourcePrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerResourcePrivate*>(d_ptr); }
+static inline ModbusServerResourcePrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerResourcePrivate*>(d_ptr); }
 
 ModbusServerResource::ModbusServerResource(ModbusPort *port, ModbusInterface *device) :
     ModbusServerPort(new ModbusServerResourcePrivate(port, device))

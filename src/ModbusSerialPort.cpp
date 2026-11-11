@@ -23,7 +23,7 @@
 #include "ModbusSerialPort.h"
 #include "ModbusSerialPort_p.h"
 
-inline ModbusSerialPortPrivate *d_cast(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivate*>(d_ptr); }
+static inline ModbusSerialPortPrivate *d_cast(ModbusPortPrivate *d_ptr) { return static_cast<ModbusSerialPortPrivate*>(d_ptr); }
 
 const Char *ModbusSerialPort::portName() const
 {

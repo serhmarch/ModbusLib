@@ -3,7 +3,7 @@
 
 #include "ModbusPort.h"
 
-inline ModbusClientPortPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusClientPortPrivate*>(d_ptr); }
+static inline ModbusClientPortPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusClientPortPrivate*>(d_ptr); }
 
 ModbusClientPort::ModbusClientPort(ModbusPort *port) :
     ModbusObject(new ModbusClientPortPrivate(port))

@@ -30,7 +30,7 @@
 
 #define MODBUS_TCPSERVER_OPEN_TIMOUT_ms 1000
 
-inline ModbusTcpServerPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpServerPrivate*>(d_ptr); }
+static inline ModbusTcpServerPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusTcpServerPrivate*>(d_ptr); }
 
 ModbusTcpServer::Defaults::Defaults() :
     ipaddr (StringLiteral("0.0.0.0")),
