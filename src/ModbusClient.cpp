@@ -1,7 +1,7 @@
 #include "ModbusClient.h"
 #include "ModbusClient_p.h"
 
-inline ModbusClientPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusClientPrivate*>(d_ptr); }
+static inline ModbusClientPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusClientPrivate*>(d_ptr); }
 
 ModbusClient::ModbusClient(uint8_t unit, ModbusClientPort *port) :
     ModbusObject(new ModbusClientPrivate)

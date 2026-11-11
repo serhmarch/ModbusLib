@@ -23,7 +23,7 @@
 #include "ModbusServerPort.h"
 #include "ModbusServerPort_p.h"
 
-inline ModbusServerPortPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerPortPrivate*>(d_ptr); }
+static inline ModbusServerPortPrivate *d_cast(ModbusObjectPrivate *d_ptr) { return static_cast<ModbusServerPortPrivate*>(d_ptr); }
 
 ModbusInterface *ModbusServerPort::device() const
 {

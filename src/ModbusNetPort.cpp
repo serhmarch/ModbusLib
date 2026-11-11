@@ -23,7 +23,7 @@
 #include "ModbusNetPort.h"
 #include "ModbusNetPort_p.h"
 
-inline ModbusNetPortPrivate *d_cast(ModbusPortPrivate *d_ptr) { return static_cast<ModbusNetPortPrivate*>(d_ptr); }
+static inline ModbusNetPortPrivate *d_cast(ModbusPortPrivate *d_ptr) { return static_cast<ModbusNetPortPrivate*>(d_ptr); }
 
 const Char *ModbusNetPort::host() const
 {
